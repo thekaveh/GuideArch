@@ -9,6 +9,8 @@
   import CoefficientsTab from './lib/CoefficientsTab.svelte';
   import ConstraintsTab from './lib/ConstraintsTab.svelte';
   import ResultsTab from './lib/ResultsTab.svelte';
+  import CriticalDecisionsTab from './lib/CriticalDecisionsTab.svelte';
+  import CriticalConstraintsTab from './lib/CriticalConstraintsTab.svelte';
 
   const vm = makeScenarioVm();
 
@@ -19,6 +21,8 @@
     'Coefficients',
     'Constraints',
     'Results',
+    'Critical Decisions',
+    'Critical Constraints',
   ] as const;
   type Tab = (typeof TABS)[number];
 
@@ -51,6 +55,10 @@
       <CoefficientsTab {vm} onError={showError} />
     {:else if activeTab === 'Constraints'}
       <ConstraintsTab {vm} onError={showError} />
+    {:else if activeTab === 'Critical Decisions'}
+      <CriticalDecisionsTab {vm} />
+    {:else if activeTab === 'Critical Constraints'}
+      <CriticalConstraintsTab {vm} />
     {:else}
       <ResultsTab {vm} />
     {/if}

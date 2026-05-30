@@ -46,6 +46,8 @@ export interface ScenarioState {
   criticalConstraints: readonly CriticalConstraintM[];
   status: string;
   warnings: readonly string[];
+  /** Index into `candidates` that is currently selected for chart detail. Null when no candidates. */
+  selectedCandidateIndex: number | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -87,6 +89,9 @@ export type ScenarioVM = ComponentVMOf<ScenarioState> & {
   updateConstraint(index: number, c: ConstraintM): void;
 
   updateScenarioName(name: string): void;
+
+  /** Select a candidate by index (0-based) for chart detail. Pass null to deselect. */
+  setSelectedCandidateIndex(index: number | null): void;
 };
 
 // ---------------------------------------------------------------------------
@@ -110,6 +115,7 @@ function _emptyState(): ScenarioState {
     criticalConstraints: [],
     status: 'No scenario loaded.',
     warnings: [],
+    selectedCandidateIndex: null,
   };
 }
 
@@ -167,11 +173,13 @@ export function makeScenarioVm(): ScenarioVM {
         criticalDecisions: [],
         criticalConstraints: [],
         status: 'No scenario loaded.',
+        selectedCandidateIndex: null,
       });
       return;
     }
     const result = _runSolve(scenario);
-    _setState(result);
+    const selectedCandidateIndex = result.candidates.length > 0 ? 0 : null;
+    _setState({ ...result, selectedCandidateIndex });
   }
 
   function _requireScenario(): ScenarioM {
@@ -212,6 +220,7 @@ export function makeScenarioVm(): ScenarioVM {
         criticalConstraints: [],
         status: 'New scenario — nothing to solve.',
         warnings: [],
+        selectedCandidateIndex: null,
       });
     })
     .build();
@@ -221,11 +230,13 @@ export function makeScenarioVm(): ScenarioVM {
       try {
         const scenario = loadScenario(path);
         const result = _runSolve(scenario);
+        const selectedCandidateIndex = result.candidates.length > 0 ? 0 : null;
         _setState({
           scenario,
           filePath: path,
           isDirty: false,
           warnings: scenario.warnings,
+          selectedCandidateIndex,
           ...result,
         });
       } catch (err) {
@@ -501,6 +512,14 @@ export function makeScenarioVm(): ScenarioVM {
     // Name change does not trigger solve
   }
 
+  function setSelectedCandidateIndex(index: number | null): void {
+    const { candidates } = _getModel();
+    if (index !== null && (index < 0 || index >= candidates.length)) {
+      throw new ScenarioMutationError(`Candidate index ${index} out of range`);
+    }
+    _setState({ selectedCandidateIndex: index });
+  }
+
   // ── Build the ComponentVMOf ───────────────────────────────────────────────
 
   const vm = ComponentVMOf.builder<ScenarioState>()
@@ -597,6 +616,12 @@ export function makeScenarioVm(): ScenarioVM {
     },
     updateScenarioName: {
       value: updateScenarioName,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    setSelectedCandidateIndex: {
+      value: setSelectedCandidateIndex,
       writable: false,
       enumerable: true,
       configurable: false,
