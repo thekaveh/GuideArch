@@ -1,0 +1,259 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ================================================================
+       GuideArch Design System — Component Styles
+       ================================================================ -->
+
+  <!-- ── §5.1 Buttons ──────────────────────────────────────────────── -->
+
+  <!-- Base button reset — applied to all GuideArch buttons -->
+  <Style Selector="Button.ga-btn">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- Primary — solid accent background -->
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource AccentOnBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
+  </Style>
+  <Style Selector="Button.primary:pointerover">
+    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
+  </Style>
+
+  <!-- Secondary — transparent bg, border-strong border -->
+  <Style Selector="Button.secondary">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource BgSurface2Brush}" />
+  </Style>
+
+  <!-- Ghost — transparent, text-secondary, no border. Toolbar actions. -->
+  <Style Selector="Button.ghost">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.ghost:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource BgSurface2Brush}" />
+  </Style>
+  <Style Selector="Button.ghost:pointerover">
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+  </Style>
+
+  <!-- Destructive — same shape as secondary, danger text and border -->
+  <Style Selector="Button.destructive">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.destructive:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource BgSurface2Brush}" />
+  </Style>
+
+  <!-- toolbar-btn — ghost style for the top toolbar buttons -->
+  <Style Selector="Button.toolbar-btn">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.toolbar-btn:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource BgSurface2Brush}" />
+  </Style>
+  <Style Selector="Button.toolbar-btn:pointerover">
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+  </Style>
+
+  <!-- action-btn — primary style for in-tab "Add …" actions -->
+  <Style Selector="Button.action-btn">
+    <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource AccentOnBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.action-btn:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
+  </Style>
+  <Style Selector="Button.action-btn:pointerover">
+    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
+  </Style>
+
+  <!-- ── §5.2 Inputs ───────────────────────────────────────────────── -->
+
+  <Style Selector="TextBox">
+    <Setter Property="Height" Value="32" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Background" Value="{StaticResource BgSurface2Brush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <Style Selector="NumericUpDown">
+    <Setter Property="Height" Value="32" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Background" Value="{StaticResource BgSurface2Brush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <Style Selector="ComboBox">
+    <Setter Property="Height" Value="32" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Background" Value="{StaticResource BgSurface2Brush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- ── §5.3 DataGrid ─────────────────────────────────────────────── -->
+
+  <Style Selector="DataGrid">
+    <Setter Property="Background" Value="{StaticResource BgPageBrush}" />
+    <Setter Property="RowBackground" Value="{StaticResource BgPageBrush}" />
+    <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+    <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="GridLinesVisibility" Value="Horizontal" />
+    <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource BorderSubtleBrush}" />
+    <Setter Property="VerticalGridLinesBrush" Value="Transparent" />
+  </Style>
+
+  <!-- DataGrid column header -->
+  <Style Selector="DataGridColumnHeader">
+    <Setter Property="Background" Value="{StaticResource BgSurfaceBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+    <Setter Property="SeparatorBrush" Value="{StaticResource BorderSubtleBrush}" />
+  </Style>
+
+  <!-- DataGrid body rows -->
+  <Style Selector="DataGridRow">
+    <Setter Property="Height" Value="36" />
+    <Setter Property="Background" Value="{StaticResource BgPageBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+
+  <!-- DataGrid row hover -->
+  <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+    <Setter Property="Fill" Value="{StaticResource BgSurface2Brush}" />
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+
+  <!-- DataGrid row selected -->
+  <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+    <Setter Property="Fill" Value="{StaticResource AccentMutedBrush}" />
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+
+  <!-- DataGrid cells -->
+  <Style Selector="DataGridCell">
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <!-- ── §5.4 TabControl / TabItem ─────────────────────────────────── -->
+
+  <Style Selector="TabControl">
+    <Setter Property="Background" Value="{StaticResource BgPageBrush}" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <Style Selector="TabItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Padding" Value="16,12" />
+    <Setter Property="Height" Value="40" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+
+  <Style Selector="TabItem:pointerover">
+    <Setter Property="Background" Value="{StaticResource BgSurface2Brush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+  </Style>
+
+  <Style Selector="TabItem:selected">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="FontWeight" Value="Medium" />
+  </Style>
+
+  <!-- ── §5.5 Card borders ──────────────────────────────────────────── -->
+
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{StaticResource BgSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="16" />
+  </Style>
+
+</Styles>

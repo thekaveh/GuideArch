@@ -1,0 +1,65 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ================================================================
+       GuideArch Design System — §2 Color tokens
+       ================================================================ -->
+
+  <!-- §2.1 Surface -->
+  <Color x:Key="BgPageColor">#0b0d12</Color>
+  <Color x:Key="BgSurfaceColor">#13161d</Color>
+  <Color x:Key="BgSurface2Color">#1a1e27</Color>
+  <Color x:Key="BgSurface3Color">#252a36</Color>
+  <Color x:Key="BorderSubtleColor">#262b36</Color>
+  <Color x:Key="BorderStrongColor">#363c4a</Color>
+
+  <SolidColorBrush x:Key="BgPageBrush" Color="{StaticResource BgPageColor}" />
+  <SolidColorBrush x:Key="BgSurfaceBrush" Color="{StaticResource BgSurfaceColor}" />
+  <SolidColorBrush x:Key="BgSurface2Brush" Color="{StaticResource BgSurface2Color}" />
+  <SolidColorBrush x:Key="BgSurface3Brush" Color="{StaticResource BgSurface3Color}" />
+  <SolidColorBrush x:Key="BorderSubtleBrush" Color="{StaticResource BorderSubtleColor}" />
+  <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrongColor}" />
+
+  <!-- §2.2 Text -->
+  <Color x:Key="TextPrimaryColor">#e6e7ed</Color>
+  <Color x:Key="TextSecondaryColor">#9298a8</Color>
+  <Color x:Key="TextMutedColor">#5e6478</Color>
+  <Color x:Key="TextInverseColor">#0b0d12</Color>
+
+  <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+  <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+  <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+  <SolidColorBrush x:Key="TextInverseBrush" Color="{StaticResource TextInverseColor}" />
+
+  <!-- §2.3 Accent — indigo-violet -->
+  <Color x:Key="AccentColor">#8b5cf6</Color>
+  <Color x:Key="AccentHoverColor">#a78bfa</Color>
+  <Color x:Key="AccentMutedColor">#3d2a6b</Color>
+  <Color x:Key="AccentOnColor">#ffffff</Color>
+
+  <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" />
+  <SolidColorBrush x:Key="AccentMutedBrush" Color="{StaticResource AccentMutedColor}" />
+  <SolidColorBrush x:Key="AccentOnBrush" Color="{StaticResource AccentOnColor}" />
+
+  <!-- §2.4 Semantic (status) -->
+  <Color x:Key="SuccessColor">#10b981</Color>
+  <Color x:Key="WarningColor">#f59e0b</Color>
+  <Color x:Key="DangerColor">#ef4444</Color>
+  <Color x:Key="InfoColor">#3b82f6</Color>
+
+  <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+  <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+  <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
+  <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}" />
+
+  <!-- §2.5 Fuzzy axes (charts) -->
+  <Color x:Key="FuzzyPositiveColor">#34d399</Color>
+  <Color x:Key="FuzzyAverageColor">#fbbf24</Color>
+  <Color x:Key="FuzzyNegativeColor">#fb7185</Color>
+
+  <SolidColorBrush x:Key="FuzzyPositiveBrush" Color="{StaticResource FuzzyPositiveColor}" />
+  <SolidColorBrush x:Key="FuzzyAverageBrush" Color="{StaticResource FuzzyAverageColor}" />
+  <SolidColorBrush x:Key="FuzzyNegativeBrush" Color="{StaticResource FuzzyNegativeColor}" />
+
+</ResourceDictionary>

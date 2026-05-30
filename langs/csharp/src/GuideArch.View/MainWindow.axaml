@@ -4,7 +4,9 @@
         x:Class="GuideArch.View.MainWindow"
         Title="GuideArch"
         Width="1200" Height="800"
-        MinWidth="800" MinHeight="500">
+        MinWidth="800" MinHeight="500"
+        Background="{StaticResource BgPageBrush}"
+        FontSize="13">
 
   <!--
     DataContext is ComponentVM<ScenarioState> — an open generic type that Avalonia's
@@ -15,14 +17,17 @@
   <DockPanel>
 
     <!-- ================================================================
-         TOP TOOLBAR — spec editors.md §1 toolbar
+         TOP TOOLBAR — §6 toolbar: 56px tall, 24px horizontal padding
          ================================================================ -->
     <Border DockPanel.Dock="Top"
-            Background="#1E1E2E"
-            BorderBrush="#313244"
+            Background="{StaticResource BgSurfaceBrush}"
+            BorderBrush="{StaticResource BorderSubtleBrush}"
             BorderThickness="0,0,0,1"
-            Padding="8,6">
-      <StackPanel Orientation="Horizontal" Spacing="4">
+            Height="56"
+            Padding="24,0">
+      <StackPanel Orientation="Horizontal"
+                  Spacing="8"
+                  VerticalAlignment="Center">
 
         <!-- New -->
         <Button Name="BtnNew"
@@ -83,25 +88,26 @@
     </Border>
 
     <!-- ================================================================
-         BOTTOM STATUS BAR — spec editors.md §1 status bar
+         BOTTOM STATUS BAR — §6 status bar: 32px tall, 24px horizontal padding
          ================================================================ -->
     <Border DockPanel.Dock="Bottom"
-            Background="#1E1E2E"
-            BorderBrush="#313244"
+            Background="{StaticResource BgSurfaceBrush}"
+            BorderBrush="{StaticResource BorderSubtleBrush}"
             BorderThickness="0,1,0,0"
-            Padding="12,4">
+            Height="32"
+            Padding="24,0">
       <Grid ColumnDefinitions="*,Auto">
         <!-- Status text — scenario name · n candidates -->
         <TextBlock Grid.Column="0"
                    Text="{ReflectionBinding Model.Status}"
                    FontSize="12"
-                   Foreground="#CDD6F4"
+                   Foreground="{StaticResource TextSecondaryBrush}"
                    VerticalAlignment="Center" />
         <!-- Warnings chip — shows last warning if any -->
         <TextBlock Grid.Column="1"
                    Text="{ReflectionBinding Model.Warnings[0]}"
                    FontSize="11"
-                   Foreground="#F38BA8"
+                   Foreground="{StaticResource DangerBrush}"
                    VerticalAlignment="Center"
                    Margin="16,0,0,0"
                    IsVisible="{ReflectionBinding !Model.Warnings.IsEmpty}" />
@@ -109,18 +115,19 @@
     </Border>
 
     <!-- ================================================================
-         EMPTY STATE — shown when no scenario is loaded
+         EMPTY STATE — §8 empty state: shown when no scenario is loaded
          ================================================================ -->
     <Grid IsVisible="{ReflectionBinding !Model.HasScenario}">
       <StackPanel HorizontalAlignment="Center"
                   VerticalAlignment="Center"
                   Spacing="16">
         <TextBlock Text="No scenario loaded."
-                   FontSize="22"
-                   Foreground="#6C7086"
+                   FontSize="14"
+                   FontWeight="Medium"
+                   Foreground="{StaticResource TextSecondaryBrush}"
                    HorizontalAlignment="Center" />
-        <TextBlock FontSize="14"
-                   Foreground="#A6ADC8"
+        <TextBlock FontSize="13"
+                   Foreground="{StaticResource TextMutedBrush}"
                    HorizontalAlignment="Center"
                    TextAlignment="Center"
                    TextWrapping="Wrap"
@@ -130,28 +137,28 @@
                     HorizontalAlignment="Center"
                     Spacing="8">
           <Button Content="Open Sample SAS"
-                  Classes="toolbar-btn"
+                  Classes="action-btn"
                   Click="OnOpenSampleSasClicked" />
           <Button Content="Open Sample EDS"
-                  Classes="toolbar-btn"
+                  Classes="action-btn"
                   Click="OnOpenSampleEdsClicked" />
           <Button Content="New"
-                  Classes="toolbar-btn"
+                  Classes="secondary"
                   Click="OnNewClicked" />
           <Button Content="Open…"
-                  Classes="toolbar-btn"
+                  Classes="secondary"
                   Click="OnOpenClicked" />
         </StackPanel>
       </StackPanel>
     </Grid>
 
     <!-- ================================================================
-         MAIN TAB STRIP — spec editors.md §1 tab strip
+         MAIN TAB STRIP — §5.4 tabs, §6 layout
          Visible only when a scenario is loaded.
          ================================================================ -->
     <TabControl Name="MainTabs"
                 IsVisible="{ReflectionBinding Model.HasScenario}"
-                Background="#1E1E2E">
+                Background="{StaticResource BgPageBrush}">
 
       <!-- ── Tab 1: Decisions ────────────────────────────────────────── -->
       <TabItem Header="Decisions">
@@ -161,7 +168,7 @@
           <StackPanel Grid.Row="0"
                       Orientation="Horizontal"
                       Spacing="8"
-                      Margin="8,8,8,4">
+                      Margin="24,12,24,8">
             <Button Content="Add Decision"
                     Click="OnAddDecisionClicked"
                     Classes="action-btn" />
@@ -176,14 +183,14 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="False"
-                    Margin="8,0,8,8">
+                    Margin="24,0,24,24">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
                                   Width="220"
                                   IsReadOnly="True"
                                   FontFamily="Cascadia Code,Consolas,monospace"
-                                  FontSize="11" />
+                                  FontSize="13" />
               <DataGridTextColumn Header="Name"
                                   Binding="{ReflectionBinding Name}"
                                   Width="*" />
@@ -201,10 +208,10 @@
           <StackPanel Grid.Row="0"
                       Orientation="Horizontal"
                       Spacing="8"
-                      Margin="8,8,8,4">
+                      Margin="24,12,24,8">
             <TextBlock Text="Select a decision then:"
                        VerticalAlignment="Center"
-                       Foreground="#CDD6F4"
+                       Foreground="{StaticResource TextSecondaryBrush}"
                        FontSize="12" />
             <Button Content="Add Alternative"
                     Click="OnAddAlternativeClicked"
@@ -220,20 +227,20 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="False"
-                    Margin="8,0,8,8">
+                    Margin="24,0,24,24">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
                                   Width="220"
                                   IsReadOnly="True"
                                   FontFamily="Cascadia Code,Consolas,monospace"
-                                  FontSize="11" />
+                                  FontSize="13" />
               <DataGridTextColumn Header="Decision ID"
                                   Binding="{ReflectionBinding DecisionId}"
                                   Width="220"
                                   IsReadOnly="True"
                                   FontFamily="Cascadia Code,Consolas,monospace"
-                                  FontSize="11" />
+                                  FontSize="13" />
               <DataGridTextColumn Header="Name"
                                   Binding="{ReflectionBinding Name}"
                                   Width="*" />
@@ -250,7 +257,7 @@
           <StackPanel Grid.Row="0"
                       Orientation="Horizontal"
                       Spacing="8"
-                      Margin="8,8,8,4">
+                      Margin="24,12,24,8">
             <Button Content="Add Property"
                     Click="OnAddPropertyClicked"
                     Classes="action-btn" />
@@ -265,14 +272,14 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="False"
-                    Margin="8,0,8,8">
+                    Margin="24,0,24,24">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
                                   Width="220"
                                   IsReadOnly="True"
                                   FontFamily="Cascadia Code,Consolas,monospace"
-                                  FontSize="11" />
+                                  FontSize="13" />
               <DataGridTextColumn Header="Name"
                                   Binding="{ReflectionBinding Name}"
                                   Width="*" />
@@ -281,7 +288,8 @@
                                   Width="80" />
               <DataGridTextColumn Header="Weight"
                                   Binding="{ReflectionBinding Weight, StringFormat={}{0:F4}}"
-                                  Width="100" />
+                                  Width="100"
+                                  FontFamily="Cascadia Code,Consolas,monospace" />
             </DataGrid.Columns>
           </DataGrid>
 
@@ -294,9 +302,9 @@
 
           <TextBlock Grid.Row="0"
                      Text="Fuzzy coefficient matrix (alternative × property). Edit values in code."
-                     Margin="8,8,8,4"
+                     Margin="24,12,24,8"
                      FontSize="12"
-                     Foreground="#A6ADC8" />
+                     Foreground="{StaticResource TextSecondaryBrush}" />
 
           <!-- Coefficients flat table
                ReflectionBinding: open generic DataContext (see file header) -->
@@ -307,32 +315,35 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="False"
-                    Margin="8,0,8,8">
+                    Margin="24,0,24,24">
             <DataGrid.Columns>
               <DataGridTextColumn Header="Alternative ID"
                                   Binding="{ReflectionBinding AlternativeId}"
                                   Width="220"
                                   IsReadOnly="True"
                                   FontFamily="Cascadia Code,Consolas,monospace"
-                                  FontSize="11" />
+                                  FontSize="13" />
               <DataGridTextColumn Header="Property ID"
                                   Binding="{ReflectionBinding PropertyId}"
                                   Width="220"
                                   IsReadOnly="True"
                                   FontFamily="Cascadia Code,Consolas,monospace"
-                                  FontSize="11" />
+                                  FontSize="13" />
               <DataGridTextColumn Header="Lower"
                                   Binding="{ReflectionBinding Value.Lower, StringFormat={}{0:F4}}"
                                   Width="90"
-                                  IsReadOnly="True" />
+                                  IsReadOnly="True"
+                                  FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Modal"
                                   Binding="{ReflectionBinding Value.Modal, StringFormat={}{0:F4}}"
                                   Width="90"
-                                  IsReadOnly="True" />
+                                  IsReadOnly="True"
+                                  FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Upper"
                                   Binding="{ReflectionBinding Value.Upper, StringFormat={}{0:F4}}"
                                   Width="90"
-                                  IsReadOnly="True" />
+                                  IsReadOnly="True"
+                                  FontFamily="Cascadia Code,Consolas,monospace" />
             </DataGrid.Columns>
           </DataGrid>
 
@@ -341,7 +352,7 @@
 
       <!-- ── Tab 5: Constraints ─────────────────────────────────────── -->
       <TabItem Header="Constraints">
-        <TabControl Background="#1E1E2E">
+        <TabControl Background="{StaticResource BgPageBrush}">
 
           <!-- Sub-tab: Threshold -->
           <TabItem Header="Threshold">
@@ -350,7 +361,7 @@
               <StackPanel Grid.Row="0"
                           Orientation="Horizontal"
                           Spacing="8"
-                          Margin="8,8,8,4">
+                          Margin="24,12,24,8">
                 <Button Content="Add Threshold"
                         Click="OnAddThresholdClicked"
                         Classes="action-btn" />
@@ -364,19 +375,21 @@
                         CanUserResizeColumns="True"
                         CanUserSortColumns="False"
                         IsReadOnly="True"
-                        Margin="8,0,8,8">
+                        Margin="24,0,24,24">
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Property ID"
                                       Binding="{ReflectionBinding PropertyId}"
                                       Width="220"
                                       FontFamily="Cascadia Code,Consolas,monospace"
-                                      FontSize="11" />
+                                      FontSize="13" />
                   <DataGridTextColumn Header="Min"
                                       Binding="{ReflectionBinding Min}"
-                                      Width="120" />
+                                      Width="120"
+                                      FontFamily="Cascadia Code,Consolas,monospace" />
                   <DataGridTextColumn Header="Max"
                                       Binding="{ReflectionBinding Max}"
-                                      Width="120" />
+                                      Width="120"
+                                      FontFamily="Cascadia Code,Consolas,monospace" />
                 </DataGrid.Columns>
               </DataGrid>
 
@@ -390,7 +403,7 @@
               <StackPanel Grid.Row="0"
                           Orientation="Horizontal"
                           Spacing="8"
-                          Margin="8,8,8,4">
+                          Margin="24,12,24,8">
                 <Button Content="Add Dependency"
                         Click="OnAddDependencyClicked"
                         Classes="action-btn" />
@@ -404,18 +417,18 @@
                         CanUserResizeColumns="True"
                         CanUserSortColumns="False"
                         IsReadOnly="True"
-                        Margin="8,0,8,8">
+                        Margin="24,0,24,24">
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Source Alternative ID"
                                       Binding="{ReflectionBinding SourceAlternativeId}"
                                       Width="*"
                                       FontFamily="Cascadia Code,Consolas,monospace"
-                                      FontSize="11" />
+                                      FontSize="13" />
                   <DataGridTextColumn Header="Target Alternative ID"
                                       Binding="{ReflectionBinding TargetAlternativeId}"
                                       Width="*"
                                       FontFamily="Cascadia Code,Consolas,monospace"
-                                      FontSize="11" />
+                                      FontSize="13" />
                 </DataGrid.Columns>
               </DataGrid>
 
@@ -429,7 +442,7 @@
               <StackPanel Grid.Row="0"
                           Orientation="Horizontal"
                           Spacing="8"
-                          Margin="8,8,8,4">
+                          Margin="24,12,24,8">
                 <Button Content="Add Conflict"
                         Click="OnAddConflictClicked"
                         Classes="action-btn" />
@@ -443,18 +456,18 @@
                         CanUserResizeColumns="True"
                         CanUserSortColumns="False"
                         IsReadOnly="True"
-                        Margin="8,0,8,8">
+                        Margin="24,0,24,24">
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Alternative A ID"
                                       Binding="{ReflectionBinding AlternativeAId}"
                                       Width="*"
                                       FontFamily="Cascadia Code,Consolas,monospace"
-                                      FontSize="11" />
+                                      FontSize="13" />
                   <DataGridTextColumn Header="Alternative B ID"
                                       Binding="{ReflectionBinding AlternativeBId}"
                                       Width="*"
                                       FontFamily="Cascadia Code,Consolas,monospace"
-                                      FontSize="11" />
+                                      FontSize="13" />
                 </DataGrid.Columns>
               </DataGrid>
 
@@ -471,9 +484,9 @@
           <!-- ReflectionBinding: open generic DataContext (see file header) -->
           <TextBlock Grid.Row="0"
                      Text="{ReflectionBinding Model.Status}"
-                     Margin="8,8,8,4"
+                     Margin="24,12,24,8"
                      FontSize="13"
-                     Foreground="#A6ADC8" />
+                     Foreground="{StaticResource TextSecondaryBrush}" />
 
           <!-- Split: left 60% candidates table, right 40% charts -->
           <Grid Grid.Row="1"
@@ -487,12 +500,13 @@
                       CanUserResizeColumns="True"
                       CanUserSortColumns="False"
                       IsReadOnly="True"
-                      Margin="8,0,4,8"
+                      Margin="24,0,12,24"
                       SelectionChanged="OnResultsGridSelectionChanged">
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Rank"
                                     Binding="{ReflectionBinding Rank}"
-                                    Width="60" />
+                                    Width="60"
+                                    FontFamily="Cascadia Code,Consolas,monospace" />
                 <DataGridTextColumn Header="Score"
                                     Binding="{ReflectionBinding Score, StringFormat={}{0:F6}}"
                                     Width="120"
@@ -501,14 +515,14 @@
                                     Binding="{ReflectionBinding AlternativeIds}"
                                     Width="*"
                                     FontFamily="Cascadia Code,Consolas,monospace"
-                                    FontSize="11" />
+                                    FontSize="13" />
               </DataGrid.Columns>
             </DataGrid>
 
             <!-- Right: two stacked ScottPlot charts -->
             <Grid Grid.Column="1"
                   RowDefinitions="*,*"
-                  Margin="4,0,8,8">
+                  Margin="12,0,24,24">
 
               <!-- Chart A: horizontal bar chart of top 30 candidates (spec charts.md §2) -->
               <scottplot:AvaPlot Grid.Row="0"
@@ -532,9 +546,9 @@
 
           <TextBlock Grid.Row="0"
                      Text="Critical decisions — sorted ascending by rank (lower score = more critical)."
-                     Margin="8,8,8,4"
+                     Margin="24,12,24,8"
                      FontSize="12"
-                     Foreground="#A6ADC8" />
+                     Foreground="{StaticResource TextSecondaryBrush}" />
 
           <!-- ReflectionBinding: open generic DataContext -->
           <DataGrid Grid.Row="1"
@@ -544,11 +558,12 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="True"
-                    Margin="8,0,8,8">
+                    Margin="24,0,24,24">
             <DataGrid.Columns>
               <DataGridTextColumn Header="Rank"
                                   Binding="{ReflectionBinding Rank}"
-                                  Width="60" />
+                                  Width="60"
+                                  FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Decision"
                                   Binding="{ReflectionBinding DecisionName}"
                                   Width="*" />
@@ -560,12 +575,12 @@
                                   Binding="{ReflectionBinding TriangularValue}"
                                   Width="200"
                                   FontFamily="Cascadia Code,Consolas,monospace"
-                                  FontSize="11" />
+                                  FontSize="13" />
               <DataGridTextColumn Header="Normalized"
                                   Binding="{ReflectionBinding Normalized}"
                                   Width="200"
                                   FontFamily="Cascadia Code,Consolas,monospace"
-                                  FontSize="11" />
+                                  FontSize="13" />
             </DataGrid.Columns>
           </DataGrid>
 
@@ -578,9 +593,9 @@
 
           <TextBlock Grid.Row="0"
                      Text="Critical constraints — sorted descending by eliminated (most-binding first). Redundant rows are faded."
-                     Margin="8,8,8,4"
+                     Margin="24,12,24,8"
                      FontSize="12"
-                     Foreground="#A6ADC8" />
+                     Foreground="{StaticResource TextSecondaryBrush}" />
 
           <!-- ReflectionBinding: open generic DataContext -->
           <DataGrid Grid.Row="1"
@@ -590,23 +605,27 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="True"
-                    Margin="8,0,8,8">
+                    Margin="24,0,24,24">
             <DataGrid.Columns>
               <DataGridTextColumn Header="Index"
                                   Binding="{ReflectionBinding Index}"
-                                  Width="60" />
+                                  Width="60"
+                                  FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Kind"
                                   Binding="{ReflectionBinding Kind}"
                                   Width="120" />
               <DataGridTextColumn Header="Eliminated"
                                   Binding="{ReflectionBinding Eliminated}"
-                                  Width="100" />
+                                  Width="100"
+                                  FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Total"
                                   Binding="{ReflectionBinding Total}"
-                                  Width="80" />
+                                  Width="80"
+                                  FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Eliminated %"
                                   Binding="{ReflectionBinding EliminatedPercent}"
-                                  Width="100" />
+                                  Width="100"
+                                  FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Redundant"
                                   Binding="{ReflectionBinding RedundantDisplay}"
                                   Width="80" />
