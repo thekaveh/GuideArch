@@ -189,6 +189,11 @@ def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
 
 def _do_add_decision(vm: ScenarioVM, refresh: Any) -> None:
     try:
+        # The 'Add Decision' button is reachable even before any scenario is
+        # loaded — auto-create an empty one so the click does what the user
+        # expects rather than throwing a swallowed 'No scenario loaded.'
+        if vm.scenario is None:
+            vm.new_cmd.execute()
         vm.add_decision()
         _schedule_solve()
         refresh()
@@ -416,6 +421,8 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
 
 def _do_add_property(vm: ScenarioVM, refresh: Any) -> None:
     try:
+        if vm.scenario is None:
+            vm.new_cmd.execute()
         vm.add_property()
         _schedule_solve()
         refresh()
