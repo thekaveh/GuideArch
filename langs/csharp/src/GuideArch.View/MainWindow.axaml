@@ -2,15 +2,65 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="GuideArch.View.MainWindow"
         Title="GuideArch"
-        Width="720" Height="480">
-  <StackPanel Margin="48" Spacing="12">
-    <TextBlock Text="GuideArch" FontSize="32" FontWeight="Bold" />
-    <TextBlock Text="C# + Avalonia 12 implementation — M1 domain ready"
-               Foreground="#666" />
-    <Border Background="#f4f4f4" Padding="16" CornerRadius="4">
-      <!-- ReflectionBinding: DataContext is ComponentVM<StatusModel> — a generic type
-           that can't be expressed as an XAML type literal. M2+ will revisit. -->
-      <TextBlock Text="{ReflectionBinding Model.Message}" FontFamily="Cascadia Code,Consolas,monospace" />
+        Width="900" Height="600">
+
+  <DockPanel>
+
+    <!-- Top toolbar -->
+    <StackPanel DockPanel.Dock="Top"
+                Orientation="Horizontal"
+                Margin="8,8,8,4"
+                Spacing="8">
+      <Button Content="Open scenario…"
+              Click="OnOpenClicked" />
+    </StackPanel>
+
+    <!-- Status row
+         ReflectionBinding: DataContext is ComponentVM<ScenarioState> — a generic type
+         that cannot be expressed as an XAML type literal. ReflectionBinding is used
+         intentionally here to work around the Avalonia compiled-binding limitation with
+         open generic DataContext types. -->
+    <Border DockPanel.Dock="Bottom"
+            Background="#EFEFEF"
+            Padding="8,4">
+      <TextBlock Text="{ReflectionBinding Model.Status}"
+                 FontSize="12"
+                 Foreground="#444" />
     </Border>
-  </StackPanel>
+
+    <!-- Main pane -->
+    <Grid>
+      <!-- Empty state — visible when Candidates is empty -->
+      <TextBlock Text="Open a scenario JSON to begin."
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 FontSize="18"
+                 Foreground="#888"
+                 IsVisible="{ReflectionBinding Model.Candidates.IsEmpty}" />
+
+      <!-- Candidates table — top 50 -->
+      <!-- ReflectionBinding: same open-generic DataContext reason as above -->
+      <ListBox ItemsSource="{ReflectionBinding Model.Candidates}"
+               IsVisible="{ReflectionBinding !Model.Candidates.IsEmpty}"
+               Margin="8,4,8,8">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <Grid ColumnDefinitions="60,100,*">
+              <TextBlock Grid.Column="0"
+                         Text="{ReflectionBinding Rank}"
+                         Margin="0,0,8,0" />
+              <TextBlock Grid.Column="1"
+                         Text="{ReflectionBinding Score, StringFormat={}{0:F6}}"
+                         Margin="0,0,8,0" />
+              <TextBlock Grid.Column="2"
+                         Text="{ReflectionBinding AlternativeIds}"
+                         TextWrapping="Wrap" />
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Grid>
+
+  </DockPanel>
+
 </Window>
