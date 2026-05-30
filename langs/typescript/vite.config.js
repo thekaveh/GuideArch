@@ -64,6 +64,14 @@ export default defineConfig(async () => ({
       // Resolve `vmx` imports to the VMx TypeScript source entry point
       // (bypasses the pre-built dist, which uses Node.js readFileSync).
       "vmx": path.join(vmxSrc, "index.ts"),
+      // When bundling VMx source files from vendor/, Vite resolves imports
+      // relative to that directory tree — outside the project root — so
+      // pnpm's strict node_modules layout makes `rxjs` invisible.  Pinning
+      // the alias here guarantees Vite always uses the copy installed in
+      // this project's own node_modules, regardless of where the importer
+      // lives on disk.
+      "rxjs": path.resolve(__dirname, "node_modules/rxjs"),
+      "rxjs/operators": path.resolve(__dirname, "node_modules/rxjs/operators"),
     },
   },
 
