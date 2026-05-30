@@ -122,6 +122,7 @@ class ScenarioVM:
         self._critical_constraints: tuple[CriticalConstraintM, ...] = ()
         self._status: str = "No scenario loaded."
         self._warnings: tuple[str, ...] = ()
+        self._selected_candidate_index: int | None = None
 
         # ── property_changed subject (INPC-equivalent) ───────────────────────
         self._property_changed_subject: Subject[str] = Subject()
@@ -214,6 +215,15 @@ class ScenarioVM:
         return self._warnings
 
     @property
+    def selected_candidate_index(self) -> int | None:
+        return self._selected_candidate_index
+
+    @selected_candidate_index.setter
+    def selected_candidate_index(self, value: int | None) -> None:
+        self._selected_candidate_index = value
+        self._raise_property_changed("selected_candidate_index")
+
+    @property
     def hub(self) -> MessageHub[Message]:
         """The shared MessageHub for all child VMs."""
         return self._hub
@@ -247,10 +257,12 @@ class ScenarioVM:
         self._critical_constraints = ()
         self._status = "New scenario created."
         self._warnings = ()
+        self._selected_candidate_index = None
         self._raise_property_changed("scenario")
         self._raise_property_changed("file_path")
         self._raise_property_changed("is_dirty")
         self._raise_property_changed("candidates")
+        self._raise_property_changed("selected_candidate_index")
         self._raise_property_changed("critical_decisions_result")
         self._raise_property_changed("critical_constraints_result")
         self._raise_property_changed("status")
@@ -277,11 +289,13 @@ class ScenarioVM:
         self._critical_decisions = ()
         self._critical_constraints = ()
         self._status = f"Loaded: {scenario.name}"
+        self._selected_candidate_index = None
         self._raise_property_changed("scenario")
         self._raise_property_changed("file_path")
         self._raise_property_changed("is_dirty")
         self._raise_property_changed("warnings")
         self._raise_property_changed("candidates")
+        self._raise_property_changed("selected_candidate_index")
         self._raise_property_changed("critical_decisions_result")
         self._raise_property_changed("critical_constraints_result")
         self._raise_property_changed("status")
@@ -322,8 +336,15 @@ class ScenarioVM:
             self._candidates = ()
             self._critical_decisions = ()
             self._critical_constraints = ()
+        # Default selection to rank-0 when candidates become non-empty
+        if self._candidates:
+            if self._selected_candidate_index is None:
+                self._selected_candidate_index = 0
+        else:
+            self._selected_candidate_index = None
         self._solve_needed = False
         self._raise_property_changed("candidates")
+        self._raise_property_changed("selected_candidate_index")
         self._raise_property_changed("critical_decisions_result")
         self._raise_property_changed("critical_constraints_result")
         self._raise_property_changed("status")

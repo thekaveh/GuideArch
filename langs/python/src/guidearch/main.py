@@ -1,10 +1,10 @@
-"""GuideArch Python entrypoint — M3 full editor UI (NiceGUI).
+"""GuideArch Python entrypoint — M4 analysis UI (NiceGUI).
 
 App shell
 ---------
 - Top toolbar: New / Open / Save / Save As / [spacer] / Solve
 - Tab strip (top): Decisions / Alternatives / Properties / Coefficients /
-  Constraints / Results
+  Constraints / Results / Critical decisions / Critical constraints
 - Status bar (bottom): scenario name · candidate count · warnings
 
 File dialogs
@@ -17,6 +17,14 @@ Re-solve debounce
 The VM's _solve_needed flag is polled via a 100 ms ui.timer.  Any mutation
 in a tab editor that changes solve-relevant data calls _schedule_solve() which
 sets a pending flag; the timer fires solve_cmd.execute() once.
+
+M4 additions
+------------
+- Results tab is a split layout: left (60%) ranked-candidates table,
+  right (40%) two stacked ui.echart instances (Chart A: bar, Chart B: triangle).
+- Critical decisions tab: read-only table of criticalDecisionsResult.
+- Critical constraints tab: read-only table of criticalConstraintsResult with
+  faded background for redundant rows.
 """
 
 from __future__ import annotations
@@ -971,8 +979,21 @@ def _do_delete_constraint(vm: ScenarioVM, index: int, refresh: Any) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Tab: Results
+# Tab: Results  (M4: split pane — table left, charts right)
 # ---------------------------------------------------------------------------
+
+
+def _build_alt_maps(
+    vm: ScenarioVM,
+) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    """Return (alt_id→name, alt_id→dec_name, decision_id→dec_name) maps."""
+    scenario = vm.scenario
+    if scenario is None:
+        return {}, {}, {}
+    dec_map = {d.id: d.name for d in scenario.decisions}
+    alt_map = {a.id: a.name for a in scenario.alternatives}
+    alt_dec = {a.id: dec_map.get(a.decision_id, "?") for a in scenario.alternatives}
+    return alt_map, alt_dec, dec_map
 
 
 def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
@@ -988,14 +1009,13 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
         )
         return
 
-    top50 = candidates[:50]
-    # Build alt id → name map
-    alt_map = {a.id: a.name for a in scenario.alternatives} if scenario else {}
-    dec_map = {d.id: d.name for d in scenario.decisions} if scenario else {}
-    alt_dec: dict[str, str] = {}
-    for a in scenario.alternatives:
-        alt_dec[a.id] = dec_map.get(a.decision_id, "?")
+    alt_map, alt_dec, _ = _build_alt_maps(vm)
+    prop_names = [p.name for p in scenario.properties] if scenario else []
 
+    top30 = candidates[:30]
+    top50 = candidates[:50]
+
+    # ── Candidates table columns/rows (left pane) ────────────────────────────
     columns: list[dict[str, Any]] = [
         {"name": "rank", "label": "#", "field": "rank", "align": "right", "sortable": True},
         {"name": "score", "label": "Score", "field": "score", "align": "right", "sortable": True},
@@ -1019,12 +1039,217 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
             }
         )
 
-    ui.label(f"Top {len(top50)} of {len(candidates)} ranked candidates").classes(
-        "text-lg font-semibold text-gray-200 mb-2"
-    )
+    # ── Split layout ─────────────────────────────────────────────────────────
+    with ui.row().classes("w-full gap-0 items-start"):
+        # Left: table (~60%)
+        with ui.column().classes("w-3/5 pr-4"):
+            ui.label(
+                f"Top {len(top50)} of {len(candidates)} ranked candidates"
+            ).classes("text-lg font-semibold text-gray-200 mb-2")
+
+            sel_idx = vm.selected_candidate_index
+            # Build rows with selection highlight
+            sel_rows = []
+            for cand in top50:
+                alt_labels = [
+                    f"{alt_dec.get(aid, '?')}/{alt_map.get(aid, aid[:8])}"
+                    for aid in cand.alternative_ids
+                ]
+                display = ", ".join(alt_labels[:4])
+                if len(alt_labels) > 4:
+                    display += f", … +{len(alt_labels) - 4}"
+                row_class = ""
+                if sel_idx is not None and cand.rank == sel_idx:
+                    row_class = "bg-yellow-900"
+                sel_rows.append(
+                    {
+                        "rank": cand.rank,
+                        "score": f"{cand.score:.6g}",
+                        "alternatives": display,
+                        "_class": row_class,
+                    }
+                )
+
+            tbl = ui.table(columns=columns, rows=sel_rows, row_key="rank").classes(
+                "w-full max-h-screen overflow-y-auto"
+            ).props("dark dense flat")
+
+            # Row click selects candidate
+            tbl.on(
+                "row-click",
+                lambda e, v=vm: _on_candidate_row_click(v, e),
+            )
+
+        # Right: charts (~40%)
+        with ui.column().classes("w-2/5 gap-2"):
+            from guidearch.view.chart_data import candidates_bar_option, triangle_option
+
+            # Chart A — bar chart
+            chart_a_opt = candidates_bar_option(top30, alt_map, vm.selected_candidate_index)
+            chart_a = ui.echart(chart_a_opt).classes("w-full").style("height:220px")
+
+            # Chart A click handler
+            chart_a.on(
+                "click",
+                lambda e, v=vm, cands=top30: _on_chart_a_click(v, cands, e),
+            )
+
+            # Chart B — triangle
+            sel = vm.selected_candidate_index
+            if sel is not None and sel < len(candidates):
+                selected_cand = candidates[sel]
+                chart_b_opt = triangle_option(selected_cand, prop_names, alt_map)
+            else:
+                chart_b_opt = triangle_option(candidates[0], prop_names, alt_map)
+            ui.echart(chart_b_opt).classes("w-full").style("height:220px")
+
+
+def _on_candidate_row_click(vm: ScenarioVM, event: Any) -> None:
+    """Handle row-click in the candidates table: set selected_candidate_index."""
+    try:
+        rank = int(event.args["row"]["rank"])
+        vm.selected_candidate_index = rank
+    except Exception:
+        pass
+
+
+def _on_chart_a_click(
+    vm: ScenarioVM, top_candidates: tuple[Any, ...], event: Any
+) -> None:
+    """Handle ECharts click on Chart A bar: set selected_candidate_index."""
+    try:
+        # ECharts click event: dataIndex is the bar index within the series
+        data_index = int(event.args.get("dataIndex", 0))
+        if data_index < len(top_candidates):
+            vm.selected_candidate_index = top_candidates[data_index].rank
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Tab: Critical decisions
+# ---------------------------------------------------------------------------
+
+
+def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
+    scenario = vm.scenario
+    if scenario is None:
+        ui.label("No scenario loaded.").classes("text-gray-400")
+        return
+
+    crit = vm.critical_decisions_result
+    if not crit:
+        ui.label("No critical decisions — run solve first.").classes(
+            "text-gray-500 py-8"
+        )
+        return
+
+    dec_map = {d.id: d.name for d in scenario.decisions}
+
+    # Sort ascending by rank (lower score = more critical)
+    sorted_crit = sorted(crit, key=lambda c: c.rank)
+
+    columns: list[dict[str, Any]] = [
+        {"name": "rank", "label": "Rank", "field": "rank", "align": "right", "sortable": True},
+        {"name": "decision", "label": "Decision", "field": "decision", "align": "left"},
+        {"name": "score", "label": "Score", "field": "score", "align": "right", "sortable": True},
+        {"name": "triangular", "label": "Triangular value", "field": "triangular", "align": "left"},
+        {"name": "normalized", "label": "Normalized", "field": "normalized", "align": "left"},
+    ]
+
+    rows = []
+    for cd in sorted_crit:
+        tv = cd.triangular_value
+        nv = cd.normalized_value
+        rows.append(
+            {
+                "rank": cd.rank,
+                "decision": dec_map.get(cd.decision_id, cd.decision_id[:8]),
+                "score": f"{cd.score:.6g}",
+                "triangular": f"({tv.lower:.4g}, {tv.modal:.4g}, {tv.upper:.4g})",
+                "normalized": f"({nv.positive:.4g}, {nv.average:.4g}, {nv.negative:.4g})",
+            }
+        )
+
+    ui.label("Critical Decisions").classes("text-lg font-semibold text-gray-200 mb-2")
+    ui.label(
+        "Sorted ascending by rank (lower score = more critical)"
+    ).classes("text-xs text-gray-500 mb-3")
     ui.table(columns=columns, rows=rows, row_key="rank").classes(
         "w-full max-h-screen overflow-y-auto"
     ).props("dark dense flat")
+
+
+# ---------------------------------------------------------------------------
+# Tab: Critical constraints
+# ---------------------------------------------------------------------------
+
+
+def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
+    scenario = vm.scenario
+    if scenario is None:
+        ui.label("No scenario loaded.").classes("text-gray-400")
+        return
+
+    crit = vm.critical_constraints_result
+    if not crit:
+        ui.label("No critical constraints — run solve first.").classes(
+            "text-gray-500 py-8"
+        )
+        return
+
+    # Sort descending by eliminated (most-binding first)
+    sorted_crit = sorted(crit, key=lambda c: c.eliminated, reverse=True)
+
+    rows = []
+    for cc in sorted_crit:
+        pct = 100.0 * cc.eliminated / cc.total if cc.total > 0 else 0.0
+        rows.append(
+            {
+                "index": cc.constraint_index,
+                "kind": cc.kind,
+                "eliminated": cc.eliminated,
+                "total": cc.total,
+                "elim_pct": f"{pct:.2f}%",
+                "redundant": "Yes" if cc.redundant else "No",
+                "_redundant": cc.redundant,
+            }
+        )
+
+    ui.label("Critical Constraints").classes("text-lg font-semibold text-gray-200 mb-2")
+    ui.label(
+        "Sorted descending by eliminated (most-binding first). "
+        "Redundant rows shown with faded background."
+    ).classes("text-xs text-gray-500 mb-3")
+
+    # Render as a custom table to support per-row background styling
+    with ui.scroll_area().classes("w-full max-h-screen"):
+        # Header
+        with ui.row().classes(
+            "w-full bg-gray-700 rounded px-2 py-1 mb-1 font-semibold text-gray-300 text-xs gap-0"
+        ):
+            ui.label("Idx").classes("w-12 text-right pr-2")
+            ui.label("Kind").classes("w-28 pr-2")
+            ui.label("Eliminated").classes("w-24 text-right pr-2")
+            ui.label("Total").classes("w-20 text-right pr-2")
+            ui.label("Elim %").classes("w-20 text-right pr-2")
+            ui.label("Redundant").classes("w-20 text-center")
+
+        for row in rows:
+            redundant = row["_redundant"]
+            row_cls = "opacity-40" if redundant else ""
+            bg_cls = "bg-gray-800" if not redundant else "bg-gray-900"
+            with ui.row().classes(
+                f"w-full {bg_cls} border border-gray-700 rounded px-2 py-1 mb-1 "
+                f"text-gray-300 text-xs gap-0 {row_cls}"
+            ):
+                ui.label(str(row["index"])).classes("w-12 text-right pr-2 font-mono")
+                ui.label(str(row["kind"])).classes("w-28 pr-2")
+                ui.label(str(row["eliminated"])).classes("w-24 text-right pr-2 font-mono")
+                ui.label(str(row["total"])).classes("w-20 text-right pr-2 font-mono")
+                ui.label(str(row["elim_pct"])).classes("w-20 text-right pr-2 font-mono")
+                badge_color = "gray" if redundant else "positive"
+                ui.badge(str(row["redundant"]), color=badge_color).classes("w-20 justify-center")
 
 
 # ---------------------------------------------------------------------------
@@ -1128,6 +1353,8 @@ def index() -> None:
             tab_coefs = ui.tab("Coefficients")
             tab_constraints = ui.tab("Constraints")
             tab_results = ui.tab("Results")
+            tab_crit_dec = ui.tab("Critical decisions")
+            tab_crit_con = ui.tab("Critical constraints")
 
         # ── Tab panels ──────────────────────────────────────────────────────
         main_content = (
@@ -1167,6 +1394,16 @@ def index() -> None:
                 with res_container:
                     _render_results_tab(vm, res_container)
 
+            with ui.tab_panel(tab_crit_dec):
+                crit_dec_container: Any = ui.column().classes("w-full p-4")
+                with crit_dec_container:
+                    _render_critical_decisions_tab(vm, crit_dec_container)
+
+            with ui.tab_panel(tab_crit_con):
+                crit_con_container: Any = ui.column().classes("w-full p-4")
+                with crit_con_container:
+                    _render_critical_constraints_tab(vm, crit_con_container)
+
         # ── Status bar ──────────────────────────────────────────────────────
         status_label = ui.label(_status_text(vm)).classes(
             "w-full px-4 py-1 bg-gray-950 text-gray-400 text-xs border-t border-gray-800 font-mono"
@@ -1176,11 +1413,19 @@ def index() -> None:
 
     def _on_vm_change(prop: str) -> None:
         status_label.set_text(_status_text(vm))
-        if prop == "candidates":
+        if prop in ("candidates", "selected_candidate_index"):
             res_container.clear()
             with res_container:
                 _render_results_tab(vm, res_container)
-        elif prop in ("scenario",):
+        if prop in ("candidates", "critical_decisions_result"):
+            crit_dec_container.clear()
+            with crit_dec_container:
+                _render_critical_decisions_tab(vm, crit_dec_container)
+        if prop in ("candidates", "critical_constraints_result"):
+            crit_con_container.clear()
+            with crit_con_container:
+                _render_critical_constraints_tab(vm, crit_con_container)
+        if prop in ("scenario",):
             # Full re-render of all tabs (e.g. after New/Open)
             for cont, fn in [
                 (dec_container, _render_decisions_tab),
@@ -1189,6 +1434,8 @@ def index() -> None:
                 (coef_container, _render_coefficients_tab),
                 (constr_container, _render_constraints_tab),
                 (res_container, _render_results_tab),
+                (crit_dec_container, _render_critical_decisions_tab),
+                (crit_con_container, _render_critical_constraints_tab),
             ]:
                 cont.clear()
                 with cont:
