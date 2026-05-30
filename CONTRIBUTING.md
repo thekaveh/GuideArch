@@ -28,9 +28,18 @@ Thanks for your interest in contributing. GuideArch is a spec-driven monorepo wi
 
 ## Code style
 
-- TypeScript: ESLint + Prettier — `pnpm lint && pnpm format`.
-- C#: Treat warnings as errors. `dotnet format`.
-- Python: ruff + mypy --strict — `uv run ruff check src && uv run mypy src`.
+Each command below comes in two flavors: **apply** (writes fixes) and **verify** (read-only, matches CI). Run *apply* locally before committing; CI runs *verify* and fails on any drift.
+
+- TypeScript:
+  - Apply: `pnpm lint && pnpm format`
+  - Verify (CI): `pnpm lint && pnpm format:check`
+- C#:
+  - Apply: `dotnet format`
+  - Verify (CI): `dotnet build && dotnet format --verify-no-changes`
+  - Warnings are errors (set in `Directory.Build.props`).
+- Python:
+  - Apply: `uv run ruff check src --fix && uv run ruff format src`
+  - Verify (CI): `uv run ruff check src && uv run mypy src`
 
 ## Code of Conduct
 
