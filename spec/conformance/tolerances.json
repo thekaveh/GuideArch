@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Numerical tolerances for cross-impl conformance. Per `spec/algorithms/topsis.md` §7.",
+  "candidates": {
+    "score": { "absolute": 1e-9 },
+    "triangularValue": { "absolute": 1e-9 },
+    "normalizedValue": { "absolute": 1e-9 },
+    "rank": { "exact": true }
+  },
+  "criticalDecisions": {
+    "score": { "absolute": 1e-9 },
+    "triangularValue": { "absolute": 1e-9 },
+    "normalizedValue": { "absolute": 1e-9 },
+    "rank": { "exact": true }
+  },
+  "criticalConstraints": {
+    "eliminated": { "exact": true },
+    "total": { "exact": true },
+    "redundant": { "exact": true }
+  },
+  "legacyBaselineNote": "Where conformance/expected/*.json files were produced from the legacy .NET console, tolerances against legacy are 1e-6 absolute on scalar score; ranking matches exactly under the spec tie-break rule (`alternativeIds` lexicographic). Legacy ranking with native LINQ enumeration order is not portable and is NOT a conformance target."
+}

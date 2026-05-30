@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thekaveh/GuideArch/blob/main/spec/domain/scenario.schema.json",
+  "title": "GuideArch Scenario",
+  "description": "A complete decision-analysis scenario for fuzzy TOPSIS ranking.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "name",
+    "decisions",
+    "alternatives",
+    "properties",
+    "coefficients",
+    "constraints",
+    "config"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semver of this schema; bump on breaking changes."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/Decision" }
+    },
+    "alternatives": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/Alternative" }
+    },
+    "properties": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/Property" }
+    },
+    "coefficients": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Coefficient" }
+    },
+    "constraints": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Constraint" }
+    },
+    "config": { "$ref": "#/$defs/Config" }
+  },
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$",
+      "minLength": 1
+    },
+    "Decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id":   { "$ref": "#/$defs/Id" },
+        "name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "Alternative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "decisionId", "name"],
+      "properties": {
+        "id":         { "$ref": "#/$defs/Id" },
+        "decisionId": { "$ref": "#/$defs/Id" },
+        "name":       { "type": "string", "minLength": 1 }
+      }
+    },
+    "Property": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind", "weight"],
+      "properties": {
+        "id":     { "$ref": "#/$defs/Id" },
+        "name":   { "type": "string", "minLength": 1 },
+        "kind":   { "type": "string", "enum": ["min", "max"] },
+        "weight": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "TriangularFuzzy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lower", "modal", "upper"],
+      "properties": {
+        "lower": { "type": "number" },
+        "modal": { "type": "number" },
+        "upper": { "type": "number" }
+      },
+      "description": "Triangular fuzzy number; impls SHOULD verify lower <= modal <= upper at load time."
+    },
+    "Coefficient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alternativeId", "propertyId", "value"],
+      "properties": {
+        "alternativeId": { "$ref": "#/$defs/Id" },
+        "propertyId":    { "$ref": "#/$defs/Id" },
+        "value":         { "$ref": "#/$defs/TriangularFuzzy" }
+      }
+    },
+    "Constraint": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "propertyId"],
+          "properties": {
+            "kind":       { "const": "threshold" },
+            "propertyId": { "$ref": "#/$defs/Id" },
+            "min":        { "type": "number" },
+            "max":        { "type": "number" }
+          },
+          "anyOf": [
+            { "required": ["min"] },
+            { "required": ["max"] }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "sourceAlternativeId", "targetAlternativeId"],
+          "properties": {
+            "kind":                { "const": "dependency" },
+            "sourceAlternativeId": { "$ref": "#/$defs/Id" },
+            "targetAlternativeId": { "$ref": "#/$defs/Id" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "alternativeAId", "alternativeBId"],
+          "properties": {
+            "kind":           { "const": "conflict" },
+            "alternativeAId": { "$ref": "#/$defs/Id" },
+            "alternativeBId": { "$ref": "#/$defs/Id" }
+          }
+        }
+      ]
+    },
+    "Weights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["positive", "average", "negative"],
+      "properties": {
+        "positive": { "type": "number", "minimum": 0, "maximum": 1 },
+        "average":  { "type": "number", "minimum": 0, "maximum": 1 },
+        "negative": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "description": "Must sum to 1; the load-time validator MUST enforce."
+    },
+    "Config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["aggregation", "weights"],
+      "properties": {
+        "aggregation": { "type": "string", "enum": ["sum", "max"] },
+        "weights":     { "$ref": "#/$defs/Weights" }
+      }
+    }
+  }
+}
