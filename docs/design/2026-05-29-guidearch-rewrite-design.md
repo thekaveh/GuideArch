@@ -50,7 +50,7 @@ Models  ──  Topsis  ──  ViewModels  ──  (Adapter?)  ──  View
 
 The **spec directory** is the source of truth. It owns: the scenario JSON schema, the formal algorithm descriptions, and the conformance corpus. Every implementation answers to it. CI fails any divergence.
 
-VMx is consumed as a **git submodule** at `vendor/vmx/`, pinned to a stable tag. Each language consumes the submodule via local/editable install for development and via the published package (npm / NuGet / PyPI) for end users. Toggle scripts (`tools/use-vmx-local.{sh,ps1}` and `tools/use-vmx-released.{sh,ps1}`) flip between the two.
+VMx is consumed as a **git submodule** at `vendor/vmx/`, pinned to a specific commit (a stable tag once VMx publishes one — see §11 for the current pin). Each language consumes the submodule via local/editable install for development and via the published package (npm / NuGet / PyPI) for end users. Toggle scripts (`tools/use-vmx-local.sh` and `tools/use-vmx-released.sh`) flip between the two.
 
 ## 4. Repository Layout
 
@@ -104,7 +104,7 @@ GuideArch/
 │       └── 0006-nicegui-over-shiny.md
 │
 ├── vendor/
-│   └── vmx/                         # git submodule → github.com/thekaveh/VMx, pinned tag
+│   └── vmx/                         # git submodule → github.com/thekaveh/VMx, pinned commit
 │
 ├── langs/
 │   ├── typescript/                  # Tauri 2 + Svelte 5 + VMx-TS
