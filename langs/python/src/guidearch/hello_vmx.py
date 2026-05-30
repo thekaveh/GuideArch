@@ -15,6 +15,9 @@ class Greeting:
 
 
 def hello_vmx() -> str:
+    # NULL_MESSAGE_HUB is typed `MessageHub[Any]` in VMx; we want it as
+    # MessageHub[Message] here. Null-object pattern — the parameter type
+    # doesn't matter at runtime since the hub never dispatches.
     hub: MessageHub[Message] = NULL_MESSAGE_HUB  # type: ignore[assignment]
     vm: ComponentVMOf[Greeting] = (
         ComponentVMOf[Greeting].builder()

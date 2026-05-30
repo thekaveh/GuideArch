@@ -1,13 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- TargetFramework, LangVersion, Nullable, TreatWarningsAsErrors, ImplicitUsings
+       are set centrally in ../../Directory.Build.props. -->
 
   <ItemGroup>
     <ProjectReference Include="..\GuideArch.Models\GuideArch.Models.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
 
 </Project>

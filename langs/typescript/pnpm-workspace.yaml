@@ -1,2 +1,9 @@
+# pnpm 11 refuses to run package post-install build scripts by default for
+# security. esbuild (used transitively by Vite) needs its post-install step
+# to set up its native binary. allowBuilds.esbuild=true grants that permission.
+# Without this file, `pnpm install` fails on cold installs.
+#
+# This is not a workspaces config (we're a single package), but pnpm currently
+# only reads allowBuilds from pnpm-workspace.yaml, not from package.json.
 allowBuilds:
   esbuild: true
