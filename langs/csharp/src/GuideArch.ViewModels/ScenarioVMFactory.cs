@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Text.Json;
 using System.Windows.Input;
 using GuideArch.Models;
 using GuideArch.Models.Topsis;
@@ -13,6 +12,7 @@ namespace GuideArch.ViewModels;
 /// Root VM factory for the GuideArch scenario.
 /// Returns a <see cref="ComponentVM{ScenarioState}"/> configured with observable
 /// state and commands per spec/viewmodels.md §3.
+/// Also exposes M3 mutation methods for in-place editing.
 /// </summary>
 public static class ScenarioVMFactory
 {
@@ -160,7 +160,16 @@ public static class ScenarioVMFactory
         // Because VMx ComponentVM<M> doesn't have a dictionary of extra properties,
         // we expose commands through a companion object that the View can access
         // directly via the factory's Commands property (tests use this too).
-        var cmdHolder = new ScenarioCommands(newCmd, openCmd, saveCmd, saveAsCmd, solveCmd);
+
+        // -----------------------------------------------------------------------
+        // M3 Mutation helpers — capture SetState/Solve via closure
+        // -----------------------------------------------------------------------
+        ScenarioMutator mutator = new(
+            getState: () => state,
+            setState: SetState,
+            solve: Solve);
+
+        var cmdHolder = new ScenarioCommands(newCmd, openCmd, saveCmd, saveAsCmd, solveCmd, mutator);
         CommandsCache.Add(vm, cmdHolder);
 
         vm.Construct();
@@ -181,21 +190,549 @@ public static class ScenarioVMFactory
         throw new InvalidOperationException("VM was not created by ScenarioVMFactory.");
     }
 
-    // -----------------------------------------------------------------------
-    // JSON serialiser (deterministic, sorted keys)
-    // -----------------------------------------------------------------------
-    private static readonly JsonSerializerOptions SerializerOptions = new()
+    internal static void WriteScenario(ScenarioM scenario, string path)
     {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
-    private static void WriteScenario(ScenarioM scenario, string path)
-    {
-        // Re-serialize through Models.Output.Serializer if available; otherwise
-        // fall back to System.Text.Json (deterministic enough for our purposes).
-        var json = JsonSerializer.Serialize(scenario, SerializerOptions);
+        // Use ScenarioSerializer to produce schema-compliant JSON (correct enum
+        // string literals, correct field names for ConstraintM subclasses, etc.)
+        // so that ScenarioLoader.Load() can round-trip the file.
+        var json = ScenarioSerializer.Serialize(scenario);
         File.WriteAllText(path, json);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// ScenarioMutator — M3 in-place editing helpers (spec editors.md §2)
+// ---------------------------------------------------------------------------
+
+/// <summary>
+/// Encapsulates all M3 mutations on the scenario state. Called by the View
+/// in response to user edits. All mutations validate invariants and either
+/// throw <see cref="ScenarioMutationException"/> (fatal) or add to Warnings.
+/// The mutator re-solves after each change.
+/// </summary>
+public sealed class ScenarioMutator
+{
+    private readonly Func<ScenarioState> _getState;
+    private readonly Action<ScenarioState> _setState;
+    private readonly Action _solve;
+
+    internal ScenarioMutator(
+        Func<ScenarioState> getState,
+        Action<ScenarioState> setState,
+        Action solve)
+    {
+        _getState = getState;
+        _setState = setState;
+        _solve = solve;
+    }
+
+    private ScenarioState State => _getState();
+
+    private ScenarioM RequireScenario()
+    {
+        if (State.Scenario is null)
+            throw new ScenarioMutationException("No scenario is loaded.");
+        return State.Scenario;
+    }
+
+    // ------------------------------------------------------------------
+    // Scenario name / description
+    // ------------------------------------------------------------------
+
+    public void SetScenarioName(string name)
+    {
+        var s = RequireScenario();
+        _setState(State with
+        {
+            Scenario = s with { Name = name },
+            IsDirty = true
+        });
+        // Name change does NOT trigger solve (spec viewmodels.md §3.3).
+    }
+
+    // ------------------------------------------------------------------
+    // Decisions
+    // ------------------------------------------------------------------
+
+    public void AddDecision()
+    {
+        var s = RequireScenario();
+        var id = $"d-{Guid.NewGuid()}";
+        var newDecision = new DecisionM(id, "New decision");
+        _setState(State with
+        {
+            Scenario = s with { Decisions = s.Decisions.Add(newDecision) },
+            IsDirty = true
+        });
+        _solve();
+    }
+
+    public void RenameDecision(string id, string newName)
+    {
+        var s = RequireScenario();
+        var idx = s.Decisions.IndexOf(s.Decisions.FirstOrDefault(d => d.Id == id)!);
+        if (idx < 0) throw new ScenarioMutationException($"Decision '{id}' not found.");
+        var updated = s.Decisions.SetItem(idx, s.Decisions[idx] with { Name = newName });
+        _setState(State with
+        {
+            Scenario = s with { Decisions = updated },
+            IsDirty = true
+        });
+        // Rename does NOT trigger solve (spec viewmodels.md §3.3).
+    }
+
+    /// <summary>
+    /// Deletes a decision AND all its alternatives AND all coefficients/constraints
+    /// referencing those alternatives (spec editors.md §2.1 cascade).
+    /// </summary>
+    public void DeleteDecision(string id)
+    {
+        var s = RequireScenario();
+        if (!s.Decisions.Any(d => d.Id == id))
+            throw new ScenarioMutationException($"Decision '{id}' not found.");
+
+        // Collect all alternative IDs belonging to this decision.
+        var altIds = s.Alternatives
+            .Where(a => a.DecisionId == id)
+            .Select(a => a.Id)
+            .ToHashSet();
+
+        var newDecisions = s.Decisions.Where(d => d.Id != id).ToImmutableArray();
+        var newAlternatives = s.Alternatives.Where(a => a.DecisionId != id).ToImmutableArray();
+        var newCoefficients = s.Coefficients
+            .Where(c => !altIds.Contains(c.AlternativeId))
+            .ToImmutableArray();
+        var newConstraints = s.Constraints
+            .Where(c => c switch
+            {
+                ThresholdConstraintM _ => true,
+                DependencyConstraintM dep =>
+                    !altIds.Contains(dep.SourceAlternativeId) &&
+                    !altIds.Contains(dep.TargetAlternativeId),
+                ConflictConstraintM conf =>
+                    !altIds.Contains(conf.AlternativeAId) &&
+                    !altIds.Contains(conf.AlternativeBId),
+                _ => true
+            })
+            .ToImmutableArray();
+
+        _setState(State with
+        {
+            Scenario = s with
+            {
+                Decisions = newDecisions,
+                Alternatives = newAlternatives,
+                Coefficients = newCoefficients,
+                Constraints = newConstraints
+            },
+            IsDirty = true
+        });
+        _solve();
+    }
+
+    // ------------------------------------------------------------------
+    // Alternatives
+    // ------------------------------------------------------------------
+
+    public void AddAlternative(string decisionId)
+    {
+        var s = RequireScenario();
+        if (!s.Decisions.Any(d => d.Id == decisionId))
+            throw new ScenarioMutationException($"Decision '{decisionId}' not found.");
+
+        var id = $"a-{Guid.NewGuid()}";
+        var newAlt = new AlternativeM(id, decisionId, "New alternative");
+
+        // Add zero-fuzzy coefficients for every existing property.
+        var newCoeffs = s.Properties
+            .Select(p => new CoefficientM(id, p.Id, TriangularFuzzyM.Zero))
+            .ToImmutableArray();
+
+        _setState(State with
+        {
+            Scenario = s with
+            {
+                Alternatives = s.Alternatives.Add(newAlt),
+                Coefficients = s.Coefficients.AddRange(newCoeffs)
+            },
+            IsDirty = true
+        });
+        _solve();
+    }
+
+    public void RenameAlternative(string id, string newName)
+    {
+        var s = RequireScenario();
+        var alt = s.Alternatives.FirstOrDefault(a => a.Id == id);
+        if (alt is null) throw new ScenarioMutationException($"Alternative '{id}' not found.");
+        var idx = s.Alternatives.IndexOf(alt);
+        _setState(State with
+        {
+            Scenario = s with { Alternatives = s.Alternatives.SetItem(idx, alt with { Name = newName }) },
+            IsDirty = true
+        });
+        // Name change does NOT trigger solve.
+    }
+
+    /// <summary>
+    /// Deletes an alternative AND its coefficients AND constraints referencing it
+    /// (spec editors.md §2.2 cascade).
+    /// </summary>
+    public void DeleteAlternative(string id)
+    {
+        var s = RequireScenario();
+        if (!s.Alternatives.Any(a => a.Id == id))
+            throw new ScenarioMutationException($"Alternative '{id}' not found.");
+
+        var newAlts = s.Alternatives.Where(a => a.Id != id).ToImmutableArray();
+        var newCoeffs = s.Coefficients.Where(c => c.AlternativeId != id).ToImmutableArray();
+        var newConstraints = s.Constraints
+            .Where(c => c switch
+            {
+                ThresholdConstraintM _ => true,
+                DependencyConstraintM dep =>
+                    dep.SourceAlternativeId != id && dep.TargetAlternativeId != id,
+                ConflictConstraintM conf =>
+                    conf.AlternativeAId != id && conf.AlternativeBId != id,
+                _ => true
+            })
+            .ToImmutableArray();
+
+        _setState(State with
+        {
+            Scenario = s with
+            {
+                Alternatives = newAlts,
+                Coefficients = newCoeffs,
+                Constraints = newConstraints
+            },
+            IsDirty = true
+        });
+        _solve();
+    }
+
+    // ------------------------------------------------------------------
+    // Properties
+    // ------------------------------------------------------------------
+
+    public void AddProperty()
+    {
+        var s = RequireScenario();
+        var id = $"p-{Guid.NewGuid()}";
+        var newProp = new PropertyM(id, "New property", PropertyKind.Min, 1.0);
+
+        // Add zero-fuzzy coefficients for every existing alternative.
+        var newCoeffs = s.Alternatives
+            .Select(a => new CoefficientM(a.Id, id, TriangularFuzzyM.Zero))
+            .ToImmutableArray();
+
+        _setState(State with
+        {
+            Scenario = s with
+            {
+                Properties = s.Properties.Add(newProp),
+                Coefficients = s.Coefficients.AddRange(newCoeffs)
+            },
+            IsDirty = true
+        });
+        _solve();
+    }
+
+    public void UpdateProperty(string id, string? name, PropertyKind? kind, double? weight)
+    {
+        var s = RequireScenario();
+        var prop = s.Properties.FirstOrDefault(p => p.Id == id);
+        if (prop is null) throw new ScenarioMutationException($"Property '{id}' not found.");
+
+        if (weight.HasValue && weight.Value <= 0)
+            throw new ScenarioMutationException("Property weight must be > 0.");
+
+        var idx = s.Properties.IndexOf(prop);
+        var updated = prop with
+        {
+            Name = name ?? prop.Name,
+            Kind = kind ?? prop.Kind,
+            Weight = weight ?? prop.Weight
+        };
+        bool triggerSolve = (kind.HasValue && kind.Value != prop.Kind)
+                         || (weight.HasValue && weight.Value != prop.Weight);
+
+        _setState(State with
+        {
+            Scenario = s with { Properties = s.Properties.SetItem(idx, updated) },
+            IsDirty = true
+        });
+        if (triggerSolve) _solve();
+    }
+
+    /// <summary>
+    /// Deletes a property AND its coefficients AND threshold constraints referencing it
+    /// (spec editors.md §2.3 cascade).
+    /// </summary>
+    public void DeleteProperty(string id)
+    {
+        var s = RequireScenario();
+        if (!s.Properties.Any(p => p.Id == id))
+            throw new ScenarioMutationException($"Property '{id}' not found.");
+
+        var newProps = s.Properties.Where(p => p.Id != id).ToImmutableArray();
+        var newCoeffs = s.Coefficients.Where(c => c.PropertyId != id).ToImmutableArray();
+        var newConstraints = s.Constraints
+            .Where(c => c is not ThresholdConstraintM t || t.PropertyId != id)
+            .ToImmutableArray();
+
+        _setState(State with
+        {
+            Scenario = s with
+            {
+                Properties = newProps,
+                Coefficients = newCoeffs,
+                Constraints = newConstraints
+            },
+            IsDirty = true
+        });
+        _solve();
+    }
+
+    // ------------------------------------------------------------------
+    // Coefficients
+    // ------------------------------------------------------------------
+
+    public void UpdateCoefficient(string alternativeId, string propertyId,
+        double lower, double modal, double upper)
+    {
+        var s = RequireScenario();
+        var idx = -1;
+        for (int i = 0; i < s.Coefficients.Length; i++)
+        {
+            if (s.Coefficients[i].AlternativeId == alternativeId &&
+                s.Coefficients[i].PropertyId == propertyId)
+            {
+                idx = i;
+                break;
+            }
+        }
+
+        ImmutableArray<string> warnings = State.Warnings;
+        if (lower > modal || modal > upper)
+        {
+            // Warning: triangular ordering violated (invariant 4.1)
+            var w = $"Coefficient [{alternativeId}, {propertyId}]: lower ≤ modal ≤ upper should hold.";
+            warnings = warnings.Contains(w) ? warnings : warnings.Add(w);
+        }
+        else
+        {
+            // Remove prior triangular-ordering warning for this cell if now valid.
+            var w = $"Coefficient [{alternativeId}, {propertyId}]: lower ≤ modal ≤ upper should hold.";
+            warnings = warnings.Remove(w);
+        }
+
+        var newValue = new TriangularFuzzyM(lower, modal, upper);
+        ImmutableArray<CoefficientM> newCoeffs;
+        if (idx >= 0)
+        {
+            newCoeffs = s.Coefficients.SetItem(idx, s.Coefficients[idx] with { Value = newValue });
+        }
+        else
+        {
+            // New coefficient (shouldn't happen with a well-formed scenario, but be defensive).
+            newCoeffs = s.Coefficients.Add(new CoefficientM(alternativeId, propertyId, newValue));
+        }
+
+        _setState(State with
+        {
+            Scenario = s with { Coefficients = newCoeffs },
+            IsDirty = true,
+            Warnings = warnings
+        });
+        _solve();
+    }
+
+    // ------------------------------------------------------------------
+    // Constraints
+    // ------------------------------------------------------------------
+
+    public void AddThresholdConstraint(string propertyId, double? min, double? max)
+    {
+        var s = RequireScenario();
+        if (!s.Properties.Any(p => p.Id == propertyId))
+            throw new ScenarioMutationException($"Property '{propertyId}' not found.");
+        if (min is null && max is null)
+            throw new ScenarioMutationException("A threshold constraint needs at least one of min or max.");
+        if (min.HasValue && max.HasValue && min.Value > max.Value)
+            throw new ScenarioMutationException($"Threshold constraint min ({min}) must be ≤ max ({max}).");
+
+        _setState(State with
+        {
+            Scenario = s with
+            {
+                Constraints = s.Constraints.Add(new ThresholdConstraintM(propertyId, min, max))
+            },
+            IsDirty = true
+        });
+        _solve();
+    }
+
+    public void UpdateThresholdConstraint(int index, string? propertyId, double? min, double? max)
+    {
+        var s = RequireScenario();
+        var thresholds = s.Constraints
+            .Select((c, i) => (c, i))
+            .Where(x => x.c is ThresholdConstraintM)
+            .ToList();
+
+        if (index < 0 || index >= thresholds.Count)
+            throw new ScenarioMutationException($"Threshold constraint index {index} out of range.");
+
+        var (existing, globalIdx) = thresholds[index];
+        var tc = (ThresholdConstraintM)existing;
+
+        var newPropId = propertyId ?? tc.PropertyId;
+        var newMin = min ?? tc.Min;
+        var newMax = max ?? tc.Max;
+
+        if (newMin.HasValue && newMax.HasValue && newMin.Value > newMax.Value)
+        {
+            var w = $"Threshold constraint {index}: min > max, constraint skipped at solve.";
+            var warnings = State.Warnings.Contains(w) ? State.Warnings : State.Warnings.Add(w);
+            _setState(State with
+            {
+                Scenario = s with
+                {
+                    Constraints = s.Constraints.SetItem(globalIdx,
+                        new ThresholdConstraintM(newPropId, newMin, newMax))
+                },
+                IsDirty = true,
+                Warnings = warnings
+            });
+        }
+        else
+        {
+            _setState(State with
+            {
+                Scenario = s with
+                {
+                    Constraints = s.Constraints.SetItem(globalIdx,
+                        new ThresholdConstraintM(newPropId, newMin, newMax))
+                },
+                IsDirty = true
+            });
+        }
+        _solve();
+    }
+
+    public void DeleteThresholdConstraint(int index)
+    {
+        var s = RequireScenario();
+        var thresholds = s.Constraints
+            .Select((c, i) => (c, i))
+            .Where(x => x.c is ThresholdConstraintM)
+            .ToList();
+
+        if (index < 0 || index >= thresholds.Count)
+            throw new ScenarioMutationException($"Threshold constraint index {index} out of range.");
+
+        var (_, globalIdx) = thresholds[index];
+        _setState(State with
+        {
+            Scenario = s with { Constraints = s.Constraints.RemoveAt(globalIdx) },
+            IsDirty = true
+        });
+        _solve();
+    }
+
+    public void AddDependencyConstraint(string sourceAltId, string targetAltId)
+    {
+        var s = RequireScenario();
+        if (!s.Alternatives.Any(a => a.Id == sourceAltId))
+            throw new ScenarioMutationException($"Alternative '{sourceAltId}' not found.");
+        if (!s.Alternatives.Any(a => a.Id == targetAltId))
+            throw new ScenarioMutationException($"Alternative '{targetAltId}' not found.");
+
+        var warnings = State.Warnings;
+        if (sourceAltId == targetAltId)
+        {
+            var w = "Dependency constraint: self-edge detected. Flagged but accepted.";
+            if (!warnings.Contains(w)) warnings = warnings.Add(w);
+        }
+
+        _setState(State with
+        {
+            Scenario = s with
+            {
+                Constraints = s.Constraints.Add(new DependencyConstraintM(sourceAltId, targetAltId))
+            },
+            IsDirty = true,
+            Warnings = warnings
+        });
+        _solve();
+    }
+
+    public void DeleteDependencyConstraint(int index)
+    {
+        var s = RequireScenario();
+        var deps = s.Constraints
+            .Select((c, i) => (c, i))
+            .Where(x => x.c is DependencyConstraintM)
+            .ToList();
+
+        if (index < 0 || index >= deps.Count)
+            throw new ScenarioMutationException($"Dependency constraint index {index} out of range.");
+
+        var (_, globalIdx) = deps[index];
+        _setState(State with
+        {
+            Scenario = s with { Constraints = s.Constraints.RemoveAt(globalIdx) },
+            IsDirty = true
+        });
+        _solve();
+    }
+
+    public void AddConflictConstraint(string altAId, string altBId)
+    {
+        var s = RequireScenario();
+        if (!s.Alternatives.Any(a => a.Id == altAId))
+            throw new ScenarioMutationException($"Alternative '{altAId}' not found.");
+        if (!s.Alternatives.Any(a => a.Id == altBId))
+            throw new ScenarioMutationException($"Alternative '{altBId}' not found.");
+
+        var warnings = State.Warnings;
+        if (altAId == altBId)
+        {
+            var w = "Conflict constraint: self-conflict detected. Flagged but accepted.";
+            if (!warnings.Contains(w)) warnings = warnings.Add(w);
+        }
+
+        _setState(State with
+        {
+            Scenario = s with
+            {
+                Constraints = s.Constraints.Add(new ConflictConstraintM(altAId, altBId))
+            },
+            IsDirty = true,
+            Warnings = warnings
+        });
+        _solve();
+    }
+
+    public void DeleteConflictConstraint(int index)
+    {
+        var s = RequireScenario();
+        var conflicts = s.Constraints
+            .Select((c, i) => (c, i))
+            .Where(x => x.c is ConflictConstraintM)
+            .ToList();
+
+        if (index < 0 || index >= conflicts.Count)
+            throw new ScenarioMutationException($"Conflict constraint index {index} out of range.");
+
+        var (_, globalIdx) = conflicts[index];
+        _setState(State with
+        {
+            Scenario = s with { Constraints = s.Constraints.RemoveAt(globalIdx) },
+            IsDirty = true
+        });
+        _solve();
     }
 }
 
@@ -211,17 +748,22 @@ public sealed class ScenarioCommands
     public ICommand SaveAsCmd { get; }
     public ICommand SolveCmd { get; }
 
+    /// <summary>M3 mutation helpers for in-place editing.</summary>
+    public ScenarioMutator Mutator { get; }
+
     internal ScenarioCommands(
         ICommand newCmd,
         ICommand openCmd,
         ICommand saveCmd,
         ICommand saveAsCmd,
-        ICommand solveCmd)
+        ICommand solveCmd,
+        ScenarioMutator mutator)
     {
         NewCmd = newCmd;
         OpenCmd = openCmd;
         SaveCmd = saveCmd;
         SaveAsCmd = saveAsCmd;
         SolveCmd = solveCmd;
+        Mutator = mutator;
     }
 }

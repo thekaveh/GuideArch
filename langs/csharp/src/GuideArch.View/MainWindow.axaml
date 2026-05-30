@@ -2,64 +2,473 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="GuideArch.View.MainWindow"
         Title="GuideArch"
-        Width="900" Height="600">
+        Width="1200" Height="800"
+        MinWidth="800" MinHeight="500">
+
+  <!--
+    DataContext is ComponentVM<ScenarioState> — an open generic type that Avalonia's
+    compiled-binding engine cannot resolve without a type literal. All bindings into
+    the VM use ReflectionBinding intentionally throughout this file.
+  -->
 
   <DockPanel>
 
-    <!-- Top toolbar -->
-    <StackPanel DockPanel.Dock="Top"
-                Orientation="Horizontal"
-                Margin="8,8,8,4"
-                Spacing="8">
-      <Button Content="Open scenario…"
-              Click="OnOpenClicked" />
-    </StackPanel>
+    <!-- ================================================================
+         TOP TOOLBAR — spec editors.md §1 toolbar
+         ================================================================ -->
+    <Border DockPanel.Dock="Top"
+            Background="#1E1E2E"
+            BorderBrush="#313244"
+            BorderThickness="0,0,0,1"
+            Padding="8,6">
+      <StackPanel Orientation="Horizontal" Spacing="4">
 
-    <!-- Status row
-         ReflectionBinding: DataContext is ComponentVM<ScenarioState> — a generic type
-         that cannot be expressed as an XAML type literal. ReflectionBinding is used
-         intentionally here to work around the Avalonia compiled-binding limitation with
-         open generic DataContext types. -->
-    <Border DockPanel.Dock="Bottom"
-            Background="#EFEFEF"
-            Padding="8,4">
-      <TextBlock Text="{ReflectionBinding Model.Status}"
-                 FontSize="12"
-                 Foreground="#444" />
+        <!-- New -->
+        <Button Name="BtnNew"
+                Content="New"
+                ToolTip.Tip="New scenario"
+                Classes="toolbar-btn"
+                Click="OnNewClicked" />
+
+        <!-- Open -->
+        <Button Name="BtnOpen"
+                Content="Open…"
+                ToolTip.Tip="Open scenario JSON"
+                Classes="toolbar-btn"
+                Click="OnOpenClicked" />
+
+        <!-- Save -->
+        <Button Name="BtnSave"
+                Content="Save"
+                ToolTip.Tip="Save current scenario"
+                Classes="toolbar-btn"
+                Click="OnSaveClicked"
+                IsEnabled="{ReflectionBinding Model.HasScenario}" />
+
+        <!-- Save As -->
+        <Button Name="BtnSaveAs"
+                Content="Save As…"
+                ToolTip.Tip="Save as new file"
+                Classes="toolbar-btn"
+                Click="OnSaveAsClicked"
+                IsEnabled="{ReflectionBinding Model.HasScenario}" />
+
+        <!-- Flexible spacer -->
+        <Panel HorizontalAlignment="Stretch" />
+
+        <!-- Solve -->
+        <Button Name="BtnSolve"
+                Content="Solve"
+                ToolTip.Tip="Re-run TOPSIS"
+                Classes="toolbar-btn"
+                Click="OnSolveClicked"
+                IsEnabled="{ReflectionBinding Model.HasScenario}" />
+
+      </StackPanel>
     </Border>
 
-    <!-- Main pane -->
-    <Grid>
-      <!-- Empty state — visible when Candidates is empty -->
-      <TextBlock Text="Open a scenario JSON to begin."
-                 HorizontalAlignment="Center"
-                 VerticalAlignment="Center"
-                 FontSize="18"
-                 Foreground="#888"
-                 IsVisible="{ReflectionBinding Model.Candidates.IsEmpty}" />
+    <!-- ================================================================
+         BOTTOM STATUS BAR — spec editors.md §1 status bar
+         ================================================================ -->
+    <Border DockPanel.Dock="Bottom"
+            Background="#1E1E2E"
+            BorderBrush="#313244"
+            BorderThickness="0,1,0,0"
+            Padding="12,4">
+      <Grid ColumnDefinitions="*,Auto">
+        <!-- Status text — scenario name · n candidates -->
+        <TextBlock Grid.Column="0"
+                   Text="{ReflectionBinding Model.Status}"
+                   FontSize="12"
+                   Foreground="#CDD6F4"
+                   VerticalAlignment="Center" />
+        <!-- Warnings chip — shows last warning if any -->
+        <TextBlock Grid.Column="1"
+                   Text="{ReflectionBinding Model.Warnings[0]}"
+                   FontSize="11"
+                   Foreground="#F38BA8"
+                   VerticalAlignment="Center"
+                   Margin="16,0,0,0"
+                   IsVisible="{ReflectionBinding !Model.Warnings.IsEmpty}" />
+      </Grid>
+    </Border>
 
-      <!-- Candidates table — top 50 -->
-      <!-- ReflectionBinding: same open-generic DataContext reason as above -->
-      <ListBox ItemsSource="{ReflectionBinding Model.Candidates}"
-               IsVisible="{ReflectionBinding !Model.Candidates.IsEmpty}"
-               Margin="8,4,8,8">
-        <ListBox.ItemTemplate>
-          <DataTemplate>
-            <Grid ColumnDefinitions="60,100,*">
-              <TextBlock Grid.Column="0"
-                         Text="{ReflectionBinding Rank}"
-                         Margin="0,0,8,0" />
-              <TextBlock Grid.Column="1"
-                         Text="{ReflectionBinding Score, StringFormat={}{0:F6}}"
-                         Margin="0,0,8,0" />
-              <TextBlock Grid.Column="2"
-                         Text="{ReflectionBinding AlternativeIds}"
-                         TextWrapping="Wrap" />
-            </Grid>
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
+    <!-- ================================================================
+         EMPTY STATE — shown when no scenario is loaded
+         ================================================================ -->
+    <Grid IsVisible="{ReflectionBinding !Model.HasScenario}">
+      <StackPanel HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Spacing="16">
+        <TextBlock Text="No scenario loaded."
+                   FontSize="22"
+                   Foreground="#6C7086"
+                   HorizontalAlignment="Center" />
+        <Button Content="Open scenario…"
+                HorizontalAlignment="Center"
+                Classes="toolbar-btn"
+                Click="OnOpenClicked" />
+      </StackPanel>
     </Grid>
+
+    <!-- ================================================================
+         MAIN TAB STRIP — spec editors.md §1 tab strip
+         Visible only when a scenario is loaded.
+         ================================================================ -->
+    <TabControl Name="MainTabs"
+                IsVisible="{ReflectionBinding Model.HasScenario}"
+                Background="#1E1E2E">
+
+      <!-- ── Tab 1: Decisions ────────────────────────────────────────── -->
+      <TabItem Header="Decisions">
+        <Grid RowDefinitions="Auto,*">
+
+          <!-- Add Decision toolbar -->
+          <StackPanel Grid.Row="0"
+                      Orientation="Horizontal"
+                      Spacing="8"
+                      Margin="8,8,8,4">
+            <Button Content="Add Decision"
+                    Click="OnAddDecisionClicked"
+                    Classes="action-btn" />
+          </StackPanel>
+
+          <!-- Decisions list -->
+          <!-- ReflectionBinding: open generic DataContext (see file header) -->
+          <DataGrid Grid.Row="1"
+                    Name="DecisionsGrid"
+                    ItemsSource="{ReflectionBinding Model.DecisionsView}"
+                    AutoGenerateColumns="False"
+                    CanUserResizeColumns="True"
+                    CanUserSortColumns="False"
+                    IsReadOnly="False"
+                    Margin="8,0,8,8">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="ID"
+                                  Binding="{ReflectionBinding Id}"
+                                  Width="220"
+                                  IsReadOnly="True"
+                                  FontFamily="Cascadia Code,Consolas,monospace"
+                                  FontSize="11" />
+              <DataGridTextColumn Header="Name"
+                                  Binding="{ReflectionBinding Name}"
+                                  Width="*" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ── Tab 2: Alternatives ─────────────────────────────────────── -->
+      <TabItem Header="Alternatives">
+        <Grid RowDefinitions="Auto,*">
+
+          <!-- Per-decision Add Alternative — handled in code-behind -->
+          <StackPanel Grid.Row="0"
+                      Orientation="Horizontal"
+                      Spacing="8"
+                      Margin="8,8,8,4">
+            <TextBlock Text="Select a decision then:"
+                       VerticalAlignment="Center"
+                       Foreground="#CDD6F4"
+                       FontSize="12" />
+            <Button Content="Add Alternative"
+                    Click="OnAddAlternativeClicked"
+                    Classes="action-btn" />
+          </StackPanel>
+
+          <!-- Alternatives grouped by decision -->
+          <!-- ReflectionBinding: open generic DataContext (see file header) -->
+          <DataGrid Grid.Row="1"
+                    Name="AlternativesGrid"
+                    ItemsSource="{ReflectionBinding Model.AlternativesView}"
+                    AutoGenerateColumns="False"
+                    CanUserResizeColumns="True"
+                    CanUserSortColumns="False"
+                    IsReadOnly="False"
+                    Margin="8,0,8,8">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="ID"
+                                  Binding="{ReflectionBinding Id}"
+                                  Width="220"
+                                  IsReadOnly="True"
+                                  FontFamily="Cascadia Code,Consolas,monospace"
+                                  FontSize="11" />
+              <DataGridTextColumn Header="Decision ID"
+                                  Binding="{ReflectionBinding DecisionId}"
+                                  Width="220"
+                                  IsReadOnly="True"
+                                  FontFamily="Cascadia Code,Consolas,monospace"
+                                  FontSize="11" />
+              <DataGridTextColumn Header="Name"
+                                  Binding="{ReflectionBinding Name}"
+                                  Width="*" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ── Tab 3: Properties ──────────────────────────────────────── -->
+      <TabItem Header="Properties">
+        <Grid RowDefinitions="Auto,*">
+
+          <StackPanel Grid.Row="0"
+                      Orientation="Horizontal"
+                      Spacing="8"
+                      Margin="8,8,8,4">
+            <Button Content="Add Property"
+                    Click="OnAddPropertyClicked"
+                    Classes="action-btn" />
+          </StackPanel>
+
+          <!-- Properties table -->
+          <!-- ReflectionBinding: open generic DataContext (see file header) -->
+          <DataGrid Grid.Row="1"
+                    Name="PropertiesGrid"
+                    ItemsSource="{ReflectionBinding Model.PropertiesView}"
+                    AutoGenerateColumns="False"
+                    CanUserResizeColumns="True"
+                    CanUserSortColumns="False"
+                    IsReadOnly="False"
+                    Margin="8,0,8,8">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="ID"
+                                  Binding="{ReflectionBinding Id}"
+                                  Width="220"
+                                  IsReadOnly="True"
+                                  FontFamily="Cascadia Code,Consolas,monospace"
+                                  FontSize="11" />
+              <DataGridTextColumn Header="Name"
+                                  Binding="{ReflectionBinding Name}"
+                                  Width="*" />
+              <DataGridTextColumn Header="Kind"
+                                  Binding="{ReflectionBinding Kind}"
+                                  Width="80" />
+              <DataGridTextColumn Header="Weight"
+                                  Binding="{ReflectionBinding Weight, StringFormat={}{0:F4}}"
+                                  Width="100" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ── Tab 4: Coefficients ────────────────────────────────────── -->
+      <TabItem Header="Coefficients">
+        <Grid RowDefinitions="Auto,*">
+
+          <TextBlock Grid.Row="0"
+                     Text="Fuzzy coefficient matrix (alternative × property). Edit values in code."
+                     Margin="8,8,8,4"
+                     FontSize="12"
+                     Foreground="#A6ADC8" />
+
+          <!-- Coefficients flat table
+               ReflectionBinding: open generic DataContext (see file header) -->
+          <DataGrid Grid.Row="1"
+                    Name="CoefficientsGrid"
+                    ItemsSource="{ReflectionBinding Model.CoefficientsView}"
+                    AutoGenerateColumns="False"
+                    CanUserResizeColumns="True"
+                    CanUserSortColumns="False"
+                    IsReadOnly="False"
+                    Margin="8,0,8,8">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Alternative ID"
+                                  Binding="{ReflectionBinding AlternativeId}"
+                                  Width="220"
+                                  IsReadOnly="True"
+                                  FontFamily="Cascadia Code,Consolas,monospace"
+                                  FontSize="11" />
+              <DataGridTextColumn Header="Property ID"
+                                  Binding="{ReflectionBinding PropertyId}"
+                                  Width="220"
+                                  IsReadOnly="True"
+                                  FontFamily="Cascadia Code,Consolas,monospace"
+                                  FontSize="11" />
+              <DataGridTextColumn Header="Lower"
+                                  Binding="{ReflectionBinding Value.Lower, StringFormat={}{0:F4}}"
+                                  Width="90"
+                                  IsReadOnly="True" />
+              <DataGridTextColumn Header="Modal"
+                                  Binding="{ReflectionBinding Value.Modal, StringFormat={}{0:F4}}"
+                                  Width="90"
+                                  IsReadOnly="True" />
+              <DataGridTextColumn Header="Upper"
+                                  Binding="{ReflectionBinding Value.Upper, StringFormat={}{0:F4}}"
+                                  Width="90"
+                                  IsReadOnly="True" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ── Tab 5: Constraints ─────────────────────────────────────── -->
+      <TabItem Header="Constraints">
+        <TabControl Background="#1E1E2E">
+
+          <!-- Sub-tab: Threshold -->
+          <TabItem Header="Threshold">
+            <Grid RowDefinitions="Auto,*">
+
+              <StackPanel Grid.Row="0"
+                          Orientation="Horizontal"
+                          Spacing="8"
+                          Margin="8,8,8,4">
+                <Button Content="Add Threshold"
+                        Click="OnAddThresholdClicked"
+                        Classes="action-btn" />
+              </StackPanel>
+
+              <!-- ReflectionBinding: open generic DataContext (see file header) -->
+              <DataGrid Grid.Row="1"
+                        Name="ThresholdGrid"
+                        ItemsSource="{ReflectionBinding Model.ThresholdConstraintsView}"
+                        AutoGenerateColumns="False"
+                        CanUserResizeColumns="True"
+                        CanUserSortColumns="False"
+                        IsReadOnly="True"
+                        Margin="8,0,8,8">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Property ID"
+                                      Binding="{ReflectionBinding PropertyId}"
+                                      Width="220"
+                                      FontFamily="Cascadia Code,Consolas,monospace"
+                                      FontSize="11" />
+                  <DataGridTextColumn Header="Min"
+                                      Binding="{ReflectionBinding Min}"
+                                      Width="120" />
+                  <DataGridTextColumn Header="Max"
+                                      Binding="{ReflectionBinding Max}"
+                                      Width="120" />
+                </DataGrid.Columns>
+              </DataGrid>
+
+            </Grid>
+          </TabItem>
+
+          <!-- Sub-tab: Dependency -->
+          <TabItem Header="Dependency">
+            <Grid RowDefinitions="Auto,*">
+
+              <StackPanel Grid.Row="0"
+                          Orientation="Horizontal"
+                          Spacing="8"
+                          Margin="8,8,8,4">
+                <Button Content="Add Dependency"
+                        Click="OnAddDependencyClicked"
+                        Classes="action-btn" />
+              </StackPanel>
+
+              <!-- ReflectionBinding: open generic DataContext (see file header) -->
+              <DataGrid Grid.Row="1"
+                        Name="DependencyGrid"
+                        ItemsSource="{ReflectionBinding Model.DependencyConstraintsView}"
+                        AutoGenerateColumns="False"
+                        CanUserResizeColumns="True"
+                        CanUserSortColumns="False"
+                        IsReadOnly="True"
+                        Margin="8,0,8,8">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Source Alternative ID"
+                                      Binding="{ReflectionBinding SourceAlternativeId}"
+                                      Width="*"
+                                      FontFamily="Cascadia Code,Consolas,monospace"
+                                      FontSize="11" />
+                  <DataGridTextColumn Header="Target Alternative ID"
+                                      Binding="{ReflectionBinding TargetAlternativeId}"
+                                      Width="*"
+                                      FontFamily="Cascadia Code,Consolas,monospace"
+                                      FontSize="11" />
+                </DataGrid.Columns>
+              </DataGrid>
+
+            </Grid>
+          </TabItem>
+
+          <!-- Sub-tab: Conflict -->
+          <TabItem Header="Conflict">
+            <Grid RowDefinitions="Auto,*">
+
+              <StackPanel Grid.Row="0"
+                          Orientation="Horizontal"
+                          Spacing="8"
+                          Margin="8,8,8,4">
+                <Button Content="Add Conflict"
+                        Click="OnAddConflictClicked"
+                        Classes="action-btn" />
+              </StackPanel>
+
+              <!-- ReflectionBinding: open generic DataContext (see file header) -->
+              <DataGrid Grid.Row="1"
+                        Name="ConflictGrid"
+                        ItemsSource="{ReflectionBinding Model.ConflictConstraintsView}"
+                        AutoGenerateColumns="False"
+                        CanUserResizeColumns="True"
+                        CanUserSortColumns="False"
+                        IsReadOnly="True"
+                        Margin="8,0,8,8">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Alternative A ID"
+                                      Binding="{ReflectionBinding AlternativeAId}"
+                                      Width="*"
+                                      FontFamily="Cascadia Code,Consolas,monospace"
+                                      FontSize="11" />
+                  <DataGridTextColumn Header="Alternative B ID"
+                                      Binding="{ReflectionBinding AlternativeBId}"
+                                      Width="*"
+                                      FontFamily="Cascadia Code,Consolas,monospace"
+                                      FontSize="11" />
+                </DataGrid.Columns>
+              </DataGrid>
+
+            </Grid>
+          </TabItem>
+
+        </TabControl>
+      </TabItem>
+
+      <!-- ── Tab 6: Results (M2 candidates table) ───────────────────── -->
+      <TabItem Header="Results">
+        <Grid RowDefinitions="Auto,*">
+
+          <!-- ReflectionBinding: open generic DataContext (see file header) -->
+          <TextBlock Grid.Row="0"
+                     Text="{ReflectionBinding Model.Status}"
+                     Margin="8,8,8,4"
+                     FontSize="13"
+                     Foreground="#A6ADC8" />
+
+          <DataGrid Grid.Row="1"
+                    Name="ResultsGrid"
+                    ItemsSource="{ReflectionBinding Model.Candidates}"
+                    AutoGenerateColumns="False"
+                    CanUserResizeColumns="True"
+                    CanUserSortColumns="False"
+                    IsReadOnly="True"
+                    Margin="8,0,8,8">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Rank"
+                                  Binding="{ReflectionBinding Rank}"
+                                  Width="60" />
+              <DataGridTextColumn Header="Score"
+                                  Binding="{ReflectionBinding Score, StringFormat={}{0:F6}}"
+                                  Width="120"
+                                  FontFamily="Cascadia Code,Consolas,monospace" />
+              <DataGridTextColumn Header="Alternative IDs"
+                                  Binding="{ReflectionBinding AlternativeIds}"
+                                  Width="*"
+                                  FontFamily="Cascadia Code,Consolas,monospace"
+                                  FontSize="11" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+        </Grid>
+      </TabItem>
+
+    </TabControl>
 
   </DockPanel>
 
