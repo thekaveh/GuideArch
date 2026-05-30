@@ -4,7 +4,7 @@
 
 **Goal:** Stand up a professional public GitHub repository at `thekaveh/GuideArch` with VMx wired as a submodule, three language scaffolds (TS+Tauri+Svelte, C#+Avalonia, Python+NiceGUI), CI green on all impls, and full governance scaffolding — ready for M1 to begin.
 
-**Architecture:** Monorepo with `langs/{typescript,csharp,python}/` containing per-impl scaffolds, `vendor/vmx/` git submodule pinned to VMx v2.1.0, `spec/` for language-neutral source-of-truth (skeleton only at M0), `.github/workflows/` for per-impl + cross-cutting CI. Each impl's scaffold ships a "hello world" that imports VMx as proof of wiring.
+**Architecture:** Monorepo with `langs/{typescript,csharp,python}/` containing per-impl scaffolds, `vendor/vmx/` git submodule pinned to VMx upstream `main` HEAD at bootstrap (commit `e2b23f8`); see Task 11's fallback path for the rationale (`v2.1.0` tag does not yet exist upstream), `spec/` for language-neutral source-of-truth (skeleton only at M0), `.github/workflows/` for per-impl + cross-cutting CI. Each impl's scaffold ships a "hello world" that imports VMx as proof of wiring.
 
 **Tech Stack:** Git submodule (VMx); Node 20 + pnpm + Vite + Svelte 5 + Tauri 2 (TS); .NET 8 SDK + Avalonia 12 (C#); Python 3.12 + uv + NiceGUI 3.x + pywebview (Python); GitHub Actions for CI.
 
@@ -764,6 +764,8 @@ cd ../..
 ```
 
 If the tag does not exist on the remote (the user may not have tagged yet), fall back to pinning to the current `main` HEAD commit and record the commit SHA in the commit message. Resolve by asking the user to add a `v2.1.0` tag to the VMx repo before merge.
+
+**NOTE (post-execution):** The fallback path was taken at M0. The submodule was pinned to commit `e2b23f8` (described as `python-v1.0.0-66-ge2b23f8`), and the commit message used was `build: vendor VMx as submodule at e2b23f8 (v2.1.0 tag not yet present upstream)`.
 
 - [ ] **Step 3:** Verify `.gitmodules` content:
 
@@ -2245,7 +2247,7 @@ git push origin v0.0.0-bootstrap
 ```bash
 gh release create v0.0.0-bootstrap \
   --title "v0.0.0-bootstrap — M0" \
-  --notes "M0 milestone complete. Repo scaffolded, VMx vendored as submodule (v2.1.0), three impls (TS+Tauri+Svelte / C#+Avalonia / Python+NiceGUI) running hello-VMx, CI green on all matrices. Not yet usable as an application. Next: M1 — formalize the spec and port TOPSIS in all three impls."
+  --notes "M0 milestone complete. Repo scaffolded, VMx vendored as submodule (commit e2b23f8), three impls (TS+Tauri+Svelte / C#+Avalonia / Python+NiceGUI) running hello-VMx, CI green on all matrices. Not yet usable as an application. Next: M1 — formalize the spec and port TOPSIS in all three impls."
 ```
 
 - [ ] **Step 3:** Verify in the browser at `https://github.com/thekaveh/GuideArch/releases`.

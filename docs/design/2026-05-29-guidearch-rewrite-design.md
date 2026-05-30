@@ -306,7 +306,7 @@ Three implementations stay honest **only** because of the conformance corpus. Wi
 | Topics | `mvvm`, `topsis`, `fuzzy-logic`, `decision-analysis`, `software-architecture`, `avalonia`, `tauri`, `svelte`, `nicegui`, `vmx` |
 | Versioning | Single monorepo version (`v1.0.0` releases all three) |
 | Releases | TS: Tauri installers + web bundle. C#: Avalonia desktop binaries + WASM. Python: PyPI + Docker. |
-| Submodule pin | VMx `v2.1.0` at bootstrap (current stable); `vmx-bump.yml` workflow opens weekly bump PR |
+| Submodule pin | VMx pinned to upstream `main` HEAD at bootstrap (commit `e2b23f8`, described as `python-v1.0.0-66-ge2b23f8`); VMx has no repo-wide semver tag yet, only per-language tags. The `vmx-bump.yml` workflow opens an issue weekly when `main` advances. Re-pin to a stable tag once VMx publishes one. |
 | Commit hygiene | No AI/Claude/Co-Authored-By trailers anywhere |
 | `.gitignore` | Excludes `.claude/`, `.superpowers/`, `.aider*`, `.cursor/`, `.continue/`, etc. |
 | Scaffolding | README, CONTRIBUTING, CODE_OF_CONDUCT (Contributor Covenant 2.1), SECURITY, issue + PR templates, dependabot |
@@ -367,7 +367,7 @@ The following Architecture Decision Records are committed at M0:
 
 - **Charting choice in TS:** Visx vs LayerChart — decided at first chart implementation in M4.
 - **Conformance numerical tolerance against legacy** — starts at `1e-6` but may need adjustment after M1 baseline generation.
-- **Whether `vmx-bump.yml` opens PRs automatically or just files issues** — decided at M0.
+- **Whether `vmx-bump.yml` opens PRs automatically or just files issues** — files an issue (decided at M0; chosen because the bump requires a deliberate human review of the diff between the pinned and upstream commits).
 - **Standalone Python executable packaging** (PyInstaller) — known multiprocessing-edge-case in NiceGUI native mode; deferred past v1.0.
 - **Defuzzification method for threshold constraints** (Step 3 of TOPSIS): proposed as centroid defuzzification, but must be verified during M1 against `.Old/GuideArch.Model/Space.cs` semantics. If the legacy uses a different method (e.g., max-membership or area-balance), the spec adopts the legacy choice to preserve conformance against the seed corpus.
 
