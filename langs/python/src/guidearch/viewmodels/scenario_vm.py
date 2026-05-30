@@ -23,13 +23,40 @@ The excluded trigger list (spec §3.3):
 
 Debouncing (100 ms) belongs in the View adapter, not here.  Tests call
 solve_cmd.execute() directly.
+
+Cascade methods (M3)
+--------------------
+delete_decision(id), delete_alternative(id), delete_property(id) implement
+the cascade semantics from spec/editors.md §2:
+  - delete_decision: removes decision, its alternatives, their coefficients,
+    and any constraints referencing those alternatives.
+  - delete_alternative: removes the alternative, its coefficients, and
+    any constraints referencing it.
+  - delete_property: removes the property, its coefficients, and any
+    threshold constraints referencing it.
+All cascades call _apply_scenario_mutation() which marks dirty and re-solves.
+
+Add methods (M3)
+----------------
+add_decision(), add_alternative(decision_id), add_property() append new
+entities with zero-fuzzy coefficients for every pairing.
+
+Update methods (M3)
+-------------------
+update_decision_name(id, name), update_alternative_name(id, name),
+update_property(id, name, kind, weight), update_coefficient(alt_id, prop_id,
+lower, modal, upper), update_constraint_threshold(...),
+update_constraint_dependency(...), update_constraint_conflict(...)
+allow in-place mutation with automatic dirty marking and re-solve.
 """
 
 from __future__ import annotations
 
 import json
+import uuid
+from dataclasses import replace
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import reactivex as rx
 from reactivex.subject import Subject
@@ -39,14 +66,29 @@ from vmx.messages.protocols import Message
 from vmx.services.dispatcher import RxDispatcher
 from vmx.services.message_hub import MessageHub
 
+from guidearch.models.alternative import AlternativeM
 from guidearch.models.candidate import CandidateM
+from guidearch.models.coefficient import CoefficientM
+from guidearch.models.constraint import (
+    ConflictConstraint,
+    Constraint,
+    DependencyConstraint,
+    ThresholdConstraint,
+)
 from guidearch.models.critical_constraint import CriticalConstraintM
 from guidearch.models.critical_decision import CriticalDecisionM
+from guidearch.models.decision import DecisionM
+from guidearch.models.property import PropertyM
 from guidearch.models.scenario import ScenarioM
 from guidearch.models.scenario_loader import load_scenario
 from guidearch.models.topsis.critical_constraints import critical_constraints
 from guidearch.models.topsis.critical_decisions import critical_decisions
 from guidearch.models.topsis.solve import solve
+from guidearch.models.triangular_fuzzy import TriangularFuzzyM
+
+
+class _UNSET:
+    """Sentinel for 'argument not provided' (distinguishes None from missing)."""
 
 
 class ScenarioVM:
@@ -322,6 +364,424 @@ class ScenarioVM:
             encoding="utf-8",
         )
 
+    # ── M3 cascade / mutation helpers ────────────────────────────────────────
+
+    def _apply_scenario_mutation(self, new_scenario: ScenarioM) -> None:
+        """Replace scenario, mark dirty, broadcast change, trigger re-solve."""
+        self._scenario = new_scenario
+        self._is_dirty = True
+        self._raise_property_changed("scenario")
+        self._raise_property_changed("is_dirty")
+        self._do_solve()
+
+    # ── Delete cascades ───────────────────────────────────────────────────────
+
+    def delete_decision(self, decision_id: str) -> None:
+        """Delete a decision and cascade: removes its alternatives, their
+        coefficients, and any constraints referencing those alternatives.
+
+        Raises ValueError if no scenario is loaded or decision_id not found.
+        """
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        # Verify decision exists
+        if not any(d.id == decision_id for d in scenario.decisions):
+            raise ValueError(f"Decision '{decision_id}' not found.")
+
+        # Collect affected alternative ids
+        affected_alt_ids = {a.id for a in scenario.alternatives if a.decision_id == decision_id}
+
+        # Remove decision
+        new_decisions = tuple(d for d in scenario.decisions if d.id != decision_id)
+        # Remove alternatives belonging to this decision
+        new_alternatives = tuple(a for a in scenario.alternatives if a.id not in affected_alt_ids)
+        # Remove coefficients referencing affected alternatives
+        new_coefficients = tuple(
+            c for c in scenario.coefficients if c.alternative_id not in affected_alt_ids
+        )
+        # Remove constraints referencing affected alternatives
+        new_constraints = _remove_constraints_for_alternatives(
+            scenario.constraints, affected_alt_ids
+        )
+
+        self._apply_scenario_mutation(
+            replace(
+                scenario,
+                decisions=new_decisions,
+                alternatives=new_alternatives,
+                coefficients=new_coefficients,
+                constraints=new_constraints,
+            )
+        )
+
+    def delete_alternative(self, alternative_id: str) -> None:
+        """Delete an alternative and cascade: removes its coefficients and any
+        constraints referencing it.
+
+        Raises ValueError if no scenario is loaded or alternative_id not found.
+        """
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        if not any(a.id == alternative_id for a in scenario.alternatives):
+            raise ValueError(f"Alternative '{alternative_id}' not found.")
+
+        affected_ids = {alternative_id}
+        new_alternatives = tuple(a for a in scenario.alternatives if a.id != alternative_id)
+        new_coefficients = tuple(
+            c for c in scenario.coefficients if c.alternative_id != alternative_id
+        )
+        new_constraints = _remove_constraints_for_alternatives(
+            scenario.constraints, affected_ids
+        )
+
+        self._apply_scenario_mutation(
+            replace(
+                scenario,
+                alternatives=new_alternatives,
+                coefficients=new_coefficients,
+                constraints=new_constraints,
+            )
+        )
+
+    def delete_property(self, property_id: str) -> None:
+        """Delete a property and cascade: removes its coefficients and any
+        threshold constraints referencing it.
+
+        Raises ValueError if no scenario is loaded or property_id not found.
+        """
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        if not any(p.id == property_id for p in scenario.properties):
+            raise ValueError(f"Property '{property_id}' not found.")
+
+        new_properties = tuple(p for p in scenario.properties if p.id != property_id)
+        new_coefficients = tuple(
+            c for c in scenario.coefficients if c.property_id != property_id
+        )
+        new_constraints = tuple(
+            c
+            for c in scenario.constraints
+            if not (isinstance(c, ThresholdConstraint) and c.property_id == property_id)
+        )
+
+        self._apply_scenario_mutation(
+            replace(
+                scenario,
+                properties=new_properties,
+                coefficients=new_coefficients,
+                constraints=new_constraints,
+            )
+        )
+
+    def delete_constraint(self, index: int) -> None:
+        """Delete a constraint by its position in scenario.constraints.
+
+        Raises ValueError if index is out of range.
+        """
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        if index < 0 or index >= len(scenario.constraints):
+            raise ValueError(f"Constraint index {index} out of range.")
+
+        new_constraints = tuple(c for i, c in enumerate(scenario.constraints) if i != index)
+        self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
+
+    # ── Add operations ────────────────────────────────────────────────────────
+
+    def add_decision(self, name: str = "New Decision") -> str:
+        """Append a new decision; returns its new id."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        new_id = f"d-{uuid.uuid4()}"
+        new_decision = DecisionM(id=new_id, name=name)
+        self._apply_scenario_mutation(
+            replace(scenario, decisions=(*scenario.decisions, new_decision))
+        )
+        return new_id
+
+    def add_alternative(self, decision_id: str, name: str = "New Alternative") -> str:
+        """Append a new alternative under decision_id; adds zero-fuzzy coefficients
+        for every existing property.  Returns new alternative id.
+        """
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        if not any(d.id == decision_id for d in scenario.decisions):
+            raise ValueError(f"Decision '{decision_id}' not found.")
+        new_id = f"a-{uuid.uuid4()}"
+        new_alt = AlternativeM(id=new_id, decision_id=decision_id, name=name)
+        new_coefficients = tuple(
+            CoefficientM(
+                alternative_id=new_id,
+                property_id=p.id,
+                value=TriangularFuzzyM(0.0, 0.0, 0.0),
+            )
+            for p in scenario.properties
+        )
+        self._apply_scenario_mutation(
+            replace(
+                scenario,
+                alternatives=(*scenario.alternatives, new_alt),
+                coefficients=(*scenario.coefficients, *new_coefficients),
+            )
+        )
+        return new_id
+
+    def add_property(
+        self,
+        name: str = "New Property",
+        kind: Literal["min", "max"] = "min",
+        weight: float = 1.0,
+    ) -> str:
+        """Append a new property; adds zero-fuzzy coefficients for every
+        existing alternative.  Returns new property id.
+        """
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        new_id = f"p-{uuid.uuid4()}"
+        new_prop = PropertyM(id=new_id, name=name, kind=kind, weight=weight)
+        new_coefficients = tuple(
+            CoefficientM(
+                alternative_id=a.id,
+                property_id=new_id,
+                value=TriangularFuzzyM(0.0, 0.0, 0.0),
+            )
+            for a in scenario.alternatives
+        )
+        self._apply_scenario_mutation(
+            replace(
+                scenario,
+                properties=(*scenario.properties, new_prop),
+                coefficients=(*scenario.coefficients, *new_coefficients),
+            )
+        )
+        return new_id
+
+    def add_threshold_constraint(
+        self,
+        property_id: str,
+        min_val: float | None = None,
+        max_val: float | None = None,
+    ) -> int:
+        """Add a threshold constraint; returns its index."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        if min_val is None and max_val is None:
+            # Default: no restriction at all — use None for both but tolerate
+            pass
+        scenario = self._scenario
+        new_c: Constraint = ThresholdConstraint(
+            kind="threshold", property_id=property_id, min=min_val, max=max_val
+        )
+        new_constraints = (*scenario.constraints, new_c)
+        self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
+        return len(new_constraints) - 1
+
+    def add_dependency_constraint(self, source_id: str, target_id: str) -> int:
+        """Add a dependency constraint; returns its index."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        new_c: Constraint = DependencyConstraint(
+            kind="dependency",
+            source_alternative_id=source_id,
+            target_alternative_id=target_id,
+        )
+        new_constraints = (*scenario.constraints, new_c)
+        self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
+        return len(new_constraints) - 1
+
+    def add_conflict_constraint(self, alt_a_id: str, alt_b_id: str) -> int:
+        """Add a conflict constraint; returns its index."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        new_c: Constraint = ConflictConstraint(
+            kind="conflict",
+            alternative_a_id=alt_a_id,
+            alternative_b_id=alt_b_id,
+        )
+        new_constraints = (*scenario.constraints, new_c)
+        self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
+        return len(new_constraints) - 1
+
+    # ── Update operations ─────────────────────────────────────────────────────
+
+    def update_decision_name(self, decision_id: str, name: str) -> None:
+        """Rename a decision (does not trigger a solve)."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        new_decisions = tuple(
+            replace(d, name=name) if d.id == decision_id else d
+            for d in scenario.decisions
+        )
+        # Name change does not trigger solve — use a lighter update
+        self._scenario = replace(scenario, decisions=new_decisions)
+        self._is_dirty = True
+        self._raise_property_changed("scenario")
+        self._raise_property_changed("is_dirty")
+
+    def update_alternative_name(self, alternative_id: str, name: str) -> None:
+        """Rename an alternative (does not trigger a solve)."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        new_alts = tuple(
+            replace(a, name=name) if a.id == alternative_id else a
+            for a in scenario.alternatives
+        )
+        self._scenario = replace(scenario, alternatives=new_alts)
+        self._is_dirty = True
+        self._raise_property_changed("scenario")
+        self._raise_property_changed("is_dirty")
+
+    def update_property(
+        self,
+        property_id: str,
+        name: str | None = None,
+        kind: Literal["min", "max"] | None = None,
+        weight: float | None = None,
+    ) -> None:
+        """Update one or more fields of a property.  Kind/weight changes trigger
+        a re-solve; name-only change does not.
+        """
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        triggers_solve = kind is not None or weight is not None
+        new_props: list[PropertyM] = []
+        for p in scenario.properties:
+            if p.id == property_id:
+                new_props.append(
+                    replace(
+                        p,
+                        name=name if name is not None else p.name,
+                        kind=kind if kind is not None else p.kind,
+                        weight=weight if weight is not None else p.weight,
+                    )
+                )
+            else:
+                new_props.append(p)
+        new_scenario = replace(scenario, properties=tuple(new_props))
+        if triggers_solve:
+            self._apply_scenario_mutation(new_scenario)
+        else:
+            self._scenario = new_scenario
+            self._is_dirty = True
+            self._raise_property_changed("scenario")
+            self._raise_property_changed("is_dirty")
+
+    def update_coefficient(
+        self,
+        alternative_id: str,
+        property_id: str,
+        lower: float,
+        modal: float,
+        upper: float,
+    ) -> None:
+        """Update a coefficient value; triggers a re-solve."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        new_value = TriangularFuzzyM(lower=lower, modal=modal, upper=upper)
+        new_coefficients = tuple(
+            replace(c, value=new_value)
+            if c.alternative_id == alternative_id and c.property_id == property_id
+            else c
+            for c in scenario.coefficients
+        )
+        self._apply_scenario_mutation(replace(scenario, coefficients=new_coefficients))
+
+    def update_threshold_constraint(
+        self,
+        index: int,
+        property_id: str | None = None,
+        min_val: float | None | type[_UNSET] = _UNSET,
+        max_val: float | None | type[_UNSET] = _UNSET,
+    ) -> None:
+        """Update a threshold constraint at the given index."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        c = scenario.constraints[index]
+        if not isinstance(c, ThresholdConstraint):
+            raise ValueError(f"Constraint at index {index} is not a ThresholdConstraint.")
+        new_c = ThresholdConstraint(
+            kind="threshold",
+            property_id=property_id if property_id is not None else c.property_id,
+            min=c.min if min_val is _UNSET else min_val,  # type: ignore[arg-type]
+            max=c.max if max_val is _UNSET else max_val,  # type: ignore[arg-type]
+        )
+        new_constraints = tuple(
+            new_c if i == index else old_c
+            for i, old_c in enumerate(scenario.constraints)
+        )
+        self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
+
+    def update_dependency_constraint(
+        self,
+        index: int,
+        source_id: str | None = None,
+        target_id: str | None = None,
+    ) -> None:
+        """Update a dependency constraint at the given index."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        c = scenario.constraints[index]
+        if not isinstance(c, DependencyConstraint):
+            raise ValueError(f"Constraint at index {index} is not a DependencyConstraint.")
+        new_c = DependencyConstraint(
+            kind="dependency",
+            source_alternative_id=source_id or c.source_alternative_id,
+            target_alternative_id=target_id or c.target_alternative_id,
+        )
+        new_constraints = tuple(
+            new_c if i == index else old_c
+            for i, old_c in enumerate(scenario.constraints)
+        )
+        self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
+
+    def update_conflict_constraint(
+        self,
+        index: int,
+        alt_a_id: str | None = None,
+        alt_b_id: str | None = None,
+    ) -> None:
+        """Update a conflict constraint at the given index."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        scenario = self._scenario
+        c = scenario.constraints[index]
+        if not isinstance(c, ConflictConstraint):
+            raise ValueError(f"Constraint at index {index} is not a ConflictConstraint.")
+        new_c = ConflictConstraint(
+            kind="conflict",
+            alternative_a_id=alt_a_id or c.alternative_a_id,
+            alternative_b_id=alt_b_id or c.alternative_b_id,
+        )
+        new_constraints = tuple(
+            new_c if i == index else old_c
+            for i, old_c in enumerate(scenario.constraints)
+        )
+        self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
+
+    def update_scenario_name(self, name: str) -> None:
+        """Update scenario name (does not trigger re-solve)."""
+        if self._scenario is None:
+            raise ValueError("No scenario loaded.")
+        self._scenario = replace(self._scenario, name=name)
+        self._is_dirty = True
+        self._raise_property_changed("scenario")
+        self._raise_property_changed("is_dirty")
+
     def dispose(self) -> None:
         """Clean up subscriptions and subjects."""
         self._hub_sub.dispose()
@@ -333,6 +793,32 @@ class ScenarioVM:
         self._property_changed_subject.on_completed()
         self._property_changed_subject.dispose()
         self._hub.dispose()
+
+
+# ---------------------------------------------------------------------------
+# Cascade helper
+# ---------------------------------------------------------------------------
+
+
+def _remove_constraints_for_alternatives(
+    constraints: tuple[Constraint, ...],
+    affected_alt_ids: set[str],
+) -> tuple[Constraint, ...]:
+    """Return constraints with any entry referencing affected_alt_ids removed."""
+    result: list[Constraint] = []
+    for c in constraints:
+        if isinstance(c, DependencyConstraint):
+            if (
+                c.source_alternative_id in affected_alt_ids
+                or c.target_alternative_id in affected_alt_ids
+            ):
+                continue
+        elif isinstance(c, ConflictConstraint) and (
+            c.alternative_a_id in affected_alt_ids or c.alternative_b_id in affected_alt_ids
+        ):
+            continue
+        result.append(c)
+    return tuple(result)
 
 
 # ---------------------------------------------------------------------------
