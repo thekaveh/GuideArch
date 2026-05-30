@@ -1,0 +1,43 @@
+name: csharp
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'langs/csharp/**'
+      - 'vendor/vmx/**'
+      - '.github/workflows/csharp.yml'
+  pull_request:
+    paths:
+      - 'langs/csharp/**'
+      - 'vendor/vmx/**'
+      - '.github/workflows/csharp.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: langs/csharp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore GuideArch.sln
+
+      - name: Build
+        run: dotnet build GuideArch.sln --configuration Release --no-restore
+
+      - name: Format check
+        run: dotnet format GuideArch.sln --verify-no-changes --no-restore
