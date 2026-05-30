@@ -51,8 +51,21 @@
 </script>
 
 <section class="tab-content">
-  {#if decisions.length === 0}
-    <div class="empty">No decisions yet. Add decisions first.</div>
+  {#if $scenarioStore === undefined}
+    <div class="empty">
+      <div class="empty-headline">No scenario loaded.</div>
+      <div class="empty-body">
+        Click <strong>Open Sample SAS</strong> in the toolbar to try the example, or click
+        <strong>New</strong> to start a blank scenario.
+      </div>
+    </div>
+  {:else if decisions.length === 0}
+    <div class="empty">
+      <div class="empty-headline">No decisions yet.</div>
+      <div class="empty-body">
+        Add decisions first on the <strong>Decisions</strong> tab, then come back here to add alternatives.
+      </div>
+    </div>
   {:else}
     <div class="table-wrap">
       {#each decisions as dec (dec.id)}
@@ -113,10 +126,30 @@
   .empty {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    text-align: center;
+    padding: 32px;
+  }
+
+  .empty-headline {
     color: var(--text-secondary);
     font-size: 14px;
+    font-weight: 500;
+  }
+
+  .empty-body {
+    color: var(--text-muted);
+    font-size: 13px;
+    max-width: 28rem;
+    line-height: 1.6;
+  }
+
+  .empty-body strong {
+    color: var(--text-secondary);
+    font-weight: 600;
   }
 
   .table-wrap {

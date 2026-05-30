@@ -79,66 +79,79 @@
 </script>
 
 <section class="tab-content">
-  <div class="tab-toolbar">
-    <button class="btn-add" on:click={handleAdd}>+ Add Property</button>
-  </div>
-  {#if properties.length === 0}
-    <div class="empty">No properties yet. Click "Add Property" to create one.</div>
-  {:else}
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Kind</th>
-            <th>Weight</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each properties as p (p.id)}
-            <tr>
-              <td class="mono">{p.id}</td>
-              <td>
-                <input
-                  class="name-input"
-                  value={p.name}
-                  on:blur={(e) => handleNameBlur(p.id, e)}
-                  on:keydown={handleNameKeydown}
-                />
-              </td>
-              <td>
-                <select
-                  class="kind-select"
-                  value={p.kind}
-                  on:change={(e) => handleKindChange(p.id, e)}
-                >
-                  <option value="min">min</option>
-                  <option value="max">max</option>
-                </select>
-              </td>
-              <td>
-                <input
-                  type="number"
-                  class="weight-input"
-                  value={p.weight}
-                  step="0.1"
-                  min="0.001"
-                  on:blur={(e) => handleWeightBlur(p.id, e)}
-                  on:keydown={handleWeightKeydown}
-                />
-              </td>
-              <td>
-                <button class="btn-delete" on:click={() => handleDelete(p.id, p.name)}>
-                  Delete
-                </button>
-              </td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
+  {#if $scenarioStore === undefined}
+    <div class="empty">
+      <div class="empty-headline">No scenario loaded.</div>
+      <div class="empty-body">
+        Click <strong>Open Sample SAS</strong> in the toolbar to try the example, or click
+        <strong>New</strong> to create a blank scenario.
+      </div>
     </div>
+  {:else}
+    <div class="tab-toolbar">
+      <button class="btn-add" on:click={handleAdd}>+ Add Property</button>
+    </div>
+    {#if properties.length === 0}
+      <div class="empty">
+        <div class="empty-headline">No properties yet.</div>
+        <div class="empty-body">Click <strong>+ Add Property</strong> above to create one.</div>
+      </div>
+    {:else}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Kind</th>
+              <th>Weight</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each properties as p (p.id)}
+              <tr>
+                <td class="mono">{p.id}</td>
+                <td>
+                  <input
+                    class="name-input"
+                    value={p.name}
+                    on:blur={(e) => handleNameBlur(p.id, e)}
+                    on:keydown={handleNameKeydown}
+                  />
+                </td>
+                <td>
+                  <select
+                    class="kind-select"
+                    value={p.kind}
+                    on:change={(e) => handleKindChange(p.id, e)}
+                  >
+                    <option value="min">min</option>
+                    <option value="max">max</option>
+                  </select>
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    class="weight-input"
+                    value={p.weight}
+                    step="0.1"
+                    min="0.001"
+                    on:blur={(e) => handleWeightBlur(p.id, e)}
+                    on:keydown={handleWeightKeydown}
+                  />
+                </td>
+                <td>
+                  <button class="btn-delete" on:click={() => handleDelete(p.id, p.name)}>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
   {/if}
 </section>
 
@@ -182,10 +195,30 @@
   .empty {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    text-align: center;
+    padding: 32px;
+  }
+
+  .empty-headline {
     color: var(--text-secondary);
     font-size: 14px;
+    font-weight: 500;
+  }
+
+  .empty-body {
+    color: var(--text-muted);
+    font-size: 13px;
+    max-width: 28rem;
+    line-height: 1.6;
+  }
+
+  .empty-body strong {
+    color: var(--text-secondary);
+    font-weight: 600;
   }
 
   .table-wrap {

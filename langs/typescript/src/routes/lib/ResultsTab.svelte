@@ -38,9 +38,21 @@
 
 <section class="tab-content">
   {#if $scenarioStore === undefined}
-    <div class="empty">Open a scenario to see results.</div>
+    <div class="empty">
+      <div class="empty-headline">No scenario loaded.</div>
+      <div class="empty-body">
+        Click <strong>Open Sample SAS</strong> in the toolbar to try the example scenario and see ranked
+        candidates here.
+      </div>
+    </div>
   {:else if top50.length === 0}
-    <div class="empty">No feasible candidates found.</div>
+    <div class="empty">
+      <div class="empty-headline">No feasible candidates found.</div>
+      <div class="empty-body">
+        All alternative combinations were eliminated by constraints, or the scenario has no
+        alternatives. Add alternatives and relax constraints to see results.
+      </div>
+    </div>
   {:else}
     <div class="split-pane">
       <!-- Left: ranked candidates table (~60%) -->
@@ -112,10 +124,30 @@
   .empty {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    text-align: center;
+    padding: 32px;
+  }
+
+  .empty-headline {
     color: var(--text-secondary);
     font-size: 14px;
+    font-weight: 500;
+  }
+
+  .empty-body {
+    color: var(--text-muted);
+    font-size: 13px;
+    max-width: 28rem;
+    line-height: 1.6;
+  }
+
+  .empty-body strong {
+    color: var(--text-secondary);
+    font-weight: 600;
   }
 
   .split-pane {

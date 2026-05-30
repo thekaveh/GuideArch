@@ -9,7 +9,15 @@ export default [
   ...ts.configs.recommended,
   ...svelte.configs['flat/recommended'],
   {
-    ignores: ['build/', 'dist/', '.svelte-kit/', 'node_modules/', 'src-tauri/target/'],
+    ignores: [
+      'build/',
+      'dist/',
+      '.svelte-kit/',
+      'node_modules/',
+      'src-tauri/target/',
+      // Visual snapshot scripts are manually-run Node.js ESM scripts, not TypeScript source.
+      'tests/visual/',
+    ],
   },
   {
     files: ['**/*.ts'],

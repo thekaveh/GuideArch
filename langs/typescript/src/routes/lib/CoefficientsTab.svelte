@@ -38,9 +38,20 @@
 </script>
 
 <section class="tab-content">
-  {#if decisions.length === 0 || properties.length === 0}
+  {#if $scenarioStore === undefined}
     <div class="empty">
-      Add decisions, alternatives, and properties first to build the coefficient matrix.
+      <div class="empty-headline">No scenario loaded.</div>
+      <div class="empty-body">
+        Click <strong>Open Sample SAS</strong> in the toolbar to see the fuzzy coefficient matrix.
+      </div>
+    </div>
+  {:else if decisions.length === 0 || properties.length === 0}
+    <div class="empty">
+      <div class="empty-headline">Coefficient matrix is not ready.</div>
+      <div class="empty-body">
+        Add decisions, alternatives, and properties first — then the coefficient matrix will appear
+        here automatically.
+      </div>
     </div>
   {:else}
     <div class="grid-wrap">
@@ -108,12 +119,30 @@
   .empty {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--text-secondary);
-    font-size: 14px;
+    gap: 8px;
     text-align: center;
     padding: 32px;
+  }
+
+  .empty-headline {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .empty-body {
+    color: var(--text-muted);
+    font-size: 13px;
+    max-width: 28rem;
+    line-height: 1.6;
+  }
+
+  .empty-body strong {
+    color: var(--text-secondary);
+    font-weight: 600;
   }
 
   .grid-wrap {

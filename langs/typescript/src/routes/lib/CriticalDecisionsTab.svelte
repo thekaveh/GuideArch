@@ -31,9 +31,20 @@
 
 <section class="tab-content">
   {#if $scenarioStore === undefined}
-    <div class="empty">Open a scenario to see critical decisions.</div>
+    <div class="empty">
+      <div class="empty-headline">No scenario loaded.</div>
+      <div class="empty-body">
+        Click <strong>Open Sample SAS</strong> in the toolbar to see which architectural decisions have
+        the greatest impact on the solution.
+      </div>
+    </div>
   {:else if sorted.length === 0}
-    <div class="empty">No critical decisions computed.</div>
+    <div class="empty">
+      <div class="empty-headline">No critical decisions computed.</div>
+      <div class="empty-body">
+        Add decisions and alternatives, then solve to see criticality rankings.
+      </div>
+    </div>
   {:else}
     <div class="table-wrap">
       <table>
@@ -86,10 +97,30 @@
   .empty {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    text-align: center;
+    padding: 32px;
+  }
+
+  .empty-headline {
     color: var(--text-secondary);
     font-size: 14px;
+    font-weight: 500;
+  }
+
+  .empty-body {
+    color: var(--text-muted);
+    font-size: 13px;
+    max-width: 28rem;
+    line-height: 1.6;
+  }
+
+  .empty-body strong {
+    color: var(--text-secondary);
+    font-weight: 600;
   }
 
   .table-wrap {

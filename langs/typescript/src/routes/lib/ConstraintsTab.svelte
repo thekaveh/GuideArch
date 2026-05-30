@@ -210,175 +210,188 @@
 </script>
 
 <section class="tab-content">
-  <nav class="sub-tabs">
-    {#each ['Threshold', 'Dependency', 'Conflict'] as t (t)}
-      <button
-        class="sub-tab"
-        class:active={subTab === t}
-        on:click={() => (subTab = t as typeof subTab)}>{t}</button
-      >
-    {/each}
-  </nav>
-
-  {#if subTab === 'Threshold'}
-    <div class="tab-toolbar">
-      <button class="btn-add" on:click={addThreshold}>+ Add Threshold</button>
-    </div>
-    {#if thresholds.length === 0}
-      <div class="empty">No threshold constraints.</div>
-    {:else}
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Property</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each thresholds as { c, i } (i)}
-              <tr class:invalid={!isThresholdValid(c)}>
-                <td>
-                  <select
-                    class="kind-select"
-                    value={c.propertyId}
-                    on:change={(e) =>
-                      updateThresholdProperty(i, (e.target as HTMLSelectElement).value, c)}
-                  >
-                    {#each properties as p (p.id)}
-                      <option value={p.id}>{p.name}</option>
-                    {/each}
-                  </select>
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    class="num-input"
-                    value={c.min ?? ''}
-                    placeholder="—"
-                    on:blur={(e) => updateThresholdMin(i, c, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    class="num-input"
-                    value={c.max ?? ''}
-                    placeholder="—"
-                    on:blur={(e) => updateThresholdMax(i, c, e)}
-                  />
-                </td>
-                <td>
-                  <button class="btn-delete" on:click={() => deleteConstraint(i)}>Delete</button>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
+  {#if scenario === undefined}
+    <div class="empty">
+      <div class="empty-headline">No scenario loaded.</div>
+      <div class="empty-body">
+        Click <strong>Open Sample SAS</strong> in the toolbar to see and edit constraints.
       </div>
-    {/if}
-  {:else if subTab === 'Dependency'}
-    <div class="tab-toolbar">
-      <button class="btn-add" on:click={addDependency}>+ Add Dependency</button>
     </div>
-    {#if dependencies.length === 0}
-      <div class="empty">No dependency constraints.</div>
-    {:else}
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Source Alternative</th>
-              <th>Target Alternative</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each dependencies as { c, i } (i)}
-              <tr class:self-edge={c.sourceAlternativeId === c.targetAlternativeId}>
-                <td>
-                  <select
-                    class="kind-select wide"
-                    value={c.sourceAlternativeId}
-                    on:change={(e) => updateDepSource(i, c, (e.target as HTMLSelectElement).value)}
-                  >
-                    {#each alternatives as a (a.id)}
-                      <option value={a.id}>{altLabel(a.id)}</option>
-                    {/each}
-                  </select>
-                </td>
-                <td>
-                  <select
-                    class="kind-select wide"
-                    value={c.targetAlternativeId}
-                    on:change={(e) => updateDepTarget(i, c, (e.target as HTMLSelectElement).value)}
-                  >
-                    {#each alternatives as a (a.id)}
-                      <option value={a.id}>{altLabel(a.id)}</option>
-                    {/each}
-                  </select>
-                </td>
-                <td>
-                  <button class="btn-delete" on:click={() => deleteConstraint(i)}>Delete</button>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {/if}
   {:else}
-    <!-- Conflict sub-tab -->
-    <div class="tab-toolbar">
-      <button class="btn-add" on:click={addConflict}>+ Add Conflict</button>
-    </div>
-    {#if conflicts.length === 0}
-      <div class="empty">No conflict constraints.</div>
-    {:else}
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Alternative A</th>
-              <th>Alternative B</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each conflicts as { c, i } (i)}
-              <tr class:self-edge={c.alternativeAId === c.alternativeBId}>
-                <td>
-                  <select
-                    class="kind-select wide"
-                    value={c.alternativeAId}
-                    on:change={(e) => updateConflictA(i, c, (e.target as HTMLSelectElement).value)}
-                  >
-                    {#each alternatives as a (a.id)}
-                      <option value={a.id}>{altLabel(a.id)}</option>
-                    {/each}
-                  </select>
-                </td>
-                <td>
-                  <select
-                    class="kind-select wide"
-                    value={c.alternativeBId}
-                    on:change={(e) => updateConflictB(i, c, (e.target as HTMLSelectElement).value)}
-                  >
-                    {#each alternatives as a (a.id)}
-                      <option value={a.id}>{altLabel(a.id)}</option>
-                    {/each}
-                  </select>
-                </td>
-                <td>
-                  <button class="btn-delete" on:click={() => deleteConstraint(i)}>Delete</button>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
+    <nav class="sub-tabs">
+      {#each ['Threshold', 'Dependency', 'Conflict'] as t (t)}
+        <button
+          class="sub-tab"
+          class:active={subTab === t}
+          on:click={() => (subTab = t as typeof subTab)}>{t}</button
+        >
+      {/each}
+    </nav>
+
+    {#if subTab === 'Threshold'}
+      <div class="tab-toolbar">
+        <button class="btn-add" on:click={addThreshold}>+ Add Threshold</button>
       </div>
+      {#if thresholds.length === 0}
+        <div class="empty">No threshold constraints.</div>
+      {:else}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each thresholds as { c, i } (i)}
+                <tr class:invalid={!isThresholdValid(c)}>
+                  <td>
+                    <select
+                      class="kind-select"
+                      value={c.propertyId}
+                      on:change={(e) =>
+                        updateThresholdProperty(i, (e.target as HTMLSelectElement).value, c)}
+                    >
+                      {#each properties as p (p.id)}
+                        <option value={p.id}>{p.name}</option>
+                      {/each}
+                    </select>
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      class="num-input"
+                      value={c.min ?? ''}
+                      placeholder="—"
+                      on:blur={(e) => updateThresholdMin(i, c, e)}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      class="num-input"
+                      value={c.max ?? ''}
+                      placeholder="—"
+                      on:blur={(e) => updateThresholdMax(i, c, e)}
+                    />
+                  </td>
+                  <td>
+                    <button class="btn-delete" on:click={() => deleteConstraint(i)}>Delete</button>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+    {:else if subTab === 'Dependency'}
+      <div class="tab-toolbar">
+        <button class="btn-add" on:click={addDependency}>+ Add Dependency</button>
+      </div>
+      {#if dependencies.length === 0}
+        <div class="empty">No dependency constraints.</div>
+      {:else}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Source Alternative</th>
+                <th>Target Alternative</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each dependencies as { c, i } (i)}
+                <tr class:self-edge={c.sourceAlternativeId === c.targetAlternativeId}>
+                  <td>
+                    <select
+                      class="kind-select wide"
+                      value={c.sourceAlternativeId}
+                      on:change={(e) =>
+                        updateDepSource(i, c, (e.target as HTMLSelectElement).value)}
+                    >
+                      {#each alternatives as a (a.id)}
+                        <option value={a.id}>{altLabel(a.id)}</option>
+                      {/each}
+                    </select>
+                  </td>
+                  <td>
+                    <select
+                      class="kind-select wide"
+                      value={c.targetAlternativeId}
+                      on:change={(e) =>
+                        updateDepTarget(i, c, (e.target as HTMLSelectElement).value)}
+                    >
+                      {#each alternatives as a (a.id)}
+                        <option value={a.id}>{altLabel(a.id)}</option>
+                      {/each}
+                    </select>
+                  </td>
+                  <td>
+                    <button class="btn-delete" on:click={() => deleteConstraint(i)}>Delete</button>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+    {:else}
+      <!-- Conflict sub-tab -->
+      <div class="tab-toolbar">
+        <button class="btn-add" on:click={addConflict}>+ Add Conflict</button>
+      </div>
+      {#if conflicts.length === 0}
+        <div class="empty">No conflict constraints.</div>
+      {:else}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Alternative A</th>
+                <th>Alternative B</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each conflicts as { c, i } (i)}
+                <tr class:self-edge={c.alternativeAId === c.alternativeBId}>
+                  <td>
+                    <select
+                      class="kind-select wide"
+                      value={c.alternativeAId}
+                      on:change={(e) =>
+                        updateConflictA(i, c, (e.target as HTMLSelectElement).value)}
+                    >
+                      {#each alternatives as a (a.id)}
+                        <option value={a.id}>{altLabel(a.id)}</option>
+                      {/each}
+                    </select>
+                  </td>
+                  <td>
+                    <select
+                      class="kind-select wide"
+                      value={c.alternativeBId}
+                      on:change={(e) =>
+                        updateConflictB(i, c, (e.target as HTMLSelectElement).value)}
+                    >
+                      {#each alternatives as a (a.id)}
+                        <option value={a.id}>{altLabel(a.id)}</option>
+                      {/each}
+                    </select>
+                  </td>
+                  <td>
+                    <button class="btn-delete" on:click={() => deleteConstraint(i)}>Delete</button>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
     {/if}
   {/if}
 </section>
@@ -463,10 +476,30 @@
   .empty {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    text-align: center;
+    padding: 32px;
+  }
+
+  .empty-headline {
     color: var(--text-secondary);
     font-size: 14px;
+    font-weight: 500;
+  }
+
+  .empty-body {
+    color: var(--text-muted);
+    font-size: 13px;
+    max-width: 28rem;
+    line-height: 1.6;
+  }
+
+  .empty-body strong {
+    color: var(--text-secondary);
+    font-weight: 600;
   }
 
   .table-wrap {
