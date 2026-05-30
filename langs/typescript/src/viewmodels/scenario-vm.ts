@@ -13,7 +13,8 @@
  */
 import fs from 'fs';
 import { ComponentVMOf, RelayCommand, RelayCommandOf, MessageHub, NullDispatcher } from 'vmx';
-import { loadScenario } from '../models/scenario-loader.js';
+import { loadScenario, loadScenarioFromParsed } from '../models/scenario-loader.js';
+import inlinedSchema from '../samples/scenario.schema.json';
 import { solve } from '../models/topsis/solve.js';
 import { criticalDecisions } from '../models/topsis/critical-decisions.js';
 import { criticalConstraints } from '../models/topsis/critical-constraints.js';
@@ -92,6 +93,14 @@ export type ScenarioVM = ComponentVMOf<ScenarioState> & {
 
   /** Select a candidate by index (0-based) for chart detail. Pass null to deselect. */
   setSelectedCandidateIndex(index: number | null): void;
+
+  /**
+   * Browser-mode hook: load a pre-parsed JSON object as a scenario.
+   * Called by Toolbar when the user opens a local file in the browser
+   * (FileReader path) or clicks "Open Sample …".
+   * Uses the bundled inlined schema so no fs access is needed.
+   */
+  _browserOpen(raw: unknown, fileName: string): void;
 };
 
 // ---------------------------------------------------------------------------
@@ -512,6 +521,28 @@ export function makeScenarioVm(): ScenarioVM {
     // Name change does not trigger solve
   }
 
+  function _browserOpen(raw: unknown, fileName: string): void {
+    try {
+      const scenario = loadScenarioFromParsed(raw, inlinedSchema as object);
+      const result = _runSolve(scenario);
+      const selectedCandidateIndex = result.candidates.length > 0 ? 0 : null;
+      _setState({
+        scenario,
+        filePath: fileName,
+        isDirty: false,
+        warnings: scenario.warnings,
+        selectedCandidateIndex,
+        ...result,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      _setState({
+        warnings: [..._getModel().warnings, `Browser open failed: ${msg}`],
+        status: `Browser open failed: ${msg}`,
+      });
+    }
+  }
+
   function setSelectedCandidateIndex(index: number | null): void {
     const { candidates } = _getModel();
     if (index !== null && (index < 0 || index >= candidates.length)) {
@@ -622,6 +653,12 @@ export function makeScenarioVm(): ScenarioVM {
     },
     setSelectedCandidateIndex: {
       value: setSelectedCandidateIndex,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    _browserOpen: {
+      value: _browserOpen,
       writable: false,
       enumerable: true,
       configurable: false,

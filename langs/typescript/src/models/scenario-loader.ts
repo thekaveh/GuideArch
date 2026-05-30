@@ -64,6 +64,46 @@ function _defaultSchemaPath(): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RawJson = Record<string, any>;
 
+/**
+ * Parse, validate, and construct a ScenarioM from an already-parsed JSON
+ * object. This is the browser-safe path — no filesystem access required.
+ *
+ * @param raw          The parsed JSON object (unknown type, validated by AJV).
+ * @param inlineSchema Optional pre-loaded schema object. When provided, AJV
+ *                     uses it directly and no fs access is performed for the
+ *                     schema. Required in browser builds where the schema
+ *                     cannot be resolved via the filesystem.
+ */
+export function loadScenarioFromParsed(raw: unknown, inlineSchema?: object): ScenarioM {
+  // Resolve schema: use inline if provided, otherwise read from filesystem.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let schema: Record<string, any>;
+  if (inlineSchema !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    schema = inlineSchema as Record<string, any>;
+  } else {
+    const schemaPath = _defaultSchemaPath();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8')) as Record<string, any>;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rawObj = raw as Record<string, any>;
+
+  // ------------------------------------------------------------------ //
+  // JSON Schema structural validation via ajv
+  // ------------------------------------------------------------------ //
+  const ajv = new Ajv({ strict: false });
+  const validate = ajv.compile(schema);
+  if (!validate(rawObj)) {
+    const msgs = (validate.errors ?? []).slice(0, 5).map((e) => `${e.instancePath} ${e.message}`);
+    throw new ScenarioValidationError(`JSON Schema validation failed: ${msgs.join('; ')}`, msgs);
+  }
+
+  const warnings: string[] = [];
+  return _parseRaw(rawObj, warnings);
+}
+
 export function loadScenario(jsonPath: string, schemaPath?: string): ScenarioM {
   const resolvedSchema = schemaPath ?? _defaultSchemaPath();
 
@@ -81,7 +121,11 @@ export function loadScenario(jsonPath: string, schemaPath?: string): ScenarioM {
   }
 
   const warnings: string[] = [];
+  return _parseRaw(raw, warnings);
+}
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function _parseRaw(raw: Record<string, any>, warnings: string[]): ScenarioM {
   // ------------------------------------------------------------------ //
   // Parse raw objects
   // ------------------------------------------------------------------ //

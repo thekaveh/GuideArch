@@ -2,6 +2,7 @@
   import type { ScenarioVM } from '../../viewmodels/scenario-vm.js';
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
+  import { SAMPLES } from '../../samples/index.js';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -22,6 +23,17 @@
 
   function handleOpenClick() {
     fileInputEl.click();
+  }
+
+  function handleOpenSample(index: number) {
+    const sample = SAMPLES[index];
+    const browserHook = (vm as ScenarioVM & { _browserOpen?: (r: unknown, n: string) => void })
+      ._browserOpen;
+    if (browserHook) {
+      browserHook(sample.raw, sample.id + '.json');
+    } else {
+      onError('Sample loading requires _browserOpen hook on VM.');
+    }
   }
 
   function handleFileChange(e: Event) {
@@ -137,6 +149,8 @@
       on:change={handleFileChange}
       style="display:none"
     />
+    <button class="btn btn-sample" on:click={() => handleOpenSample(0)}>Open Sample SAS</button>
+    <button class="btn btn-sample" on:click={() => handleOpenSample(1)}>Open Sample EDS</button>
     <button class="btn" disabled={saveOff} on:click={handleSave}>Save</button>
     <button class="btn" disabled={saveOff} on:click={handleSaveAs}>Save As…</button>
   </div>
@@ -188,6 +202,17 @@
   .btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+
+  .btn-sample {
+    background: #1e3a2f;
+    border-color: #2d6a4f;
+    color: #74c69d;
+  }
+
+  .btn-sample:hover:not(:disabled) {
+    background: #2d5a3d;
+    border-color: #40916c;
   }
 
   .spacer {
