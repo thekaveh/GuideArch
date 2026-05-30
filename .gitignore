@@ -1,0 +1,62 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs (selective)
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# AI / dev-tool artifacts — never commit
+.claude/
+.superpowers/
+.aider*
+.cursor/
+.continue/
+.windsurf/
+.zed/
+.copilot/
+.tabnine/
+CLAUDE.md
+GEMINI.md
+AGENTS.md
+.mcp.json
+
+# TypeScript / Node / Tauri
+langs/typescript/node_modules/
+langs/typescript/dist/
+langs/typescript/build/
+langs/typescript/.svelte-kit/
+langs/typescript/src-tauri/target/
+langs/typescript/src-tauri/gen/
+langs/typescript/src-tauri/WixTools/
+langs/typescript/.vite/
+langs/typescript/*.log
+
+# C# / .NET / Avalonia
+langs/csharp/**/bin/
+langs/csharp/**/obj/
+langs/csharp/**/*.user
+langs/csharp/**/.vs/
+langs/csharp/**/*.suo
+langs/csharp/**/publish/
+langs/csharp/**/AppPackages/
+
+# Python / uv / hatch
+langs/python/.venv/
+langs/python/**/__pycache__/
+langs/python/**/.pytest_cache/
+langs/python/**/.mypy_cache/
+langs/python/**/.ruff_cache/
+langs/python/dist/
+langs/python/build/
+langs/python/*.egg-info/
+langs/python/.coverage
+langs/python/htmlcov/
+
+# Vendor / submodule content
+# (vendor/vmx is a submodule — its content is tracked via .gitmodules + commit pin, not via files in this repo)
