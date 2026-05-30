@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- TargetFramework, LangVersion, Nullable, TreatWarningsAsErrors, ImplicitUsings
+       are set centrally in ../../../Directory.Build.props. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GuideArch.Models\GuideArch.Models.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -3,4 +3,9 @@
   <!-- TargetFramework, LangVersion, Nullable, TreatWarningsAsErrors, ImplicitUsings
        are set centrally in ../../Directory.Build.props. -->
 
+  <ItemGroup>
+    <!-- JsonSchema.Net: JSON Schema 2020-12 validation (scenario.schema.json) -->
+    <PackageReference Include="JsonSchema.Net" Version="7.3.0" />
+  </ItemGroup>
+
 </Project>

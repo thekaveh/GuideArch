@@ -1,24 +1,22 @@
-using GuideArch.Models;
 using VMx.Components;
 using VMx.Services;
 
 namespace GuideArch.ViewModels;
 
 /// <summary>
-/// Wraps HelloVmx.Run() as a ComponentVM&lt;Greeting&gt; built via the standard VMx builder.
+/// Placeholder VM factory for M1.
+/// Returns a ComponentVM carrying a simple status string.
+/// M2 will replace this with a richer GuideArch domain VM.
 /// </summary>
-/// <remarks>
-/// <c>ComponentVM&lt;M&gt;</c> is sealed (subclassing is not supported by the VMx-C# API),
-/// so a static factory is the correct pattern for configuring a named, pre-constructed VM
-/// that a view can bind to as its DataContext.
-/// </remarks>
 public static class HelloVmxVMFactory
 {
-    public static ComponentVM<HelloVmx.Greeting> Create()
+    public sealed record StatusModel(string Message);
+
+    public static ComponentVM<StatusModel> Create()
     {
-        var vm = ComponentVM<HelloVmx.Greeting>.Builder()
-            .Name("hello")
-            .Model(new HelloVmx.Greeting(HelloVmx.Run()))
+        var vm = ComponentVM<StatusModel>.Builder()
+            .Name("guidearch-status")
+            .Model(new StatusModel("M1: domain ready; UI in M2"))
             .Services(NullMessageHub.Instance, NullDispatcher.Instance)
             .Build();
         vm.Construct();

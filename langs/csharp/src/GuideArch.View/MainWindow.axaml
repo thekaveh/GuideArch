@@ -5,16 +5,11 @@
         Width="720" Height="480">
   <StackPanel Margin="48" Spacing="12">
     <TextBlock Text="GuideArch" FontSize="32" FontWeight="Bold" />
-    <TextBlock Text="C# + Avalonia 12 implementation — bootstrap"
+    <TextBlock Text="C# + Avalonia 12 implementation — M1 domain ready"
                Foreground="#666" />
     <Border Background="#f4f4f4" Padding="16" CornerRadius="4">
-      <!-- ReflectionBinding instead of Binding (the project default per
-           AvaloniaUseCompiledBindingsByDefault=true): compiled bindings
-           require an x:DataType, but our DataContext is the generic
-           ComponentVM<HelloVmx.Greeting> which can't be expressed as a
-           XAML type literal. Reflection binding is opt-in per-binding and
-           has the same runtime behavior. M2+ will revisit when a richer
-           wrapper VM exists. -->
+      <!-- ReflectionBinding: DataContext is ComponentVM<StatusModel> — a generic type
+           that can't be expressed as an XAML type literal. M2+ will revisit. -->
       <TextBlock Text="{ReflectionBinding Model.Message}" FontFamily="Cascadia Code,Consolas,monospace" />
     </Border>
   </StackPanel>
