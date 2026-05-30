@@ -72,8 +72,16 @@ export default defineConfig(async () => ({
       // lives on disk.
       "rxjs": path.resolve(__dirname, "node_modules/rxjs"),
       "rxjs/operators": path.resolve(__dirname, "node_modules/rxjs/operators"),
+      // Node.js built-ins used by scenario-loader and scenario-vm are not
+      // available in the browser bundle. These shims provide a minimal
+      // stub surface so Rollup can compile; the real implementations run
+      // only in Tauri / Node environments where the actual fs is available.
+      "fs": path.resolve(__dirname, "src/shims/node-fs-browser.ts"),
+      "path": path.resolve(__dirname, "src/shims/node-path-browser.ts"),
+      "url": path.resolve(__dirname, "src/shims/node-url-browser.ts"),
     },
   },
+
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

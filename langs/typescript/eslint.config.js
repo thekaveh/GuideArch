@@ -28,6 +28,15 @@ export default [
       parserOptions: {
         parser: tsParser,
       },
+      // Svelte components run in the browser — expose standard browser globals
+      // so the linter does not flag built-in DOM types as undefined.
+      globals: {
+        FileList: 'readonly',
+        File: 'readonly',
+        Event: 'readonly',
+        HTMLInputElement: 'readonly',
+        EventTarget: 'readonly',
+      },
     },
   },
 ];
