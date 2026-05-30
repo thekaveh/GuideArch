@@ -338,6 +338,33 @@ public partial class MainWindow : Window
     private void OnSolveClicked(object? sender, RoutedEventArgs e)
         => _cmds.SolveCmd.Execute(null);
 
+    private void OnOpenSampleSasClicked(object? sender, RoutedEventArgs e)
+        => OpenSample(SampleScenarios.All[0]);
+
+    private void OnOpenSampleEdsClicked(object? sender, RoutedEventArgs e)
+        => OpenSample(SampleScenarios.All[1]);
+
+    /// <summary>
+    /// Writes the embedded sample resource to a temp file, then opens it via
+    /// OpenCmd so the existing ScenarioLoader path is used unchanged.
+    /// </summary>
+    private void OpenSample(SampleScenarios.Sample sample)
+    {
+        try
+        {
+            var tempPath = Path.Combine(Path.GetTempPath(), $"guidearch-{sample.Id}.json");
+            using (var src = SampleScenarios.Open(sample))
+            using (var dst = File.Create(tempPath))
+                src.CopyTo(dst);
+            _cmds.OpenCmd.Execute(tempPath);
+        }
+        catch (Exception ex)
+        {
+            // Use fire-and-forget; ShowErrorAsync is async but this is a sync handler.
+            _ = ShowErrorAsync($"Could not open sample '{sample.Label}': {ex.Message}");
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Decisions tab
     // -----------------------------------------------------------------------

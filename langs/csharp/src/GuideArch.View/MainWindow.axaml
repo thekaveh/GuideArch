@@ -38,6 +38,20 @@
                 Classes="toolbar-btn"
                 Click="OnOpenClicked" />
 
+        <!-- Open Sample SAS -->
+        <Button Name="BtnOpenSampleSas"
+                Content="Open Sample SAS"
+                ToolTip.Tip="Load the bundled SAS (Service-Oriented Architecture) sample"
+                Classes="toolbar-btn"
+                Click="OnOpenSampleSasClicked" />
+
+        <!-- Open Sample EDS -->
+        <Button Name="BtnOpenSampleEds"
+                Content="Open Sample EDS"
+                ToolTip.Tip="Load the bundled EDS (Enterprise Decision Space) sample"
+                Classes="toolbar-btn"
+                Click="OnOpenSampleEdsClicked" />
+
         <!-- Save -->
         <Button Name="BtnSave"
                 Content="Save"
@@ -105,10 +119,29 @@
                    FontSize="22"
                    Foreground="#6C7086"
                    HorizontalAlignment="Center" />
-        <Button Content="Open scenario…"
-                HorizontalAlignment="Center"
-                Classes="toolbar-btn"
-                Click="OnOpenClicked" />
+        <TextBlock FontSize="14"
+                   Foreground="#A6ADC8"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   MaxWidth="480"
+                   Text="Click Open Sample SAS in the toolbar to try the example, or New to start blank." />
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Spacing="8">
+          <Button Content="Open Sample SAS"
+                  Classes="toolbar-btn"
+                  Click="OnOpenSampleSasClicked" />
+          <Button Content="Open Sample EDS"
+                  Classes="toolbar-btn"
+                  Click="OnOpenSampleEdsClicked" />
+          <Button Content="New"
+                  Classes="toolbar-btn"
+                  Click="OnNewClicked" />
+          <Button Content="Open…"
+                  Classes="toolbar-btn"
+                  Click="OnOpenClicked" />
+        </StackPanel>
       </StackPanel>
     </Grid>
 

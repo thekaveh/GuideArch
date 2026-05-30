@@ -25,4 +25,8 @@
   <ItemGroup>
     <ProjectReference Include="..\GuideArch.ViewModels\GuideArch.ViewModels.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets/Samples/*.json" />
+  </ItemGroup>
 </Project>

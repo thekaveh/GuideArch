@@ -238,6 +238,39 @@ public sealed class ScenarioMutator
 
     private ScenarioState State => _getState();
 
+    /// <summary>
+    /// Default empty scenario used when auto-creating on first add-X.
+    /// </summary>
+    private static readonly ScenarioM EmptyScenario = new(
+        SchemaVersion: "1.0",
+        Name: "New scenario",
+        Description: "",
+        Decisions: System.Collections.Immutable.ImmutableArray<DecisionM>.Empty,
+        Alternatives: System.Collections.Immutable.ImmutableArray<AlternativeM>.Empty,
+        Properties: System.Collections.Immutable.ImmutableArray<PropertyM>.Empty,
+        Coefficients: System.Collections.Immutable.ImmutableArray<CoefficientM>.Empty,
+        Constraints: System.Collections.Immutable.ImmutableArray<ConstraintM>.Empty,
+        Config: new ConfigM(Aggregation.Max, new NormalizedFuzzyM(0.5, 0.25, 0.25)),
+        Warnings: System.Collections.Immutable.ImmutableArray<string>.Empty
+    );
+
+    /// <summary>
+    /// Returns the current scenario, auto-creating an empty one if null.
+    /// Mirrors the Python fix: clicking Add Decision/Property before opening
+    /// a scenario runs New automatically instead of throwing.
+    /// </summary>
+    private ScenarioM EnsureScenario()
+    {
+        if (State.Scenario is not null) return State.Scenario;
+        _setState(State with
+        {
+            Scenario = EmptyScenario,
+            IsDirty = true,
+            Status = "New scenario (empty)."
+        });
+        return _getState().Scenario!;
+    }
+
     private ScenarioM RequireScenario()
     {
         if (State.Scenario is null)
@@ -284,7 +317,7 @@ public sealed class ScenarioMutator
 
     public void AddDecision()
     {
-        var s = RequireScenario();
+        var s = EnsureScenario();
         var id = $"d-{Guid.NewGuid()}";
         var newDecision = new DecisionM(id, "New decision");
         _setState(State with
@@ -445,7 +478,7 @@ public sealed class ScenarioMutator
 
     public void AddProperty()
     {
-        var s = RequireScenario();
+        var s = EnsureScenario();
         var id = $"p-{Guid.NewGuid()}";
         var newProp = new PropertyM(id, "New property", PropertyKind.Min, 1.0);
 
