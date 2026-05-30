@@ -1,0 +1,21 @@
+name: conformance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conformance gate
+        run: |
+          if [ -d spec/conformance/scenarios ] && [ "$(ls -A spec/conformance/scenarios 2>/dev/null | grep -v '^\.keep$' || true)" ]; then
+            echo "Conformance scenarios present but cross-impl runner not yet implemented (M1)." >&2
+            exit 0  # do not fail bootstrap CI
+          else
+            echo "No conformance scenarios yet (M1 will seed them). Bootstrap conformance: pass."
+          fi

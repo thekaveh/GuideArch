@@ -1,0 +1,37 @@
+name: spec
+
+on:
+  push:
+    branches: [main]
+    paths: ['spec/**', '.github/workflows/spec.yml']
+  pull_request:
+    paths: ['spec/**', '.github/workflows/spec.yml']
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JSON files parse
+        run: |
+          set -e
+          if find spec -name '*.json' | read; then
+            find spec -name '*.json' -exec sh -c 'python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$1"' _ {} \;
+            echo "All spec/*.json files parse."
+          else
+            echo "No JSON files in spec/ yet (M1+ will populate)."
+          fi
+
+      - name: Check ADR filenames are well-formed
+        run: |
+          set -e
+          for f in spec/ADRs/*.md; do
+            base=$(basename "$f")
+            if ! [[ "$base" =~ ^[0-9]{4}-[a-z0-9-]+\.md$ ]]; then
+              echo "Malformed ADR filename: $base" >&2
+              exit 1
+            fi
+          done
+          echo "All ADR filenames are well-formed."
