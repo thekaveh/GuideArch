@@ -144,7 +144,10 @@ def _status_text(vm: ScenarioVM) -> str:
 def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-gray-400")
+        ui.markdown(
+            "No scenario loaded. Click **Open Sample SAS** in the toolbar to try the example,"
+            " or **New** to start blank."
+        ).classes("text-gray-400 py-4")
         return
 
     def _refresh() -> None:
@@ -241,7 +244,10 @@ def _do_delete_decision(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
 def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-gray-400")
+        ui.markdown(
+            "No scenario loaded. Click **Open Sample SAS** in the toolbar to try the example,"
+            " or **New** to start blank."
+        ).classes("text-gray-400 py-4")
         return
 
     def _refresh() -> None:
@@ -340,7 +346,10 @@ def _do_delete_alternative(vm: ScenarioVM, alt_id: str, refresh: Any) -> None:
 def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-gray-400")
+        ui.markdown(
+            "No scenario loaded. Click **Open Sample SAS** in the toolbar to try the example,"
+            " or **New** to start blank."
+        ).classes("text-gray-400 py-4")
         return
 
     def _refresh() -> None:
@@ -1322,6 +1331,17 @@ def index() -> None:
                     icon="folder_open",
                     on_click=lambda: open_dialog.open(),
                 ).props("flat color=white")
+
+            from guidearch.samples import SAMPLES as _SAMPLES
+
+            for _sample in _SAMPLES:
+                _sample_path = str(_sample["path"])
+                _sample_label = str(_sample["label"]).split(" — ")[0]  # "SAS" or "EDS"
+                ui.button(
+                    f"Open Sample {_sample_label}",
+                    icon="science",
+                    on_click=lambda _p=_sample_path: vm.open_cmd.execute(_p),
+                ).props("flat color=teal")
 
             save_btn = ui.button("Save", icon="save", on_click=lambda: _do_save(vm)).props(
                 "flat color=white"

@@ -10,6 +10,7 @@ COPY vendor/vmx/langs/python /app/vendor/vmx/langs/python
 
 # Copy the GuideArch Python project
 COPY langs/python/pyproject.toml langs/python/uv.lock /app/langs/python/
+# src/ includes guidearch/samples/*.json (bundled sample scenarios)
 COPY langs/python/src /app/langs/python/src
 COPY spec/conformance /app/spec/conformance
 COPY spec/domain /app/spec/domain

@@ -31,6 +31,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/guidearch"]
+# JSON sample files are automatically included as package data by hatchling.
 
 [tool.ruff]
 line-length = 100
