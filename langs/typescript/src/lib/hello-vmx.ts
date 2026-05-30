@@ -1,8 +1,4 @@
-import {
-  ComponentVMOf,
-  NullMessageHub,
-  NullDispatcher,
-} from 'vmx';
+import { ComponentVMOf, NullMessageHub, NullDispatcher } from 'vmx';
 
 /**
  * Smoke-test VMx wiring by instantiating a trivial ComponentVMOf and

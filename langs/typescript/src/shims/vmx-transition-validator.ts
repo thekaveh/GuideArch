@@ -13,8 +13,8 @@
  * the transitionValidator from the VMx source tree to this shim instead.
  */
 
-import { ConstructionStatus } from "../../../../vendor/vmx/langs/typescript/src/lifecycle/status.js";
-import { StatusTransitionError } from "../../../../vendor/vmx/langs/typescript/src/lifecycle/exceptions.js";
+import { ConstructionStatus } from '../../../../vendor/vmx/langs/typescript/src/lifecycle/status.js';
+import { StatusTransitionError } from '../../../../vendor/vmx/langs/typescript/src/lifecycle/exceptions.js';
 
 // Inlined from lifecycle-transitions.json (VMx 2.1.0)
 const _TRANSITIONS: Array<{
@@ -24,26 +24,62 @@ const _TRANSITIONS: Array<{
   to_final: string | null;
   legal: boolean;
 }> = [
-  { from: "Destructed",   via: "construct",   to_intermediate: "Constructing", to_final: "Constructed", legal: true  },
-  { from: "Constructed",  via: "destruct",    to_intermediate: "Destructing",  to_final: "Destructed",  legal: true  },
-  { from: "Constructed",  via: "reconstruct", to_intermediate: "Destructing",  to_final: "Constructed", legal: true  },
-  { from: "Constructed",  via: "dispose",     to_intermediate: null,           to_final: "Disposed",    legal: true  },
-  { from: "Destructed",   via: "dispose",     to_intermediate: null,           to_final: "Disposed",    legal: true  },
-  { from: "Constructing", via: "dispose",     to_intermediate: null,           to_final: "Disposed",    legal: true  },
-  { from: "Destructing",  via: "dispose",     to_intermediate: null,           to_final: "Disposed",    legal: true  },
-  { from: "Disposed",     via: "construct",   to_intermediate: null,           to_final: null,          legal: false },
-  { from: "Disposed",     via: "destruct",    to_intermediate: null,           to_final: null,          legal: false },
-  { from: "Disposed",     via: "reconstruct", to_intermediate: null,           to_final: null,          legal: false },
-  { from: "Disposed",     via: "dispose",     to_intermediate: null,           to_final: "Disposed",    legal: true  },
-  { from: "Constructed",  via: "construct",   to_intermediate: null,           to_final: "Constructed", legal: true  },
-  { from: "Destructed",   via: "destruct",    to_intermediate: null,           to_final: "Destructed",  legal: true  },
-  { from: "Constructing", via: "construct",   to_intermediate: null,           to_final: null,          legal: false },
-  { from: "Destructing",  via: "destruct",    to_intermediate: null,           to_final: null,          legal: false },
-  { from: "Destructed",   via: "reconstruct", to_intermediate: null,           to_final: null,          legal: false },
-  { from: "Constructing", via: "destruct",    to_intermediate: null,           to_final: null,          legal: false },
-  { from: "Constructing", via: "reconstruct", to_intermediate: null,           to_final: null,          legal: false },
-  { from: "Destructing",  via: "construct",   to_intermediate: null,           to_final: null,          legal: false },
-  { from: "Destructing",  via: "reconstruct", to_intermediate: null,           to_final: null,          legal: false },
+  {
+    from: 'Destructed',
+    via: 'construct',
+    to_intermediate: 'Constructing',
+    to_final: 'Constructed',
+    legal: true,
+  },
+  {
+    from: 'Constructed',
+    via: 'destruct',
+    to_intermediate: 'Destructing',
+    to_final: 'Destructed',
+    legal: true,
+  },
+  {
+    from: 'Constructed',
+    via: 'reconstruct',
+    to_intermediate: 'Destructing',
+    to_final: 'Constructed',
+    legal: true,
+  },
+  { from: 'Constructed', via: 'dispose', to_intermediate: null, to_final: 'Disposed', legal: true },
+  { from: 'Destructed', via: 'dispose', to_intermediate: null, to_final: 'Disposed', legal: true },
+  {
+    from: 'Constructing',
+    via: 'dispose',
+    to_intermediate: null,
+    to_final: 'Disposed',
+    legal: true,
+  },
+  { from: 'Destructing', via: 'dispose', to_intermediate: null, to_final: 'Disposed', legal: true },
+  { from: 'Disposed', via: 'construct', to_intermediate: null, to_final: null, legal: false },
+  { from: 'Disposed', via: 'destruct', to_intermediate: null, to_final: null, legal: false },
+  { from: 'Disposed', via: 'reconstruct', to_intermediate: null, to_final: null, legal: false },
+  { from: 'Disposed', via: 'dispose', to_intermediate: null, to_final: 'Disposed', legal: true },
+  {
+    from: 'Constructed',
+    via: 'construct',
+    to_intermediate: null,
+    to_final: 'Constructed',
+    legal: true,
+  },
+  {
+    from: 'Destructed',
+    via: 'destruct',
+    to_intermediate: null,
+    to_final: 'Destructed',
+    legal: true,
+  },
+  { from: 'Constructing', via: 'construct', to_intermediate: null, to_final: null, legal: false },
+  { from: 'Destructing', via: 'destruct', to_intermediate: null, to_final: null, legal: false },
+  { from: 'Destructed', via: 'reconstruct', to_intermediate: null, to_final: null, legal: false },
+  { from: 'Constructing', via: 'destruct', to_intermediate: null, to_final: null, legal: false },
+  { from: 'Constructing', via: 'reconstruct', to_intermediate: null, to_final: null, legal: false },
+  { from: 'Destructing', via: 'construct', to_intermediate: null, to_final: null, legal: false },
+  { from: 'Destructing', via: 'reconstruct', to_intermediate: null, to_final: null, legal: false },
 ];
 
 function _statusName(s: ConstructionStatus): string {

@@ -11,8 +11,24 @@
 </main>
 
 <style>
-  main { font-family: system-ui, sans-serif; padding: 3rem; max-width: 720px; margin: 0 auto; }
-  h1 { font-size: 2.5rem; margin: 0 0 .5rem; }
-  .subtitle { color: #666; margin: 0 0 2rem; }
-  .vmx-proof { padding: 1rem; background: #f4f4f4; border-radius: 4px; font-family: monospace; }
+  main {
+    font-family: system-ui, sans-serif;
+    padding: 3rem;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.5rem;
+    margin: 0 0 0.5rem;
+  }
+  .subtitle {
+    color: #666;
+    margin: 0 0 2rem;
+  }
+  .vmx-proof {
+    padding: 1rem;
+    background: #f4f4f4;
+    border-radius: 4px;
+    font-family: monospace;
+  }
 </style>
