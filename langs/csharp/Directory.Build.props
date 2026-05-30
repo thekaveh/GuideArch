@@ -6,6 +6,11 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <ImplicitUsings>enable</ImplicitUsings>
 
+    <!-- Roll forward to any newer runtime if .NET 8 isn't installed.
+         Lets a user with only .NET 9 SDK actually run the View app
+         (the README quickstart promises `dotnet run` works). -->
+    <RollForward>Major</RollForward>
+
     <!-- Toggle: 'local' uses vendor/vmx submodule; 'released' uses NuGet -->
     <VMxSource Condition="'$(VMxSource)'==''">local</VMxSource>
     <VMxVersion>2.1.0</VMxVersion>
