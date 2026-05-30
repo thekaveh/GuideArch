@@ -30,7 +30,7 @@ Thanks for your interest in contributing. GuideArch is a spec-driven monorepo wi
 
 - TypeScript: ESLint + Prettier — `pnpm lint && pnpm format`.
 - C#: Treat warnings as errors. `dotnet format`.
-- Python: ruff + mypy --strict — `uv run ruff check && uv run mypy`.
+- Python: ruff + mypy --strict — `uv run ruff check src && uv run mypy src`.
 
 ## Code of Conduct
 

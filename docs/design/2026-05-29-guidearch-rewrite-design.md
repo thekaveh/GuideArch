@@ -356,11 +356,11 @@ Undo/redo, multi-scenario tabs, in-app XML import, constraint solver, auth/multi
 
 The following Architecture Decision Records are committed at M0:
 
-1. **ADR-0001** Three implementations sharing one spec, VMx as submodule
-2. **ADR-0002** JSON Schema as the scenario format (not legacy XML)
-3. **ADR-0003** TOPSIS algorithm is custom in-repo code, not Microsoft Solver Foundation
-4. **ADR-0004** MIT license (matches VMx)
-5. **ADR-0005** Single monorepo version, all three impls released together
+1. **ADR-0001** Three implementations sharing one spec; VMx as submodule
+2. **ADR-0002** JSON Schema for scenario files (not legacy XML)
+3. **ADR-0003** TOPSIS as in-repo code; no Microsoft Solver Foundation
+4. **ADR-0004** MIT License
+5. **ADR-0005** Single monorepo version; all three impls release together
 6. **ADR-0006** NiceGUI 3.x as the Python view layer (not Shiny, not Streamlit)
 
 ## 16. Open Questions (deferrable; not blockers)

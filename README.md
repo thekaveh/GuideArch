@@ -41,12 +41,12 @@ Read most-to-least essential. Each link includes when to use it.
 
 Numbered rationale for each non-obvious design choice. Read when questioning *why* something is the way it is.
 
-- [ADR-0001 — Three implementations + VMx submodule](spec/ADRs/0001-three-impls-vmx-submodule.md)
-- [ADR-0002 — JSON Schema for scenarios, not legacy XML](spec/ADRs/0002-json-schema-not-xml.md)
-- [ADR-0003 — TOPSIS as in-repo code, no Microsoft Solver Foundation](spec/ADRs/0003-topsis-no-msf.md)
-- [ADR-0004 — MIT license](spec/ADRs/0004-mit-license.md)
-- [ADR-0005 — Single monorepo version](spec/ADRs/0005-single-monorepo-version.md)
-- [ADR-0006 — NiceGUI 3.x for Python, not Shiny](spec/ADRs/0006-nicegui-over-shiny.md)
+- [ADR-0001 — Three implementations sharing one spec; VMx as submodule](spec/ADRs/0001-three-impls-vmx-submodule.md)
+- [ADR-0002 — JSON Schema for scenario files (not legacy XML)](spec/ADRs/0002-json-schema-not-xml.md)
+- [ADR-0003 — TOPSIS as in-repo code; no Microsoft Solver Foundation](spec/ADRs/0003-topsis-no-msf.md)
+- [ADR-0004 — MIT License](spec/ADRs/0004-mit-license.md)
+- [ADR-0005 — Single monorepo version; all three impls release together](spec/ADRs/0005-single-monorepo-version.md)
+- [ADR-0006 — NiceGUI 3.x as the Python view layer (not Shiny, not Streamlit)](spec/ADRs/0006-nicegui-over-shiny.md)
 
 ### 3.5 Contributing & governance
 
