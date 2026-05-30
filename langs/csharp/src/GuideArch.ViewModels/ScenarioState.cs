@@ -15,7 +15,8 @@ public sealed record ScenarioState(
     ImmutableArray<CriticalDecisionM> CriticalDecisions,
     ImmutableArray<CriticalConstraintM> CriticalConstraints,
     string Status,
-    ImmutableArray<string> Warnings
+    ImmutableArray<string> Warnings,
+    int? SelectedCandidateIndex = null
 )
 {
     /// <summary>Returns an empty initial state with no scenario loaded.</summary>
@@ -27,7 +28,8 @@ public sealed record ScenarioState(
         CriticalDecisions: ImmutableArray<CriticalDecisionM>.Empty,
         CriticalConstraints: ImmutableArray<CriticalConstraintM>.Empty,
         Status: "No scenario loaded.",
-        Warnings: ImmutableArray<string>.Empty
+        Warnings: ImmutableArray<string>.Empty,
+        SelectedCandidateIndex: null
     );
 
     // ------------------------------------------------------------------
@@ -72,4 +74,24 @@ public sealed record ScenarioState(
 
     /// <summary>True when a scenario is loaded.</summary>
     public bool HasScenario => Scenario is not null;
+
+    // ------------------------------------------------------------------
+    // M4 chart-ready projections (spec charts.md §4, §5)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Critical decisions display rows, sorted ascending by rank.
+    /// Used by the Critical decisions tab DataGrid.
+    /// </summary>
+    public ImmutableArray<ChartData.CriticalDecisionRow> CriticalDecisionsView =>
+        Scenario is null
+            ? ImmutableArray<ChartData.CriticalDecisionRow>.Empty
+            : ChartData.PrepCriticalDecisions(CriticalDecisions, Scenario);
+
+    /// <summary>
+    /// Critical constraints display rows, sorted descending by eliminated.
+    /// Used by the Critical constraints tab DataGrid.
+    /// </summary>
+    public ImmutableArray<ChartData.CriticalConstraintRow> CriticalConstraintsView =>
+        ChartData.PrepCriticalConstraints(CriticalConstraints);
 }

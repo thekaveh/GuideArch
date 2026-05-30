@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:scottplot="using:ScottPlot.Avalonia"
         x:Class="GuideArch.View.MainWindow"
         Title="GuideArch"
         Width="1200" Height="800"
@@ -430,7 +431,7 @@
         </TabControl>
       </TabItem>
 
-      <!-- ── Tab 6: Results (M2 candidates table) ───────────────────── -->
+      <!-- ── Tab 6: Results — split pane (M4) ──────────────────────── -->
       <TabItem Header="Results">
         <Grid RowDefinitions="Auto,*">
 
@@ -441,9 +442,71 @@
                      FontSize="13"
                      Foreground="#A6ADC8" />
 
+          <!-- Split: left 60% candidates table, right 40% charts -->
+          <Grid Grid.Row="1"
+                ColumnDefinitions="3*,2*">
+
+            <!-- Left: ranked candidates DataGrid -->
+            <DataGrid Grid.Column="0"
+                      Name="ResultsGrid"
+                      ItemsSource="{ReflectionBinding Model.Candidates}"
+                      AutoGenerateColumns="False"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="False"
+                      IsReadOnly="True"
+                      Margin="8,0,4,8"
+                      SelectionChanged="OnResultsGridSelectionChanged">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Rank"
+                                    Binding="{ReflectionBinding Rank}"
+                                    Width="60" />
+                <DataGridTextColumn Header="Score"
+                                    Binding="{ReflectionBinding Score, StringFormat={}{0:F6}}"
+                                    Width="120"
+                                    FontFamily="Cascadia Code,Consolas,monospace" />
+                <DataGridTextColumn Header="Alternative IDs"
+                                    Binding="{ReflectionBinding AlternativeIds}"
+                                    Width="*"
+                                    FontFamily="Cascadia Code,Consolas,monospace"
+                                    FontSize="11" />
+              </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Right: two stacked ScottPlot charts -->
+            <Grid Grid.Column="1"
+                  RowDefinitions="*,*"
+                  Margin="4,0,8,8">
+
+              <!-- Chart A: horizontal bar chart of top 30 candidates (spec charts.md §2) -->
+              <scottplot:AvaPlot Grid.Row="0"
+                                 Name="ChartA"
+                                 PointerPressed="OnChartAPointerPressed" />
+
+              <!-- Chart B: triangle series for selected candidate (spec charts.md §3) -->
+              <scottplot:AvaPlot Grid.Row="1"
+                                 Name="ChartB" />
+
+            </Grid>
+
+          </Grid>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ── Tab 7: Critical decisions (M4, spec charts.md §4) ─────── -->
+      <TabItem Header="Critical decisions">
+        <Grid RowDefinitions="Auto,*">
+
+          <TextBlock Grid.Row="0"
+                     Text="Critical decisions — sorted ascending by rank (lower score = more critical)."
+                     Margin="8,8,8,4"
+                     FontSize="12"
+                     Foreground="#A6ADC8" />
+
+          <!-- ReflectionBinding: open generic DataContext -->
           <DataGrid Grid.Row="1"
-                    Name="ResultsGrid"
-                    ItemsSource="{ReflectionBinding Model.Candidates}"
+                    Name="CriticalDecisionsGrid"
+                    ItemsSource="{ReflectionBinding Model.CriticalDecisionsView}"
                     AutoGenerateColumns="False"
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
@@ -453,15 +516,67 @@
               <DataGridTextColumn Header="Rank"
                                   Binding="{ReflectionBinding Rank}"
                                   Width="60" />
+              <DataGridTextColumn Header="Decision"
+                                  Binding="{ReflectionBinding DecisionName}"
+                                  Width="*" />
               <DataGridTextColumn Header="Score"
-                                  Binding="{ReflectionBinding Score, StringFormat={}{0:F6}}"
+                                  Binding="{ReflectionBinding Score}"
                                   Width="120"
                                   FontFamily="Cascadia Code,Consolas,monospace" />
-              <DataGridTextColumn Header="Alternative IDs"
-                                  Binding="{ReflectionBinding AlternativeIds}"
-                                  Width="*"
+              <DataGridTextColumn Header="Triangular value"
+                                  Binding="{ReflectionBinding TriangularValue}"
+                                  Width="200"
                                   FontFamily="Cascadia Code,Consolas,monospace"
                                   FontSize="11" />
+              <DataGridTextColumn Header="Normalized"
+                                  Binding="{ReflectionBinding Normalized}"
+                                  Width="200"
+                                  FontFamily="Cascadia Code,Consolas,monospace"
+                                  FontSize="11" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+        </Grid>
+      </TabItem>
+
+      <!-- ── Tab 8: Critical constraints (M4, spec charts.md §5) ───── -->
+      <TabItem Header="Critical constraints">
+        <Grid RowDefinitions="Auto,*">
+
+          <TextBlock Grid.Row="0"
+                     Text="Critical constraints — sorted descending by eliminated (most-binding first). Redundant rows are faded."
+                     Margin="8,8,8,4"
+                     FontSize="12"
+                     Foreground="#A6ADC8" />
+
+          <!-- ReflectionBinding: open generic DataContext -->
+          <DataGrid Grid.Row="1"
+                    Name="CriticalConstraintsGrid"
+                    ItemsSource="{ReflectionBinding Model.CriticalConstraintsView}"
+                    AutoGenerateColumns="False"
+                    CanUserResizeColumns="True"
+                    CanUserSortColumns="False"
+                    IsReadOnly="True"
+                    Margin="8,0,8,8">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Index"
+                                  Binding="{ReflectionBinding Index}"
+                                  Width="60" />
+              <DataGridTextColumn Header="Kind"
+                                  Binding="{ReflectionBinding Kind}"
+                                  Width="120" />
+              <DataGridTextColumn Header="Eliminated"
+                                  Binding="{ReflectionBinding Eliminated}"
+                                  Width="100" />
+              <DataGridTextColumn Header="Total"
+                                  Binding="{ReflectionBinding Total}"
+                                  Width="80" />
+              <DataGridTextColumn Header="Eliminated %"
+                                  Binding="{ReflectionBinding EliminatedPercent}"
+                                  Width="100" />
+              <DataGridTextColumn Header="Redundant"
+                                  Binding="{ReflectionBinding RedundantDisplay}"
+                                  Width="80" />
             </DataGrid.Columns>
           </DataGrid>
 

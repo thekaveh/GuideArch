@@ -58,12 +58,22 @@ public static class ScenarioVMFactory
             var critDec = CriticalDecisions.Analyze(scenario, candidates);
             var critCon = CriticalConstraints.Analyze(scenario);
 
+            // Default SelectedCandidateIndex to 0 whenever candidates become non-empty;
+            // preserve existing selection if still in range (spec charts.md §6).
+            int? newSelIdx = null;
+            if (candidates.Length > 0)
+            {
+                int prev = state.SelectedCandidateIndex ?? -1;
+                newSelIdx = (prev >= 0 && prev < candidates.Length) ? prev : 0;
+            }
+
             SetState(state with
             {
                 Candidates = candidates,
                 CriticalDecisions = critDec,
                 CriticalConstraints = critCon,
-                Status = $"Solved: {candidates.Length} candidates — \"{scenario.Name}\""
+                Status = $"Solved: {candidates.Length} candidates — \"{scenario.Name}\"",
+                SelectedCandidateIndex = newSelIdx
             });
         }
 
@@ -233,6 +243,24 @@ public sealed class ScenarioMutator
         if (State.Scenario is null)
             throw new ScenarioMutationException("No scenario is loaded.");
         return State.Scenario;
+    }
+
+    // ------------------------------------------------------------------
+    // M4: Candidate selection (drives charts)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Sets the currently selected candidate index (spec charts.md §6).
+    /// Pass null to deselect. Index must be within Candidates range when non-null.
+    /// </summary>
+    public void SelectCandidate(int? index)
+    {
+        var s = State;
+        if (index.HasValue && (index.Value < 0 || index.Value >= s.Candidates.Length))
+            throw new ScenarioMutationException(
+                $"Candidate index {index.Value} out of range (0–{s.Candidates.Length - 1}).");
+        _setState(s with { SelectedCandidateIndex = index });
+        // Selection changes do NOT re-solve.
     }
 
     // ------------------------------------------------------------------
