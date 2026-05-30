@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4D50283A-38E2-43E7-8668-B0F3FA0E4083}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuideArch.Models", "src\GuideArch.Models\GuideArch.Models.csproj", "{004935A4-ECF8-4A92-A42E-B8438607AD31}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{004935A4-ECF8-4A92-A42E-B8438607AD31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{004935A4-ECF8-4A92-A42E-B8438607AD31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{004935A4-ECF8-4A92-A42E-B8438607AD31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{004935A4-ECF8-4A92-A42E-B8438607AD31}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{004935A4-ECF8-4A92-A42E-B8438607AD31} = {4D50283A-38E2-43E7-8668-B0F3FA0E4083}
+	EndGlobalSection
+EndGlobal

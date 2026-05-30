@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Toggle: 'local' uses vendor/vmx submodule; 'released' uses NuGet -->
+    <VMxSource Condition="'$(VMxSource)'==''">local</VMxSource>
+    <VMxVersion>2.1.0</VMxVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(VMxSource)'=='local'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../vendor/vmx/langs/csharp/src/VMx/VMx.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(VMxSource)'=='released'">
+    <PackageReference Include="VMx" Version="$(VMxVersion)" />
+  </ItemGroup>
+</Project>
