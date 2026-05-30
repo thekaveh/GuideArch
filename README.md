@@ -6,7 +6,16 @@ GuideArch helps software architects pick between competing technology stacks by 
 
 ## 1. Status
 
-**Bootstrap (M0). Pre-1.0 — not yet usable as an application.** The repo currently contains three "hello VMx" scaffolds proving wiring across languages, plus the architectural spec and milestone plans. Tag `v0.0.0-bootstrap` marks M0 completion. Domain model, TOPSIS engine, editors, and conformance corpus arrive in M1+ (see [§3 Documentation hub](#3-documentation-hub)).
+**M1 complete — domain + TOPSIS engine; UI deferred to M2+.** All three implementations (TypeScript, C#, Python) implement the full domain model, the fuzzy TOPSIS solver, critical-decisions sensitivity analysis, and critical-constraints elimination analysis. They produce identical numerical results to 1e-9 absolute on the seed conformance corpus (`spec/conformance/scenarios/sas.json`, `eds.json`). Cross-impl conformance is gated in CI.
+
+What does **not** yet exist:
+
+- The ViewModel layer (M2) — apps still render the M1 "domain ready" placeholder.
+- Editors for decisions / alternatives / properties / coefficients / constraints (M3).
+- Ranking tables, sensitivity views, and charts (M4).
+- Installer / distributable artifacts (M5).
+
+Tag `v0.0.0-bootstrap` marks M0; the most recent milestone tag identifies the current cut.
 
 ## 2. What's in the box
 
@@ -30,12 +39,17 @@ Read most-to-least essential. Each link includes when to use it.
 
 ### 3.2 Milestone plans
 
-- **[M0 — Repo bootstrap](docs/plans/2026-05-30-m0-repo-bootstrap.md)** — the 27-task implementation plan that produced the current state of this repo. *Read this if you want to understand how the scaffolding was assembled, or to mirror the bootstrap structure in another project.*
-- *M1–M5 plans land in [`docs/plans/`](docs/plans/) as each milestone begins.*
+- **[M0 — Repo bootstrap](docs/plans/2026-05-30-m0-repo-bootstrap.md)** — the 27-task implementation plan that produced the bootstrap state. *Read this if you want to understand how the scaffolding was assembled.*
+- *M2–M5 plans land in [`docs/plans/`](docs/plans/) as each milestone begins. M1 was executed directly from the spec without a separate plan document because the algorithm was already fully specified in `spec/algorithms/topsis.md`.*
 
 ### 3.3 Specification & conformance
 
-- **[`spec/`](spec/README.md)** — the language-neutral source of truth that every implementation must satisfy. Currently a skeleton; the scenario JSON schema, formal TOPSIS write-up, and conformance corpus arrive in M1. *Read this when authoring features that touch the domain or algorithm — the spec changes first, then the impls follow.*
+- **[`spec/`](spec/README.md)** — the language-neutral source of truth that every implementation must satisfy. Populated at M1 with:
+  - **[`spec/algorithms/topsis.md`](spec/algorithms/topsis.md)** — the canonical TOPSIS pipeline with magic-number table and tie-break rule.
+  - **[`spec/algorithms/critical-decisions.md`](spec/algorithms/critical-decisions.md)**, **[`critical-constraints.md`](spec/algorithms/critical-constraints.md)** — reference cards.
+  - **[`spec/domain/scenario.schema.json`](spec/domain/scenario.schema.json)** — JSON Schema 2020-12 for the input format.
+  - **[`spec/domain/glossary.md`](spec/domain/glossary.md)**, **[`invariants.md`](spec/domain/invariants.md)** — vocabulary and load-time validation rules.
+  - **[`spec/conformance/`](spec/conformance/)** — the seed corpus: `scenarios/sas.json` (10 decisions, 25 alternatives, 7 properties), `scenarios/eds.json` (same shape), and the matching `expected/*.json` outputs the three impls must reproduce within `tolerances.json` (1e-9 absolute on scalars; ranking exact).
 
 ### 3.4 Architecture decision records
 
@@ -69,7 +83,7 @@ docs/                design specs and milestone plans
 
 ## 5. Quickstart
 
-Each implementation runs a "hello VMx" page at M0 — useful as a wiring smoke test only.
+At M1 each impl exposes the TOPSIS engine via a conformance runner plus a placeholder app (the M0 hello page, updated to "M1: domain ready"). The full app UI arrives in M2+.
 
 **Clone with submodules** (VMx lives at `vendor/vmx/`):
 
@@ -111,6 +125,21 @@ cd langs/python
 uv sync
 uv run guidearch           # web (browser at http://localhost:8080)
 uv run guidearch --native  # desktop (pywebview window)
+```
+
+### 5.4 Run the conformance suite
+
+Each impl ships a conformance runner that solves every scenario in `spec/conformance/scenarios/` and compares against `spec/conformance/expected/` within `1e-9` absolute. CI fails on divergence.
+
+```bash
+# Python
+cd langs/python && uv run python -m guidearch.conformance.runner
+
+# C#
+cd langs/csharp && dotnet run --project src/GuideArch.Conformance
+
+# TypeScript
+cd langs/typescript && pnpm conformance
 ```
 
 ## 6. License
