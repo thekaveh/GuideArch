@@ -43,10 +43,20 @@ function findRepoRoot(startDir: string): string {
   }
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const _REPO_ROOT = findRepoRoot(__dirname);
-const _DEFAULT_SCHEMA_PATH = path.join(_REPO_ROOT, 'spec', 'domain', 'scenario.schema.json');
+// Schema path discovery is LAZY — must not run at module-init time, because the
+// browser shims of fileURLToPath / fs throw on call. The loader is only invoked
+// when openCmd actually fires; in the browser it's served the schema via a
+// separate channel (the Toolbar reads the file in browser and calls
+// loadScenarioFromParsed instead).
+let _defaultSchemaPathCache: string | null = null;
+function _defaultSchemaPath(): string {
+  if (_defaultSchemaPathCache !== null) return _defaultSchemaPathCache;
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const repoRoot = findRepoRoot(__dirname);
+  _defaultSchemaPathCache = path.join(repoRoot, 'spec', 'domain', 'scenario.schema.json');
+  return _defaultSchemaPathCache;
+}
 
 // ---------------------------------------------------------------------------
 // Loader
@@ -55,7 +65,7 @@ const _DEFAULT_SCHEMA_PATH = path.join(_REPO_ROOT, 'spec', 'domain', 'scenario.s
 type RawJson = Record<string, any>;
 
 export function loadScenario(jsonPath: string, schemaPath?: string): ScenarioM {
-  const resolvedSchema = schemaPath ?? _DEFAULT_SCHEMA_PATH;
+  const resolvedSchema = schemaPath ?? _defaultSchemaPath();
 
   const raw: RawJson = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
   const schema: RawJson = JSON.parse(fs.readFileSync(resolvedSchema, 'utf-8'));
