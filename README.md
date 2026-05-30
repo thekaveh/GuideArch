@@ -71,6 +71,16 @@ docs/                design specs and milestone plans
 
 Each implementation runs a "hello VMx" page at M0 — useful as a wiring smoke test only.
 
+**Clone with submodules** (VMx lives at `vendor/vmx/`):
+
+```bash
+git clone --recurse-submodules https://github.com/thekaveh/GuideArch.git
+# or, if already cloned without --recurse-submodules:
+git submodule update --init
+```
+
+Without the submodule initialized, every per-impl quickstart below fails (VMx imports won't resolve).
+
 ### 5.1 TypeScript (Tauri 2 + Svelte 5)
 
 Requires Node 22+, pnpm, and Rust (for Tauri's native shell).
