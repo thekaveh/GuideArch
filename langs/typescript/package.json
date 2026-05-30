@@ -1,6 +1,6 @@
 {
   "name": "@guidearch/typescript",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "GuideArch TypeScript + Tauri + Svelte implementation",
   "type": "module",
   "scripts": {

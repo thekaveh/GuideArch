@@ -6,16 +6,9 @@ GuideArch helps software architects pick between competing technology stacks by 
 
 ## 1. Status
 
-**M2 complete — domain + TOPSIS + ViewModel layer + skeleton UI; editors and charts still ahead.** All three implementations (TypeScript, C#, Python) realize the full canonical ViewModel tree from [`spec/viewmodels.md`](spec/viewmodels.md) and ship a skeleton "open scenario → see ranked candidates table" UI that exercises the VM tree end-to-end.
+**v1.0.0 released — M5 complete — release artifacts wired.** All three implementations (TypeScript, C#, Python) are feature-complete: full domain + TOPSIS engine, editors, results, analysis charts, and release-ready build configs. Tauri installers, Avalonia self-contained binaries, Python wheel + Docker image, and a SvelteKit static web bundle are all produced by the GitHub Actions release workflow on every `v*.*.*` tag push.
 
-What does **not** yet exist:
-
-- Full editors for decisions / alternatives / properties / coefficients (the fuzzy matrix) / constraints (M3).
-- Critical-decisions / critical-constraints views (M4).
-- Charts: ranked-candidates bar, fuzzy-value triangle visualizer (M4).
-- Installer / distributable artifacts: Tauri installers, Avalonia binaries + WASM, PyPI package, Docker (M5).
-
-Milestone tags: `v0.0.0-bootstrap` (M0), `v0.1.0-m1` (M1 — domain + TOPSIS), `v0.2.0-m2` (M2 — ViewModels + skeleton UI).
+Milestone tags: `v0.0.0-bootstrap` (M0), `v0.1.0-m1` (M1 — domain + TOPSIS), `v0.2.0-m2` (M2 — ViewModels + skeleton UI), `v0.3.0-m3` (M3 — full editors), `v0.4.0-m4` (M4 — analysis + charts), `v1.0.0` (M5 — release artifacts).
 
 ## 2. What's in the box
 

@@ -1,0 +1,321 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  # ─── 1. Tauri desktop installers (Win / macOS / Linux) ──────────────────────
+  tauri-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: macos
+          - os: windows-latest
+            platform: windows
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: langs/typescript
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: langs/typescript/pnpm-lock.yaml
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux Tauri prereqs
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libsoup-3.0-dev \
+            build-essential curl wget file libxdo-dev libssl-dev \
+            libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install pnpm dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Tauri app
+        run: pnpm tauri build
+
+      - name: Upload Linux installers
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-linux
+          path: |
+            langs/typescript/src-tauri/target/release/bundle/appimage/*.AppImage
+            langs/typescript/src-tauri/target/release/bundle/deb/*.deb
+
+      - name: Upload macOS installer
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-macos
+          path: |
+            langs/typescript/src-tauri/target/release/bundle/dmg/*.dmg
+
+      - name: Upload Windows installers
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-windows
+          path: |
+            langs/typescript/src-tauri/target/release/bundle/msi/*.msi
+            langs/typescript/src-tauri/target/release/bundle/nsis/*.exe
+
+  # ─── 2. Avalonia desktop binaries (4 RIDs) ──────────────────────────────────
+  avalonia-desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [win-x64, osx-x64, osx-arm64, linux-x64]
+        include:
+          - rid: win-x64
+            os: windows-latest
+          - rid: osx-x64
+            os: macos-latest
+          - rid: osx-arm64
+            os: macos-latest
+          - rid: linux-x64
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: langs/csharp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish self-contained single-file binary
+        run: >
+          dotnet publish src/GuideArch.View
+          -c Release
+          -r ${{ matrix.rid }}
+          --self-contained
+          -p:PublishSingleFile=true
+          -o publish/${{ matrix.rid }}
+
+      - name: Zip artifact (Unix)
+        if: matrix.os != 'windows-latest'
+        run: |
+          cd publish/${{ matrix.rid }}
+          zip -r ../../GuideArch-Avalonia-1.0.0-${{ matrix.rid }}.zip .
+
+      - name: Zip artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path publish\${{ matrix.rid }}\* `
+            -DestinationPath GuideArch-Avalonia-1.0.0-${{ matrix.rid }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: avalonia-${{ matrix.rid }}
+          path: langs/csharp/GuideArch-Avalonia-1.0.0-${{ matrix.rid }}.zip
+
+  # ─── 3. Python wheel + sdist ─────────────────────────────────────────────────
+  python-package:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: langs/python
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Build wheel and sdist
+        run: uv build
+
+      - name: Upload Python dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: langs/python/dist/
+
+  # ─── 4. Python Docker image ───────────────────────────────────────────────────
+  python-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR (if token is available)
+        if: ${{ env.GHCR_TOKEN != '' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=dev" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Docker image (push if GHCR_TOKEN set)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: langs/python/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ secrets.GHCR_TOKEN != '' }}
+          tags: |
+            ghcr.io/thekaveh/guidearch:${{ steps.version.outputs.version }}
+            ghcr.io/thekaveh/guidearch:latest
+          outputs: ${{ secrets.GHCR_TOKEN == '' && 'type=docker,dest=/tmp/guidearch-docker.tar' || '' }}
+
+      - name: Upload Docker image tar (when not pushing)
+        if: ${{ secrets.GHCR_TOKEN == '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-docker-image
+          path: /tmp/guidearch-docker.tar
+
+  # ─── 5. SvelteKit static web bundle ──────────────────────────────────────────
+  web-bundle:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: langs/typescript
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: langs/typescript/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web bundle
+        run: pnpm build
+
+      - name: Zip web bundle
+        run: |
+          cd build
+          zip -r ../guidearch-web-1.0.0.zip .
+
+      - name: Upload web bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-bundle
+          path: langs/typescript/guidearch-web-1.0.0.zip
+
+  # ─── 6. Create GitHub Release ─────────────────────────────────────────────────
+  release:
+    needs:
+      - tauri-build
+      - avalonia-desktop
+      - python-package
+      - python-docker
+      - web-bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Flatten artifact tree
+        run: |
+          mkdir -p flat-artifacts
+          find release-artifacts -type f | while read f; do
+            cp "$f" flat-artifacts/
+          done
+          ls -lh flat-artifacts/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: flat-artifacts/*
+          body: |
+            ## GuideArch v1.0.0
+
+            First full release of GuideArch — fuzzy multi-criteria decision analysis for software architecture, shipped as three concurrent implementations sharing one spec.
+
+            ### What's in v1.0.0
+
+            All three implementations (TypeScript + Tauri 2, C# + Avalonia, Python + NiceGUI) are feature-complete:
+
+            - Full domain + TOPSIS engine (fuzzy ranking, sensitivity, constraint elimination counting)
+            - Decision / alternative / property / coefficient editors
+            - Results: ranked candidates table, critical decisions + constraints views
+            - Analysis charts: ranked-candidates bar chart, fuzzy-value triangle visualizer
+
+            See the [README](https://github.com/thekaveh/GuideArch#readme) for the complete feature description.
+
+            ### Asset table
+
+            | Artifact | Platform |
+            |---|---|
+            | `*.AppImage`, `*_amd64.deb` | Linux desktop (Tauri) |
+            | `*.dmg` | macOS desktop (Tauri) |
+            | `*-setup.exe`, `*.msi` | Windows desktop (Tauri) |
+            | `guidearch-web-1.0.0.zip` | Web bundle (SvelteKit static) |
+            | `GuideArch-Avalonia-1.0.0-win-x64.zip` | Windows desktop (Avalonia) |
+            | `GuideArch-Avalonia-1.0.0-osx-x64.zip` | macOS x64 desktop (Avalonia) |
+            | `GuideArch-Avalonia-1.0.0-osx-arm64.zip` | macOS arm64 desktop (Avalonia) |
+            | `GuideArch-Avalonia-1.0.0-linux-x64.zip` | Linux desktop (Avalonia) |
+            | `guidearch-1.0.0-py3-none-any.whl` | Python wheel |
+            | `guidearch-1.0.0.tar.gz` | Python sdist |
+            | `ghcr.io/thekaveh/guidearch:1.0.0` | Docker image (GHCR) |
+
+            ### Known issues
+
+            - **Unsigned binaries:** macOS users will need to right-click → Open the first time they launch the Tauri `.dmg` app (Gatekeeper warning). Windows SmartScreen may show a similar prompt. Code signing / notarization is deferred to v1.1.
+            - Avalonia WebAssembly (browser) target is deferred to v1.1 — desktop-only Avalonia builds are included.

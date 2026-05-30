@@ -12,6 +12,7 @@
     <RollForward>Major</RollForward>
 
     <!-- Toggle: 'local' uses vendor/vmx submodule; 'released' uses NuGet -->
+    <Version>1.0.0</Version>
     <VMxSource Condition="'$(VMxSource)'==''">local</VMxSource>
     <VMxVersion>2.1.0</VMxVersion>
   </PropertyGroup>

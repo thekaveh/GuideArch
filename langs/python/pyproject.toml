@@ -1,6 +1,6 @@
 [project]
 name = "guidearch"
-version = "0.0.0"
+version = "1.0.0"
 description = "GuideArch — Python + NiceGUI implementation"
 readme = "README.md"
 license = { text = "MIT" }

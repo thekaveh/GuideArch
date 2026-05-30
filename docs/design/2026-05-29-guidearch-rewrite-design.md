@@ -333,14 +333,14 @@ Undo/redo, multi-scenario tabs, in-app XML import, constraint solver, auth/multi
 
 ## 13. Milestones
 
-| # | Name | Done when |
-|---|---|---|
-| **M0** | Repo bootstrap | Repo at `thekaveh/GuideArch`, VMx submodule wired, three lang scaffolds, CI green on empty workloads, license + governance files |
-| **M1** | Spec + Models + TOPSIS | `spec/` finalized; all three impls Models + TOPSIS pass conformance against `sas.json` + `eds.json`; no UI |
-| **M2** | ViewModels + skeleton UI | Full VM tree per impl; minimal "open file → see ranked list" UI per impl |
-| **M3** | Full editors | Coefficient grid + constraint editors complete; save round-trips |
-| **M4** | Analysis + charts | Both v1 charts in all three impls; critical decisions/constraints views complete |
-| **M5** | v1.0.0 release | Installers built, web bundles deployed, smoke-tested, release notes drafted, tag pushed |
+| # | Name | Status | Done when |
+|---|---|---|---|
+| **M0** | Repo bootstrap | ✅ Done (`v0.0.0-bootstrap`) | Repo at `thekaveh/GuideArch`, VMx submodule wired, three lang scaffolds, CI green on empty workloads, license + governance files |
+| **M1** | Spec + Models + TOPSIS | ✅ Done (`v0.1.0-m1`) | `spec/` finalized; all three impls Models + TOPSIS pass conformance against `sas.json` + `eds.json`; no UI |
+| **M2** | ViewModels + skeleton UI | ✅ Done (`v0.2.0-m2`) | Full VM tree per impl; minimal "open file → see ranked list" UI per impl |
+| **M3** | Full editors | ✅ Done (`v0.3.0-m3`) | Coefficient grid + constraint editors complete; save round-trips |
+| **M4** | Analysis + charts | ✅ Done (`v0.4.0-m4`) | Both v1 charts in all three impls; critical decisions/constraints views complete |
+| **M5** | v1.0.0 release | ✅ Done (`v1.0.0`) | Installers built, web bundles deployed, smoke-tested, release notes drafted, tag pushed |
 
 ## 14. Roadmap Beyond v1
 

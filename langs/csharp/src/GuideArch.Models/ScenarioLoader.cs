@@ -31,8 +31,9 @@ public static class ScenarioLoader
             if (dir.Parent is null) break;
             dir = dir.Parent;
         }
+        // Assembly.Location is always empty in single-file apps; use AppContext.BaseDirectory instead.
         return Path.Combine(
-            Path.GetDirectoryName(typeof(ScenarioLoader).Assembly.Location)!,
+            AppContext.BaseDirectory,
             "..", "..", "..", "..", "..", "..", "..",
             "spec", "domain", "scenario.schema.json"
         );
