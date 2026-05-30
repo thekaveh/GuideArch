@@ -1,5 +1,9 @@
 name: conformance
 
+# Cross-impl numerical conformance gate. The keystone of GuideArch's spec-driven
+# discipline: every impl must agree with spec/conformance/expected/*.json within
+# the tolerances defined in spec/conformance/tolerances.json.
+
 on:
   push:
     branches: [main]
@@ -7,15 +11,59 @@ on:
   workflow_dispatch:
 
 jobs:
-  status:
+  python:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Conformance gate
-        run: |
-          if [ -d spec/conformance/scenarios ] && [ "$(ls -A spec/conformance/scenarios 2>/dev/null | grep -v '^\.keep$' || true)" ]; then
-            echo "Conformance scenarios present but cross-impl runner not yet implemented (M1)." >&2
-            exit 0  # do not fail bootstrap CI
-          else
-            echo "No conformance scenarios yet (M1 will seed them). Bootstrap conformance: pass."
-          fi
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v3
+      - name: Sync
+        working-directory: langs/python
+        run: uv sync --all-extras
+      - name: Run Python conformance
+        working-directory: langs/python
+        run: uv run python -m guidearch.conformance.runner
+
+  csharp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        working-directory: langs/csharp
+        run: dotnet restore GuideArch.sln
+      - name: Build
+        working-directory: langs/csharp
+        run: dotnet build GuideArch.sln --configuration Release --no-restore
+      - name: Run C# conformance
+        working-directory: langs/csharp
+        run: dotnet run --project src/GuideArch.Conformance --configuration Release --no-build
+
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: langs/typescript/pnpm-lock.yaml
+      - name: Install
+        working-directory: langs/typescript
+        run: pnpm install --frozen-lockfile
+      - name: Run TS conformance
+        working-directory: langs/typescript
+        run: pnpm conformance
