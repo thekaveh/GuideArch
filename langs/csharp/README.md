@@ -1,0 +1,54 @@
+# GuideArch — C#
+
+C# (.NET 8) + Avalonia 12 implementation of GuideArch.
+
+## Prerequisites
+
+- .NET 8 SDK or newer (`dotnet --list-sdks`). .NET 9 SDK works because `Directory.Build.props` sets `<RollForward>Major</RollForward>` — the published binary targets `net8.0` but rolls forward at runtime to whatever the user has.
+- The VMx submodule initialised at `vendor/vmx/` (run `git submodule update --init` from the repo root if not).
+
+## Run
+
+```bash
+cd langs/csharp
+dotnet build GuideArch.sln
+dotnet run --project src/GuideArch.View   # opens a native Avalonia window
+```
+
+After the window opens, click **Open Sample SAS** or **Open Sample EDS** in the toolbar to try a bundled scenario; the OS-native file picker is used for **Open…**.
+
+## WebAssembly (Avalonia.Browser)
+
+```bash
+dotnet publish src/GuideArch.View -c Release -r browser-wasm
+# Output at: bin/Release/net8.0/browser-wasm/AppBundle/
+# Serve with any static host, e.g.:
+cd bin/Release/net8.0/browser-wasm/AppBundle && python3 -m http.server 8000
+# Then open http://localhost:8000/
+```
+
+## Test
+
+```bash
+dotnet test --nologo                                    # all unit + integration tests
+dotnet run --project src/GuideArch.Conformance          # cross-impl numerical conformance
+dotnet format GuideArch.sln                             # auto-format
+dotnet format GuideArch.sln --verify-no-changes         # CI gate
+```
+
+The integration suite at `tests/GuideArch.ViewModels.Tests/VMMvvmIntegrationTests.cs` exercises the ViewModel factory and `ScenarioState` **without instantiating any Avalonia controls** — that's the MVVM separation in action.
+
+## Solution layout
+
+- `src/GuideArch.Models/` — domain entities + TOPSIS pipeline (`Topsis/Solver.cs`, `CriticalDecisions.cs`, `CriticalConstraints.cs`) + `ScenarioLoader.cs` + JSON output
+- `src/GuideArch.ViewModels/` — `ScenarioVMFactory.cs` (factory pattern because `ComponentVM<M>` is sealed), child VM factories, `ScenarioMutator`, `SampleScenarios.cs`
+- `src/GuideArch.View/` — Avalonia 12 desktop app (`MainWindow.axaml` is the 8-tab editor + analysis UI)
+- `src/GuideArch.Conformance/` — console runner that validates outputs against `spec/conformance/expected/`
+- `tests/GuideArch.Models.Tests/` — unit tests for Models + Topsis
+- `tests/GuideArch.ViewModels.Tests/` — unit tests for VMs + MVVM integration
+
+## Architecture notes
+
+- VMx-C# `ComponentVM<M>` is `sealed`, so VMs are realised as **static-factory functions** returning configured `ComponentVM<M>`. See ADR-0006 and the project memory at `docs/vmx-findings.md` (planned) for the upstream-fix backlog.
+- Sample scenarios ship as **embedded resources** under `src/GuideArch.View/Assets/Samples/`; `SampleScenarios.Open(sample)` returns a `Stream` that `MainWindow.axaml.cs` writes to a temp file and feeds to `ScenarioLoader.Load(path)`.
+- The one binding in `MainWindow.axaml` that uses `{ReflectionBinding}` does so because the DataContext type (`ComponentVM<ScenarioState>`) is generic and cannot be expressed as a XAML `x:DataType`. M2+ will revisit when a wrapper VM type exists.

@@ -76,53 +76,76 @@ docs/                design specs and milestone plans
 
 ## 5. Quickstart
 
-At M1 each impl exposes the TOPSIS engine via a conformance runner plus a placeholder app (the M0 hello page, updated to "M1: domain ready"). The full app UI arrives in M2+.
+### 5.0 Clone with submodules
 
-**Clone with submodules** (VMx lives at `vendor/vmx/`):
+VMx lives at `vendor/vmx/`. Without it initialized, every impl below fails because VMx imports won't resolve.
 
 ```bash
 git clone --recurse-submodules https://github.com/thekaveh/GuideArch.git
 # or, if already cloned without --recurse-submodules:
+cd GuideArch
 git submodule update --init
 ```
 
-Without the submodule initialized, every per-impl quickstart below fails (VMx imports won't resolve).
+### 5.1 Prerequisites
 
-### 5.1 TypeScript (Tauri 2 + Svelte 5)
+| Tool | Used by | Check | Install |
+|---|---|---|---|
+| Node 22+ | TypeScript | `node --version` | `brew install node@22` |
+| pnpm 11+ | TypeScript | `pnpm --version` | `npm install -g pnpm@latest` |
+| Rust + cargo | TypeScript (Tauri desktop only) | `cargo --version` | https://rustup.rs |
+| .NET 8 or 9 SDK | C# | `dotnet --list-sdks` | `brew install --cask dotnet-sdk` |
+| Python 3.11+ | Python | `python3 --version` | `brew install python@3.12` |
+| uv | Python | `uv --version` | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
 
-Requires Node 22+, pnpm, and Rust (for Tauri's native shell).
+### 5.2 TypeScript (Tauri 2 + Svelte 5)
 
 ```bash
 cd langs/typescript
 pnpm install
-pnpm dev          # web (browser at http://localhost:1420)
-pnpm tauri dev    # desktop (native window)
+pnpm dev          # web mode — browser at http://localhost:1420
+pnpm tauri dev    # desktop mode — native Tauri window (first build is slow)
 ```
 
-### 5.2 C# (Avalonia 12)
+`Ctrl-C` (or close the window) to stop.
 
-Requires .NET 8 SDK or newer (the build targets `net8.0`).
+### 5.3 C# (Avalonia 12)
 
 ```bash
 cd langs/csharp
 dotnet build
-dotnet run --project src/GuideArch.View   # desktop window
+dotnet run --project src/GuideArch.View   # desktop Avalonia window
 ```
 
-### 5.3 Python (NiceGUI 3.x)
+Close the window to stop. For the WebAssembly build see `langs/csharp/README.md`.
 
-Requires Python 3.11+ and [uv](https://github.com/astral-sh/uv).
+### 5.4 Python (NiceGUI 3.x)
 
 ```bash
 cd langs/python
 uv sync
-uv run guidearch           # web (browser at http://localhost:8080)
-uv run guidearch --native  # desktop (pywebview window)
+uv run guidearch           # web mode — browser at http://localhost:8080
+uv run guidearch --native  # desktop mode — native pywebview window
 ```
 
-### 5.4 Run the conformance suite
+`Ctrl-C` (or close the window) to stop.
 
-Each impl ships a conformance runner that solves every scenario in `spec/conformance/scenarios/` and compares against `spec/conformance/expected/` within `1e-9` absolute. CI fails on divergence.
+### 5.5 Try the sample scenarios
+
+Each app ships **SAS** (Service-Oriented Architecture, 10 decisions / 25 alternatives / 7 properties) and **EDS** (Enterprise Decision Space, similar shape) as bundled samples. After launching any flavor, click the toolbar button **Open Sample SAS** (or **Open Sample EDS**) — the candidates table populates immediately. The legacy `*.xml` versions converted to JSON via [`tools/import-legacy-xml.py`](tools/import-legacy-xml.py) live under [`spec/conformance/scenarios/`](spec/conformance/scenarios/) if you want to inspect them.
+
+The recommended exploration flow:
+
+1. **Open Sample SAS** in the toolbar.
+2. **Results tab** — top candidate's score should be `0.031180695179944085`. The bar chart on the right shows the top 30; click any bar to jump to that candidate.
+3. **Properties tab** — change one property's weight (e.g., bump *Reliability* to 9). Watch the candidates table refresh within ~100 ms.
+4. **Critical decisions tab** — see which architectural choices drive the result most.
+5. **Critical constraints tab** — see which constraints eliminate the most candidates.
+6. **Save As…** to a temp file; **New**; then **Open…** the file you just saved — the edit should round-trip.
+
+### 5.6 Run the conformance suite
+
+Each impl ships a runner that solves every scenario in `spec/conformance/scenarios/` and compares against `spec/conformance/expected/` within `1e-9` absolute. CI fails on divergence.
 
 ```bash
 # Python
@@ -134,6 +157,27 @@ cd langs/csharp && dotnet run --project src/GuideArch.Conformance
 # TypeScript
 cd langs/typescript && pnpm conformance
 ```
+
+### 5.7 Run the unit + integration test suites
+
+Each impl ships VM-layer integration tests (load scenario → exercise ViewModel → assert results — no UI mounted) that prove MVVM separation works.
+
+```bash
+cd langs/python     && uv run pytest tests/ -q
+cd langs/csharp     && dotnet test --nologo
+cd langs/typescript && pnpm test
+```
+
+### 5.8 Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| TS web shows blank page | Stale build with module-init filesystem access | Pull latest; re-run `pnpm dev` |
+| `pnpm tauri dev` fails with cargo errors | Rust toolchain too old or missing Linux deps | Re-run rustup; on Ubuntu install `libwebkit2gtk-4.1-dev libsoup-3.0-dev` |
+| `dotnet run` says "must install .NET 8" | No .NET 8 runtime installed | Install .NET 8 runtime or rely on `RollForward=Major` (already set in `Directory.Build.props`) |
+| `uv run guidearch` fails on import | submodule not initialised | `git submodule update --init` |
+| "Add Decision" button does nothing | (Already fixed) — pull latest |
+| OS file picker never appears | macOS file permissions for the terminal app | System Settings → Privacy → Files & Folders |
 
 ## 6. License
 
