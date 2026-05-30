@@ -8,8 +8,10 @@ requires-python = ">=3.11"
 authors = [{ name = "Kaveh Razavi", email = "kaveh.razavi@gmail.com" }]
 dependencies = [
     "nicegui>=3.0.0",
+    "numpy>=1.26",
     "pywebview>=5.0",
     "vmx>=2.1.0",
+    "jsonschema>=4.23",
 ]
 
 [project.optional-dependencies]
@@ -47,6 +49,11 @@ warn_redundant_casts = true
 # NiceGUI ships py.typed but mypy may not find it when run outside the venv.
 # The untyped-decorator error from @ui.page is suppressed the same way.
 module = "nicegui"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# jsonschema stubs are not bundled; suppress the untyped-import warning.
+module = "jsonschema"
 ignore_missing_imports = true
 
 [tool.uv.sources]

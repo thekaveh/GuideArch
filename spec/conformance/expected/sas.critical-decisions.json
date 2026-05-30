@@ -1,0 +1,152 @@
+[
+  {
+    "decisionId": "d-37a3d581-d902-419b-a9b2-da38d777a44d",
+    "triangularValue": {
+      "lower": 2.0844817729812237,
+      "modal": 5.969668083074788,
+      "upper": 9.056826094223927
+    },
+    "normalizedValue": {
+      "positive": 0.6542034648033642,
+      "average": 0.012335154508417923,
+      "negative": 0.06540455714700578
+    },
+    "score": 0.2180678216011214,
+    "rank": 0
+  },
+  {
+    "decisionId": "d-d1d9795f-4431-45c3-b8d8-aba6309f1831",
+    "triangularValue": {
+      "lower": 2.237064504314705,
+      "modal": 5.793888707308974,
+      "upper": 10.188039979838292
+    },
+    "normalizedValue": {
+      "positive": 0.705536259385799,
+      "average": 0.0,
+      "negative": 0.12220163484090123
+    },
+    "score": 0.23517875312859965,
+    "rank": 1
+  },
+  {
+    "decisionId": "d-c69c4d53-ed1f-4f7c-b484-36b79675a06e",
+    "triangularValue": {
+      "lower": 9.652816469289998,
+      "modal": 13.112984675026727,
+      "upper": 14.695077303844071
+    },
+    "normalizedValue": {
+      "positive": 0.7206464756534797,
+      "average": 0.5136107648033598,
+      "negative": 0.0
+    },
+    "score": 0.24021549188449323,
+    "rank": 2
+  },
+  {
+    "decisionId": "d-7d112404-d9e6-4e1d-af0a-200c283fd348",
+    "triangularValue": {
+      "lower": 11.54574943859735,
+      "modal": 16.26618567004539,
+      "upper": 20.15209066278188
+    },
+    "normalizedValue": {
+      "positive": 0.5236289809914462,
+      "average": 0.7348837173337597,
+      "negative": 0.1001151373095036
+    },
+    "score": 0.24496123911125323,
+    "rank": 3
+  },
+  {
+    "decisionId": "d-b08b8556-4748-4615-a3ed-3fc32a244a6e",
+    "triangularValue": {
+      "lower": 6.196068135591438,
+      "modal": 9.557323169010289,
+      "upper": 18.253126472290024
+    },
+    "normalizedValue": {
+      "positive": 0.7361095557297541,
+      "average": 0.264095519540573,
+      "negative": 0.30913547132038877
+    },
+    "score": 0.24536985190991803,
+    "rank": 4
+  },
+  {
+    "decisionId": "d-ec1008ac-c8a7-4c76-9d41-013d8eeadd63",
+    "triangularValue": {
+      "lower": 7.194229334254078,
+      "modal": 10.282798899631675,
+      "upper": 13.474360980774703
+    },
+    "normalizedValue": {
+      "positive": 0.7787384304200481,
+      "average": 0.3150051054367277,
+      "negative": 0.06994157064984503
+    },
+    "score": 0.2595794768066827,
+    "rank": 5
+  },
+  {
+    "decisionId": "d-eceab636-5b3c-4c28-af84-890735e403fe",
+    "triangularValue": {
+      "lower": 9.503909326630483,
+      "modal": 17.573859585811647,
+      "upper": 20.49494308646667
+    },
+    "normalizedValue": {
+      "positive": 0.0,
+      "average": 0.8266485203849131,
+      "negative": 0.05818757512098581
+    },
+    "score": 0.27554950679497103,
+    "rank": 6
+  },
+  {
+    "decisionId": "d-3ed9cf27-7ef3-4f50-9660-6a434c88d9b4",
+    "triangularValue": {
+      "lower": 13.313920225192767,
+      "modal": 20.044166289633267,
+      "upper": 21.87898571921398
+    },
+    "normalizedValue": {
+      "positive": 0.2094357379947398,
+      "average": 1.0,
+      "negative": 0.010982569047929682
+    },
+    "score": 0.3333333333333333,
+    "rank": 7
+  },
+  {
+    "decisionId": "d-72efcfe6-defb-4a80-b973-0454d706e60b",
+    "triangularValue": {
+      "lower": 9.382204734861345,
+      "modal": 14.519148918143362,
+      "upper": 39.11287021602963
+    },
+    "normalizedValue": {
+      "positive": 0.458516360895551,
+      "average": 0.6122870351421782,
+      "negative": 1.0
+    },
+    "score": 0.3333333333333333,
+    "rank": 8
+  },
+  {
+    "decisionId": "d-df51952e-90c8-4c77-ae62-63350db427e6",
+    "triangularValue": {
+      "lower": 6.125401333245612,
+      "modal": 7.798620033774108,
+      "upper": 12.36321221514123
+    },
+    "normalizedValue": {
+      "positive": 1.0,
+      "average": 0.14068015972908168,
+      "negative": 0.12960836433792733
+    },
+    "score": 0.3333333333333333,
+    "rank": 9
+  }
+]

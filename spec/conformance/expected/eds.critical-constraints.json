@@ -1,0 +1,23 @@
+[
+  {
+    "constraintIndex": 1,
+    "kind": "dependency",
+    "eliminated": 3456,
+    "total": 7776,
+    "redundant": false
+  },
+  {
+    "constraintIndex": 0,
+    "kind": "threshold",
+    "eliminated": 3024,
+    "total": 7776,
+    "redundant": false
+  },
+  {
+    "constraintIndex": 2,
+    "kind": "conflict",
+    "eliminated": 1296,
+    "total": 7776,
+    "redundant": false
+  }
+]
