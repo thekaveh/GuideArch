@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="GuideArch.View.MainWindow"
+        Title="GuideArch"
+        Width="720" Height="480">
+  <StackPanel Margin="48" Spacing="12">
+    <TextBlock Text="GuideArch" FontSize="32" FontWeight="Bold" />
+    <TextBlock Text="C# + Avalonia 11 implementation — bootstrap"
+               Foreground="#666" />
+    <Border Background="#f4f4f4" Padding="16" CornerRadius="4">
+      <TextBlock Text="{ReflectionBinding Model.Message}" FontFamily="Cascadia Code,Consolas,monospace" />
+    </Border>
+  </StackPanel>
+</Window>
