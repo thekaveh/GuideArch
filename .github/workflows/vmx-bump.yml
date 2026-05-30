@@ -17,16 +17,25 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check for newer VMx tag
+      - name: Check for newer VMx commit on main
         id: check
+        # VMx publishes per-language tags (e.g., csharp-v1.0.0, python-v1.0.0,
+        # typescript-v1.0.0) rather than a single repo-wide semver tag, so we
+        # compare the pinned submodule commit against the upstream main HEAD.
+        # If `main` has advanced past our pin, suggest bumping.
         run: |
+          set -euo pipefail
           cd vendor/vmx
-          git fetch --tags
-          CURRENT=$(git describe --tags --exact-match 2>/dev/null || echo "unknown")
-          LATEST=$(git tag --list 'v*.*.*' | sort -V | tail -n1)
-          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
-          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
-          if [ "$CURRENT" != "$LATEST" ]; then
+          git fetch origin main --tags
+          CURRENT_SHA=$(git rev-parse HEAD)
+          CURRENT_DESC=$(git describe --tags --always)
+          UPSTREAM_SHA=$(git rev-parse origin/main)
+          UPSTREAM_DESC=$(git describe --tags --always origin/main)
+          echo "current_sha=$CURRENT_SHA" >> "$GITHUB_OUTPUT"
+          echo "current_desc=$CURRENT_DESC" >> "$GITHUB_OUTPUT"
+          echo "upstream_sha=$UPSTREAM_SHA" >> "$GITHUB_OUTPUT"
+          echo "upstream_desc=$UPSTREAM_DESC" >> "$GITHUB_OUTPUT"
+          if [ "$CURRENT_SHA" != "$UPSTREAM_SHA" ] && git merge-base --is-ancestor "$CURRENT_SHA" "$UPSTREAM_SHA"; then
             echo "needs_bump=true" >> "$GITHUB_OUTPUT"
           else
             echo "needs_bump=false" >> "$GITHUB_OUTPUT"
@@ -37,9 +46,13 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const current = '${{ steps.check.outputs.current }}';
-            const latest = '${{ steps.check.outputs.latest }}';
-            const title = `chore(vmx): bump submodule from ${current} to ${latest}`;
+            const currentSha = '${{ steps.check.outputs.current_sha }}';
+            const currentDesc = '${{ steps.check.outputs.current_desc }}';
+            const upstreamSha = '${{ steps.check.outputs.upstream_sha }}';
+            const upstreamDesc = '${{ steps.check.outputs.upstream_desc }}';
+            const shortCurrent = currentSha.substring(0, 8);
+            const shortUpstream = upstreamSha.substring(0, 8);
+            const title = `chore(vmx): bump submodule from ${shortCurrent} to ${shortUpstream}`;
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner, repo: context.repo.repo,
               state: 'open', labels: 'vmx-bump'
@@ -52,5 +65,5 @@ jobs:
               owner: context.repo.owner, repo: context.repo.repo,
               title,
               labels: ['vmx-bump'],
-              body: `VMx submodule is pinned at \`${current}\`, but \`${latest}\` is available.\n\nTo bump:\n\`\`\`bash\ncd vendor/vmx && git checkout ${latest} && cd ../..\ngit add vendor/vmx && git commit -m "build: bump VMx submodule to ${latest}"\n\`\`\``
+              body: `VMx submodule is pinned at \`${currentDesc}\` (\`${shortCurrent}\`), but upstream \`main\` is at \`${upstreamDesc}\` (\`${shortUpstream}\`).\n\nTo bump:\n\`\`\`bash\ncd vendor/vmx && git checkout ${upstreamSha} && cd ../..\ngit add vendor/vmx && git commit -m "build: bump VMx submodule to ${shortUpstream} (${upstreamDesc})"\n\`\`\``
             });
