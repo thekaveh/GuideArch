@@ -108,7 +108,7 @@ GuideArch/
 │
 ├── langs/
 │   ├── typescript/                  # Tauri 2 + Svelte 5 + VMx-TS
-│   ├── csharp/                      # Avalonia 11 + VMx-C#
+│   ├── csharp/                      # Avalonia 12 + VMx-C#
 │   └── python/                      # NiceGUI 3.x + VMx-Python
 │
 ├── tools/
@@ -251,11 +251,11 @@ Every implementation realizes this VM tree using its language's VMx primitives. 
 | Tables | TanStack Table |
 | JSON Schema | `ajv` |
 
-### C# + Avalonia 11
+### C# + Avalonia 12
 
 | Layer | Tech |
 |---|---|
-| Build | .NET 8 SDK, Avalonia 11.x; `dotnet publish` for desktop; `Avalonia.Browser` for WASM |
+| Build | .NET 8 SDK, Avalonia 12.x; `dotnet publish` for desktop; `Avalonia.Browser` for WASM |
 | Runtime — desktop | Native Avalonia on Win/macOS/Linux |
 | Runtime — web | Avalonia.Browser (WASM), same XAML |
 | Reactivity | XAML data binding to VMx-emitted `INotifyPropertyChanged` and `ICommand` — **native, no adapter** |

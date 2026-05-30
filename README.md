@@ -9,7 +9,7 @@ Three implementations of the same application share one language-neutral spec:
 | Language | UI Framework | Desktop | Web |
 |---|---|---|---|
 | TypeScript | Svelte 5 + [Tauri 2](https://tauri.app) | ✓ | ✓ |
-| C# | [Avalonia 11](https://avaloniaui.net) | ✓ | ✓ (WebAssembly) |
+| C# | [Avalonia 12](https://avaloniaui.net) | ✓ | ✓ (WebAssembly) |
 | Python | [NiceGUI 3.x](https://nicegui.io) | ✓ (pywebview) | ✓ |
 
 All three are built on the [VMx](https://github.com/thekaveh/VMx) MVVM framework, included as a git submodule at `vendor/vmx/`.

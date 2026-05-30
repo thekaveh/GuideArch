@@ -6,7 +6,7 @@
 
 **Architecture:** Monorepo with `langs/{typescript,csharp,python}/` containing per-impl scaffolds, `vendor/vmx/` git submodule pinned to VMx v2.1.0, `spec/` for language-neutral source-of-truth (skeleton only at M0), `.github/workflows/` for per-impl + cross-cutting CI. Each impl's scaffold ships a "hello world" that imports VMx as proof of wiring.
 
-**Tech Stack:** Git submodule (VMx); Node 20 + pnpm + Vite + Svelte 5 + Tauri 2 (TS); .NET 8 SDK + Avalonia 11 (C#); Python 3.12 + uv + NiceGUI 3.x + pywebview (Python); GitHub Actions for CI.
+**Tech Stack:** Git submodule (VMx); Node 20 + pnpm + Vite + Svelte 5 + Tauri 2 (TS); .NET 8 SDK + Avalonia 12 (C#); Python 3.12 + uv + NiceGUI 3.x + pywebview (Python); GitHub Actions for CI.
 
 ---
 
@@ -326,7 +326,7 @@ Three implementations of the same application share one language-neutral spec:
 | Language | UI Framework | Desktop | Web |
 |---|---|---|---|
 | TypeScript | Svelte 5 + [Tauri 2](https://tauri.app) | ✓ | ✓ |
-| C# | [Avalonia 11](https://avaloniaui.net) | ✓ | ✓ (WebAssembly) |
+| C# | [Avalonia 12](https://avaloniaui.net) | ✓ | ✓ (WebAssembly) |
 | Python | [NiceGUI 3.x](https://nicegui.io) | ✓ (pywebview) | ✓ |
 
 All three are built on the [VMx](https://github.com/thekaveh/VMx) MVVM framework, included as a git submodule at `vendor/vmx/`.
@@ -1303,7 +1303,7 @@ dotnet add src/GuideArch.View/GuideArch.View.csproj reference src/GuideArch.View
 
   <StackPanel Margin="48" Spacing="12">
     <TextBlock Text="GuideArch" FontSize="32" FontWeight="Bold" />
-    <TextBlock Text="C# + Avalonia 11 implementation — bootstrap"
+    <TextBlock Text="C# + Avalonia 12 implementation — bootstrap"
                Foreground="#666" />
     <Border Background="#f4f4f4" Padding="16" CornerRadius="4">
       <TextBlock Text="{Binding Model.Message}" FontFamily="Cascadia Code,Consolas,monospace" />
