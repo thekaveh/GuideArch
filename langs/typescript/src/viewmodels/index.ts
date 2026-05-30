@@ -2,7 +2,7 @@
  * ViewModel layer — public re-exports.
  */
 export type { ScenarioState, ScenarioVM } from './scenario-vm.js';
-export { makeScenarioVm } from './scenario-vm.js';
+export { makeScenarioVm, ScenarioMutationError } from './scenario-vm.js';
 
 export type { DecisionVM } from './decision-vm.js';
 export { makeDecisionVm } from './decision-vm.js';

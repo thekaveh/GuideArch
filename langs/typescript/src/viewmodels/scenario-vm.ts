@@ -21,6 +21,18 @@ import type { ScenarioM } from '../models/scenario.js';
 import type { CandidateM } from '../models/candidate.js';
 import type { CriticalDecisionM } from '../models/critical-decision.js';
 import type { CriticalConstraintM } from '../models/critical-constraint.js';
+import type { ConstraintM } from '../models/constraint.js';
+import { TriangularFuzzyM } from '../models/triangular-fuzzy.js';
+
+// ---------------------------------------------------------------------------
+// ScenarioMutationError — thrown when a mutation violates a fatal invariant
+// ---------------------------------------------------------------------------
+export class ScenarioMutationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ScenarioMutationError';
+  }
+}
 
 // ---------------------------------------------------------------------------
 // State shape — the typed model for the ScenarioVM
@@ -37,7 +49,8 @@ export interface ScenarioState {
 }
 
 // ---------------------------------------------------------------------------
-// ScenarioVM type alias — ComponentVMOf extended with the five commands
+// ScenarioVM type alias — ComponentVMOf extended with the five commands and
+// the M3 mutation helpers
 // ---------------------------------------------------------------------------
 export type ScenarioVM = ComponentVMOf<ScenarioState> & {
   readonly newCmd: RelayCommand;
@@ -45,7 +58,43 @@ export type ScenarioVM = ComponentVMOf<ScenarioState> & {
   readonly saveCmd: RelayCommand;
   readonly saveAsCmd: RelayCommandOf<string>;
   readonly solveCmd: RelayCommand;
+
+  // M3 mutations — each throws ScenarioMutationError on fatal invariant violation
+  addDecision(name?: string): void;
+  deleteDecision(id: string): void;
+  updateDecisionName(id: string, name: string): void;
+
+  addAlternative(decisionId: string, name?: string): void;
+  deleteAlternative(id: string): void;
+  updateAlternativeName(id: string, name: string): void;
+
+  addProperty(name?: string): void;
+  deleteProperty(id: string): void;
+  updatePropertyName(id: string, name: string): void;
+  updatePropertyKind(id: string, kind: 'min' | 'max'): void;
+  updatePropertyWeight(id: string, weight: number): void;
+
+  updateCoefficient(
+    alternativeId: string,
+    propertyId: string,
+    lower: number,
+    modal: number,
+    upper: number,
+  ): void;
+
+  addConstraint(c: ConstraintM): void;
+  deleteConstraint(index: number): void;
+  updateConstraint(index: number, c: ConstraintM): void;
+
+  updateScenarioName(name: string): void;
 };
+
+// ---------------------------------------------------------------------------
+// UUID helper (no crypto dep needed — simple timestamp-based)
+// ---------------------------------------------------------------------------
+function genId(prefix: string): string {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -94,7 +143,7 @@ function _runSolve(
 // ---------------------------------------------------------------------------
 export function makeScenarioVm(): ScenarioVM {
   // Live MessageHub so adapters can subscribe to PropertyChangedMessage.
-  // NullDispatcher schedules synchronously (suitable for M2).
+  // NullDispatcher schedules synchronously (suitable for M2/M3).
   const hub = new MessageHub();
 
   // Mutable reference — set immediately after vm.construct()
@@ -123,6 +172,12 @@ export function makeScenarioVm(): ScenarioVM {
     }
     const result = _runSolve(scenario);
     _setState(result);
+  }
+
+  function _requireScenario(): ScenarioM {
+    const s = _getModel().scenario;
+    if (!s) throw new ScenarioMutationError('No scenario loaded');
+    return s;
   }
 
   // ── Commands ─────────────────────────────────────────────────────────────
@@ -192,7 +247,10 @@ export function makeScenarioVm(): ScenarioVM {
       const { scenario, filePath } = _getModel();
       if (scenario === undefined || filePath === undefined) return;
       try {
-        fs.writeFileSync(filePath, JSON.stringify(scenario, null, 2) + '\n', 'utf-8');
+        // Omit the runtime-only `warnings` field — it is not part of the persisted schema.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { warnings: _w, ...persistable } = scenario as ScenarioM & { warnings?: unknown };
+        fs.writeFileSync(filePath, JSON.stringify(persistable, null, 2) + '\n', 'utf-8');
         _setState({ isDirty: false });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -213,6 +271,236 @@ export function makeScenarioVm(): ScenarioVM {
     .task(() => _triggerSolve())
     .build();
 
+  // ── M3 Mutation helpers ──────────────────────────────────────────────────
+
+  function addDecision(name?: string): void {
+    const s = _requireScenario();
+    const id = genId('d');
+    const newDecision = { id, name: name ?? 'New decision' };
+    _setState({
+      scenario: { ...s, decisions: [...s.decisions, newDecision] },
+      isDirty: true,
+    });
+    _triggerSolve();
+  }
+
+  function deleteDecision(id: string): void {
+    const s = _requireScenario();
+    const dec = s.decisions.find((d) => d.id === id);
+    if (!dec) throw new ScenarioMutationError(`Decision '${id}' not found`);
+
+    // Cascade: collect all alternatives belonging to this decision
+    const removedAltIds = new Set(
+      s.alternatives.filter((a) => a.decisionId === id).map((a) => a.id),
+    );
+
+    const decisions = s.decisions.filter((d) => d.id !== id);
+    const alternatives = s.alternatives.filter((a) => a.decisionId !== id);
+    const coefficients = s.coefficients.filter((c) => !removedAltIds.has(c.alternativeId));
+    const constraints = s.constraints.filter((c) => {
+      if (c.kind === 'dependency') {
+        return (
+          !removedAltIds.has(c.sourceAlternativeId) && !removedAltIds.has(c.targetAlternativeId)
+        );
+      }
+      if (c.kind === 'conflict') {
+        return !removedAltIds.has(c.alternativeAId) && !removedAltIds.has(c.alternativeBId);
+      }
+      return true; // threshold constraints reference properties, not alternatives
+    });
+
+    _setState({
+      scenario: { ...s, decisions, alternatives, coefficients, constraints },
+      isDirty: true,
+    });
+    _triggerSolve();
+  }
+
+  function updateDecisionName(id: string, name: string): void {
+    const s = _requireScenario();
+    const decisions = s.decisions.map((d) => (d.id === id ? { ...d, name } : d));
+    _setState({ scenario: { ...s, decisions }, isDirty: true });
+    // Name change does not trigger solve (spec §3.3)
+  }
+
+  function addAlternative(decisionId: string, name?: string): void {
+    const s = _requireScenario();
+    if (!s.decisions.find((d) => d.id === decisionId)) {
+      throw new ScenarioMutationError(`Decision '${decisionId}' not found`);
+    }
+    const id = genId('a');
+    const newAlt = { id, decisionId, name: name ?? 'New alternative' };
+    // Add zero-fuzzy coefficients for every existing property
+    const newCoefficients = s.properties.map((p) => ({
+      alternativeId: id,
+      propertyId: p.id,
+      value: TriangularFuzzyM.zero(),
+    }));
+    _setState({
+      scenario: {
+        ...s,
+        alternatives: [...s.alternatives, newAlt],
+        coefficients: [...s.coefficients, ...newCoefficients],
+      },
+      isDirty: true,
+    });
+    _triggerSolve();
+  }
+
+  function deleteAlternative(id: string): void {
+    const s = _requireScenario();
+    if (!s.alternatives.find((a) => a.id === id)) {
+      throw new ScenarioMutationError(`Alternative '${id}' not found`);
+    }
+
+    const alternatives = s.alternatives.filter((a) => a.id !== id);
+    const coefficients = s.coefficients.filter((c) => c.alternativeId !== id);
+    const constraints = s.constraints.filter((c) => {
+      if (c.kind === 'dependency') {
+        return c.sourceAlternativeId !== id && c.targetAlternativeId !== id;
+      }
+      if (c.kind === 'conflict') {
+        return c.alternativeAId !== id && c.alternativeBId !== id;
+      }
+      return true;
+    });
+
+    _setState({
+      scenario: { ...s, alternatives, coefficients, constraints },
+      isDirty: true,
+    });
+    _triggerSolve();
+  }
+
+  function updateAlternativeName(id: string, name: string): void {
+    const s = _requireScenario();
+    const alternatives = s.alternatives.map((a) => (a.id === id ? { ...a, name } : a));
+    _setState({ scenario: { ...s, alternatives }, isDirty: true });
+    // Name change doesn't trigger solve
+  }
+
+  function addProperty(name?: string): void {
+    const s = _requireScenario();
+    const id = genId('p');
+    const newProp = { id, name: name ?? 'New property', kind: 'min' as const, weight: 1 };
+    // Add zero-fuzzy coefficients for every existing alternative
+    const newCoefficients = s.alternatives.map((a) => ({
+      alternativeId: a.id,
+      propertyId: id,
+      value: TriangularFuzzyM.zero(),
+    }));
+    _setState({
+      scenario: {
+        ...s,
+        properties: [...s.properties, newProp],
+        coefficients: [...s.coefficients, ...newCoefficients],
+      },
+      isDirty: true,
+    });
+    _triggerSolve();
+  }
+
+  function deleteProperty(id: string): void {
+    const s = _requireScenario();
+    if (!s.properties.find((p) => p.id === id)) {
+      throw new ScenarioMutationError(`Property '${id}' not found`);
+    }
+
+    const properties = s.properties.filter((p) => p.id !== id);
+    const coefficients = s.coefficients.filter((c) => c.propertyId !== id);
+    const constraints = s.constraints.filter((c) => {
+      if (c.kind === 'threshold') {
+        return c.propertyId !== id;
+      }
+      return true;
+    });
+
+    _setState({
+      scenario: { ...s, properties, coefficients, constraints },
+      isDirty: true,
+    });
+    _triggerSolve();
+  }
+
+  function updatePropertyName(id: string, name: string): void {
+    const s = _requireScenario();
+    const properties = s.properties.map((p) => (p.id === id ? { ...p, name } : p));
+    _setState({ scenario: { ...s, properties }, isDirty: true });
+  }
+
+  function updatePropertyKind(id: string, kind: 'min' | 'max'): void {
+    const s = _requireScenario();
+    const properties = s.properties.map((p) => (p.id === id ? { ...p, kind } : p));
+    _setState({ scenario: { ...s, properties }, isDirty: true });
+    _triggerSolve();
+  }
+
+  function updatePropertyWeight(id: string, weight: number): void {
+    const s = _requireScenario();
+    if (weight <= 0) throw new ScenarioMutationError('Property weight must be > 0');
+    const properties = s.properties.map((p) => (p.id === id ? { ...p, weight } : p));
+    _setState({ scenario: { ...s, properties }, isDirty: true });
+    _triggerSolve();
+  }
+
+  function updateCoefficient(
+    alternativeId: string,
+    propertyId: string,
+    lower: number,
+    modal: number,
+    upper: number,
+  ): void {
+    const s = _requireScenario();
+    const warnings: string[] = [..._getModel().warnings];
+    if (lower > modal || modal > upper) {
+      const warnMsg = `Coefficient (${alternativeId}, ${propertyId}): ordering violated lower=${lower} modal=${modal} upper=${upper}`;
+      // Only add if not already present
+      if (!warnings.includes(warnMsg)) warnings.push(warnMsg);
+    }
+    const coefficients = s.coefficients.map((c) =>
+      c.alternativeId === alternativeId && c.propertyId === propertyId
+        ? { ...c, value: new TriangularFuzzyM(lower, modal, upper) }
+        : c,
+    );
+    _setState({ scenario: { ...s, coefficients }, isDirty: true, warnings });
+    _triggerSolve();
+  }
+
+  function addConstraint(c: ConstraintM): void {
+    const s = _requireScenario();
+    _setState({
+      scenario: { ...s, constraints: [...s.constraints, c] },
+      isDirty: true,
+    });
+    _triggerSolve();
+  }
+
+  function deleteConstraint(index: number): void {
+    const s = _requireScenario();
+    if (index < 0 || index >= s.constraints.length) {
+      throw new ScenarioMutationError(`Constraint index ${index} out of range`);
+    }
+    const constraints = s.constraints.filter((_, i) => i !== index);
+    _setState({ scenario: { ...s, constraints }, isDirty: true });
+    _triggerSolve();
+  }
+
+  function updateConstraint(index: number, c: ConstraintM): void {
+    const s = _requireScenario();
+    if (index < 0 || index >= s.constraints.length) {
+      throw new ScenarioMutationError(`Constraint index ${index} out of range`);
+    }
+    const constraints = s.constraints.map((existing, i) => (i === index ? c : existing));
+    _setState({ scenario: { ...s, constraints }, isDirty: true });
+    _triggerSolve();
+  }
+
+  function updateScenarioName(name: string): void {
+    const s = _requireScenario();
+    _setState({ scenario: { ...s, name }, isDirty: true });
+    // Name change does not trigger solve
+  }
+
   // ── Build the ComponentVMOf ───────────────────────────────────────────────
 
   const vm = ComponentVMOf.builder<ScenarioState>()
@@ -225,13 +513,94 @@ export function makeScenarioVm(): ScenarioVM {
   vm.construct();
   _vm = vm;
 
-  // Attach commands as own properties so the type cast below is safe
+  // Attach commands and M3 mutations as own properties
   Object.defineProperties(vm, {
     newCmd: { value: newCmd, writable: false, enumerable: true, configurable: false },
     openCmd: { value: openCmd, writable: false, enumerable: true, configurable: false },
     saveCmd: { value: saveCmd, writable: false, enumerable: true, configurable: false },
     saveAsCmd: { value: saveAsCmd, writable: false, enumerable: true, configurable: false },
     solveCmd: { value: solveCmd, writable: false, enumerable: true, configurable: false },
+    addDecision: { value: addDecision, writable: false, enumerable: true, configurable: false },
+    deleteDecision: {
+      value: deleteDecision,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    updateDecisionName: {
+      value: updateDecisionName,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    addAlternative: {
+      value: addAlternative,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    deleteAlternative: {
+      value: deleteAlternative,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    updateAlternativeName: {
+      value: updateAlternativeName,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    addProperty: { value: addProperty, writable: false, enumerable: true, configurable: false },
+    deleteProperty: {
+      value: deleteProperty,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    updatePropertyName: {
+      value: updatePropertyName,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    updatePropertyKind: {
+      value: updatePropertyKind,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    updatePropertyWeight: {
+      value: updatePropertyWeight,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    updateCoefficient: {
+      value: updateCoefficient,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    addConstraint: { value: addConstraint, writable: false, enumerable: true, configurable: false },
+    deleteConstraint: {
+      value: deleteConstraint,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    updateConstraint: {
+      value: updateConstraint,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    updateScenarioName: {
+      value: updateScenarioName,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
   });
 
   return vm as ScenarioVM;

@@ -35,8 +35,29 @@ export default [
         File: 'readonly',
         Event: 'readonly',
         HTMLInputElement: 'readonly',
+        HTMLSelectElement: 'readonly',
         EventTarget: 'readonly',
+        Window: 'readonly',
+        FocusEvent: 'readonly',
+        KeyboardEvent: 'readonly',
+        CustomEvent: 'readonly',
+        URL: 'readonly',
+        Blob: 'readonly',
+        FileReader: 'readonly',
+        confirm: 'readonly',
+        prompt: 'readonly',
+        document: 'readonly',
+        window: 'readonly',
       },
+    },
+    rules: {
+      // @typescript-eslint/no-unused-vars crashes on certain Svelte 5 reactive
+      // patterns due to a known incompatibility between the TS-ESLint plugin and
+      // the Svelte-ESLint parser (github.com/sveltejs/eslint-plugin-svelte/issues/652).
+      // Disable both the TS and JS variants for .svelte files; the Svelte plugin
+      // itself enforces unused-import hygiene via svelte/no-unused-svelte-ignore.
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-unused-vars': 'off',
     },
   },
 ];
