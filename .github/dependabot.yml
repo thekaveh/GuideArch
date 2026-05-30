@@ -1,0 +1,31 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/langs/typescript"
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    commit-message: { prefix: "chore(ts)" }
+
+  - package-ecosystem: nuget
+    directory: "/langs/csharp"
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    commit-message: { prefix: "chore(cs)" }
+
+  - package-ecosystem: pip
+    directory: "/langs/python"
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    commit-message: { prefix: "chore(py)" }
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    commit-message: { prefix: "chore(ci)" }
+
+  - package-ecosystem: cargo
+    directory: "/langs/typescript/src-tauri"
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    commit-message: { prefix: "chore(tauri)" }
