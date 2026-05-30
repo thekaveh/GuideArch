@@ -12,4 +12,10 @@ public sealed record CandidateM(
     NormalizedFuzzyM NormalizedValue,
     double Score,
     int Rank
-);
+)
+{
+    /// <summary>
+    /// Comma-separated list of alternative IDs — used for display in the Results DataGrid.
+    /// </summary>
+    public string AlternativeIdsDisplay => string.Join(", ", AlternativeIds);
+}

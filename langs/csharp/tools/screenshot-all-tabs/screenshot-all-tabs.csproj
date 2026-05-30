@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- TargetFramework, LangVersion, Nullable, TreatWarningsAsErrors, ImplicitUsings
+       are set centrally in ../../Directory.Build.props. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- This tool renders Avalonia windows headlessly — it needs the standard runtime,
+         not the WinExe / macOS .app bundle wrappers. -->
+    <SelfContained>false</SelfContained>
+    <!-- Disable TreatWarningsAsErrors for this tool: ScottPlot may produce analyzer
+         warnings that are not ours to fix. -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Headless" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.0.0" />
+    <PackageReference Include="ScottPlot.Avalonia" Version="5.1.58" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\GuideArch.View\GuideArch.View.csproj" />
+  </ItemGroup>
+
+</Project>

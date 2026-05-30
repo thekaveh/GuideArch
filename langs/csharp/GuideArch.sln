@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -18,6 +18,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuideArch.Models.Tests", "tests\GuideArch.Models.Tests\GuideArch.Models.Tests.csproj", "{D1E2F3A4-B5C6-7890-DEFA-234567890BCD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuideArch.ViewModels.Tests", "tests\GuideArch.ViewModels.Tests\GuideArch.ViewModels.Tests.csproj", "{E2F3A4B5-C6D7-8901-EFAB-345678901CDE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{07370DCC-1ACB-4DBE-A78F-839323962A26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "screenshot-all-tabs", "tools\screenshot-all-tabs\screenshot-all-tabs.csproj", "{39437BEB-66AA-4407-89CC-15F64F387A44}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,6 +56,10 @@ Global
 		{E2F3A4B5-C6D7-8901-EFAB-345678901CDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2F3A4B5-C6D7-8901-EFAB-345678901CDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2F3A4B5-C6D7-8901-EFAB-345678901CDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39437BEB-66AA-4407-89CC-15F64F387A44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39437BEB-66AA-4407-89CC-15F64F387A44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39437BEB-66AA-4407-89CC-15F64F387A44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39437BEB-66AA-4407-89CC-15F64F387A44}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{004935A4-ECF8-4A92-A42E-B8438607AD31} = {4D50283A-38E2-43E7-8668-B0F3FA0E4083}
@@ -60,5 +68,6 @@ Global
 		{C1D2E3F4-A5B6-7890-CDEF-123456789ABC} = {4D50283A-38E2-43E7-8668-B0F3FA0E4083}
 		{D1E2F3A4-B5C6-7890-DEFA-234567890BCD} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 		{E2F3A4B5-C6D7-8901-EFAB-345678901CDE} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+		{39437BEB-66AA-4407-89CC-15F64F387A44} = {07370DCC-1ACB-4DBE-A78F-839323962A26}
 	EndGlobalSection
 EndGlobal

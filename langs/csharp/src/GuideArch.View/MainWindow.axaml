@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:scottplot="using:ScottPlot.Avalonia"
+        xmlns:local="using:GuideArch.View"
         x:Class="GuideArch.View.MainWindow"
         Title="GuideArch"
         Width="1200" Height="800"
@@ -13,6 +14,10 @@
     compiled-binding engine cannot resolve without a type literal. All bindings into
     the VM use ReflectionBinding intentionally throughout this file.
   -->
+
+  <Window.Resources>
+    <local:StringJoinConverter x:Key="StringJoin" />
+  </Window.Resources>
 
   <DockPanel>
 
@@ -505,14 +510,14 @@
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Rank"
                                     Binding="{ReflectionBinding Rank}"
-                                    Width="60"
+                                    Width="80"
                                     FontFamily="Cascadia Code,Consolas,monospace" />
                 <DataGridTextColumn Header="Score"
                                     Binding="{ReflectionBinding Score, StringFormat={}{0:F6}}"
                                     Width="120"
                                     FontFamily="Cascadia Code,Consolas,monospace" />
                 <DataGridTextColumn Header="Alternative IDs"
-                                    Binding="{ReflectionBinding AlternativeIds}"
+                                    Binding="{ReflectionBinding AlternativeIdsDisplay}"
                                     Width="*"
                                     FontFamily="Cascadia Code,Consolas,monospace"
                                     FontSize="13" />
@@ -562,7 +567,7 @@
             <DataGrid.Columns>
               <DataGridTextColumn Header="Rank"
                                   Binding="{ReflectionBinding Rank}"
-                                  Width="60"
+                                  Width="80"
                                   FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Decision"
                                   Binding="{ReflectionBinding DecisionName}"
@@ -609,26 +614,26 @@
             <DataGrid.Columns>
               <DataGridTextColumn Header="Index"
                                   Binding="{ReflectionBinding Index}"
-                                  Width="60"
+                                  Width="80"
                                   FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Kind"
                                   Binding="{ReflectionBinding Kind}"
                                   Width="120" />
               <DataGridTextColumn Header="Eliminated"
                                   Binding="{ReflectionBinding Eliminated}"
-                                  Width="100"
+                                  Width="110"
                                   FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Total"
                                   Binding="{ReflectionBinding Total}"
-                                  Width="80"
+                                  Width="90"
                                   FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Eliminated %"
                                   Binding="{ReflectionBinding EliminatedPercent}"
-                                  Width="100"
+                                  Width="120"
                                   FontFamily="Cascadia Code,Consolas,monospace" />
               <DataGridTextColumn Header="Redundant"
                                   Binding="{ReflectionBinding RedundantDisplay}"
-                                  Width="80" />
+                                  Width="100" />
             </DataGrid.Columns>
           </DataGrid>
 
