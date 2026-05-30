@@ -45,17 +45,25 @@ def candidates_bar_option(
     y_labels = [str(c.rank) for c in top]
 
     # Bar data: score value, with itemStyle for gradient + selection highlight
+    # Design-system tokens (§2.3 accent, §2.5 fuzzy axes)
+    _ACCENT = "#8b5cf6"       # accent
+    _ACCENT_MUTED = "#3d2a6b"  # accent-muted (selected highlight)
+    _ACCENT_HOVER = "#a78bfa"  # accent-hover
+    _TEXT_SEC = "#9298a8"     # text-secondary
+    _BORDER_SUB = "#262b36"   # border-subtle
+
     bar_data: list[dict[str, Any]] = []
     for i, cand in enumerate(top):
-        # Gradient: full opacity at rank 0, half at max_items
-        # Fraction from 0 (first) to 1 (last)
+        # Gradient: full opacity at rank 0, diminishing toward the end
         frac = i / max(n - 1, 1)
-        opacity = 1.0 - 0.5 * frac
-        # Selection: highlighted bar uses accent colour; others dimmer
+        opacity = 1.0 - 0.45 * frac
         is_selected = selected_index is not None and i == selected_index
-        color = f"rgba(99,102,241,{opacity:.3f})"  # indigo
+        # Selected: accent-hover highlight; others: accent at varying opacity
         if is_selected:
-            color = "rgba(250,204,21,0.95)"  # amber highlight
+            color = _ACCENT_HOVER
+        else:
+            r, g, b = 0x8b, 0x5c, 0xf6
+            color = f"rgba({r},{g},{b},{opacity:.3f})"
         alt_names = [alt_name_map.get(aid, aid[:8]) for aid in cand.alternative_ids]
         bar_data.append(
             {
@@ -68,33 +76,38 @@ def candidates_bar_option(
         )
 
     option: dict[str, Any] = {
-        "backgroundColor": "transparent",
+        "backgroundColor": "#13161d",  # bg-surface per §5.7
         "tooltip": {
             "trigger": "item",
-            "formatter": "{b}",  # overridden by per-item tooltip via axis info
+            "backgroundColor": "#252a36",
+            "borderColor": "#363c4a",
+            "textStyle": {"color": "#e6e7ed", "fontSize": 12},
         },
-        "grid": {"left": "8%", "right": "5%", "top": "5%", "bottom": "8%"},
+        "grid": {"left": "8%", "right": "5%", "top": "5%", "bottom": "10%", "containLabel": True},
         "xAxis": {
             "type": "value",
             "name": "Score",
             "max": round(max_score * 1.05, 6),
-            "axisLabel": {"color": "#9ca3af", "fontSize": 10},
-            "splitLine": {"lineStyle": {"color": "#374151"}},
-            "nameTextStyle": {"color": "#9ca3af", "fontSize": 10},
+            "axisLabel": {"color": _TEXT_SEC, "fontSize": 10},
+            "splitLine": {"lineStyle": {"color": _BORDER_SUB, "opacity": 0.5}},
+            "nameTextStyle": {"color": _TEXT_SEC, "fontSize": 10},
+            "axisLine": {"lineStyle": {"color": _BORDER_SUB}},
         },
         "yAxis": {
             "type": "category",
             "data": y_labels,
             "name": "Rank",
             "inverse": True,
-            "axisLabel": {"color": "#9ca3af", "fontSize": 10},
-            "nameTextStyle": {"color": "#9ca3af", "fontSize": 10},
+            "axisLabel": {"color": _TEXT_SEC, "fontSize": 10},
+            "nameTextStyle": {"color": _TEXT_SEC, "fontSize": 10},
+            "axisLine": {"lineStyle": {"color": _BORDER_SUB}},
         },
         "series": [
             {
                 "type": "bar",
                 "data": bar_data,
-                "emphasis": {"itemStyle": {"color": "rgba(250,204,21,0.95)"}},
+                "barMaxWidth": 16,
+                "emphasis": {"itemStyle": {"color": _ACCENT_HOVER}},
             }
         ],
     }
@@ -105,17 +118,25 @@ def candidates_bar_option(
 # Chart B — fuzzy-value triangle visualizer
 # ---------------------------------------------------------------------------
 
-# Distinguishable colours for up to 10 properties
+# Design-system tokens used by charts (§2.3 accent, §2.5 fuzzy axes)
+_DS_ACCENT = "#8b5cf6"
+_DS_TEXT_SEC = "#9298a8"
+_DS_BORDER_SUB = "#262b36"
+_DS_FUZZY_POS = "#34d399"   # fuzzy-positive
+_DS_FUZZY_AVG = "#fbbf24"   # fuzzy-average
+_DS_FUZZY_NEG = "#fb7185"   # fuzzy-negative
+
+# Distinguishable colours for chart series (accent-based palette)
 _PALETTE = [
-    "#6366f1",  # indigo
-    "#22d3ee",  # cyan
-    "#a78bfa",  # violet
-    "#34d399",  # emerald
-    "#f59e0b",  # amber
-    "#f87171",  # red
+    "#8b5cf6",  # accent (violet)
+    "#34d399",  # fuzzy-positive (emerald)
+    "#a78bfa",  # accent-hover
+    "#fbbf24",  # fuzzy-average (amber)
+    "#fb7185",  # fuzzy-negative (rose)
     "#60a5fa",  # blue
+    "#f59e0b",  # warning (orange-amber)
+    "#22d3ee",  # cyan
     "#fb923c",  # orange
-    "#a3e635",  # lime
     "#e879f9",  # fuchsia
 ]
 
@@ -156,6 +177,7 @@ def triangle_option(
     # lower/modal/upper we need.  For M4 we only have the aggregate value on
     # CandidateM, so we show just that.  Property names are used as legend
     # placeholder.
+    # Use design-system fuzzy-axis colors (§2.5)
     series = [
         {
             "type": "line",
@@ -166,41 +188,48 @@ def triangle_option(
                 [tv.upper, 0.0],
             ],
             "smooth": False,
-            "lineStyle": {"color": _PALETTE[0], "width": 2},
-            "itemStyle": {"color": _PALETTE[0]},
-            "areaStyle": {"color": _PALETTE[0], "opacity": 0.15},
+            "lineStyle": {"color": _DS_ACCENT, "width": 2},
+            "itemStyle": {"color": _DS_ACCENT},
+            "areaStyle": {"color": _DS_ACCENT, "opacity": 0.15},
             "symbol": "circle",
             "symbolSize": 5,
         }
     ]
 
     option: dict[str, Any] = {
-        "backgroundColor": "transparent",
+        "backgroundColor": "#13161d",  # bg-surface per §5.7
         "title": {
             "text": f"Rank {candidate.rank}   score {candidate.score:.6g}",
             "subtext": subtitle,
             "left": "center",
-            "textStyle": {"color": "#e5e7eb", "fontSize": 11},
-            "subtextStyle": {"color": "#6b7280", "fontSize": 9},
+            "textStyle": {"color": "#e6e7ed", "fontSize": 11, "fontWeight": "500"},
+            "subtextStyle": {"color": _DS_TEXT_SEC, "fontSize": 9},
         },
-        "tooltip": {"trigger": "axis"},
+        "tooltip": {
+            "trigger": "axis",
+            "backgroundColor": "#252a36",
+            "borderColor": "#363c4a",
+            "textStyle": {"color": "#e6e7ed", "fontSize": 11},
+        },
         "legend": {"show": False},
-        "grid": {"left": "8%", "right": "5%", "top": "30%", "bottom": "10%"},
+        "grid": {"left": "8%", "right": "5%", "top": "28%", "bottom": "10%", "containLabel": True},
         "xAxis": {
             "type": "value",
             "name": "Value",
-            "axisLabel": {"color": "#9ca3af", "fontSize": 10},
-            "splitLine": {"lineStyle": {"color": "#374151"}},
-            "nameTextStyle": {"color": "#9ca3af", "fontSize": 10},
+            "axisLabel": {"color": _DS_TEXT_SEC, "fontSize": 10},
+            "splitLine": {"lineStyle": {"color": _DS_BORDER_SUB, "opacity": 0.5}},
+            "nameTextStyle": {"color": _DS_TEXT_SEC, "fontSize": 10},
+            "axisLine": {"lineStyle": {"color": _DS_BORDER_SUB}},
         },
         "yAxis": {
             "type": "value",
             "name": "μ",
             "min": 0.0,
             "max": 1.1,
-            "axisLabel": {"color": "#9ca3af", "fontSize": 10},
-            "splitLine": {"lineStyle": {"color": "#374151"}},
-            "nameTextStyle": {"color": "#9ca3af", "fontSize": 10},
+            "axisLabel": {"color": _DS_TEXT_SEC, "fontSize": 10},
+            "splitLine": {"lineStyle": {"color": _DS_BORDER_SUB, "opacity": 0.5}},
+            "nameTextStyle": {"color": _DS_TEXT_SEC, "fontSize": 10},
+            "axisLine": {"lineStyle": {"color": _DS_BORDER_SUB}},
         },
         "series": series,
     }

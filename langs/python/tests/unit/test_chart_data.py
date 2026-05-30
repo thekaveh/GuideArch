@@ -109,7 +109,10 @@ def test_bar_option_y_labels_are_rank_strings() -> None:
 
 
 def test_bar_option_selected_bar_highlighted() -> None:
-    """The selected bar should have a different (amber) colour."""
+    """The selected bar should have a different colour from unselected bars.
+
+    The design system uses accent-hover (#a78bfa) for the selected bar.
+    """
     opt_sel = candidates_bar_option(_CANDIDATES, _ALT_MAP, selected_index=0)
     opt_none = candidates_bar_option(_CANDIDATES, _ALT_MAP, selected_index=None)
 
@@ -120,7 +123,8 @@ def test_bar_option_selected_bar_highlighted() -> None:
     sel_color = data_sel[0]["itemStyle"]["color"]
     unsel_color = data_none[0]["itemStyle"]["color"]
     assert sel_color != unsel_color
-    assert "250,204,21" in sel_color  # amber in rgba
+    # Design system accent-hover (#a78bfa) is used for the selected bar
+    assert "#a78bfa" in sel_color.lower() or "a78bfa" in sel_color.lower()
 
 
 def test_bar_option_alt_names_in_tooltip_data() -> None:

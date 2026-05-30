@@ -60,3 +60,9 @@ ignore_missing_imports = true
 [tool.uv.sources]
 # Use the vendored VMx by default. Toggle to released via tools/use-vmx-released.sh.
 vmx = { path = "../../vendor/vmx/langs/python", editable = true }
+
+[dependency-groups]
+dev = [
+    "playwright>=1.60.0",
+    "pytest-playwright>=0.8.0",
+]

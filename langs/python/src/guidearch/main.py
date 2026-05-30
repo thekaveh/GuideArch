@@ -161,7 +161,7 @@ def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
         ui.label("Decisions").classes("text-base font-semibold text-[var(--text-primary)]")
         ui.space()
         ui.button("+ Add Decision", on_click=lambda: _do_add_decision(vm, _refresh)).props(
-            "flat color=positive"
+            "flat color=secondary"
         )
 
     if not scenario.decisions:
@@ -284,7 +284,7 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
                 ui.button(
                     "+ Add Alternative",
                     on_click=lambda d=dec: _do_add_alternative(vm, d.id, _refresh),
-                ).props("flat color=positive dense")
+                ).props("flat color=secondary dense")
 
             if not dec_alts:
                 ui.label("No alternatives.").classes(
@@ -379,7 +379,7 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
         ui.label("Properties").classes("text-base font-semibold text-[var(--text-primary)]")
         ui.space()
         ui.button("+ Add Property", on_click=lambda: _do_add_property(vm, _refresh)).props(
-            "flat color=positive"
+            "flat color=secondary"
         )
 
     if not scenario.properties:
@@ -511,13 +511,23 @@ def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
 def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-[var(--text-secondary)]")
+        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
+            ui.label("No scenario loaded.").classes(
+                "text-[var(--text-secondary)] text-sm font-medium"
+            )
+            ui.markdown(
+                "Click **Open Sample SAS** in the toolbar to try the example."
+            ).classes("text-[var(--text-muted)] text-xs")
         return
 
     if not scenario.properties or not scenario.alternatives:
-        ui.label("Add decisions, alternatives and properties first.").classes(
-            "text-[var(--text-muted)]"
-        )
+        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
+            ui.label("Add decisions, alternatives and properties first.").classes(
+                "text-[var(--text-secondary)] text-sm font-medium"
+            )
+            ui.label("Coefficients appear here once all three are defined.").classes(
+                "text-[var(--text-muted)] text-xs"
+            )
         return
 
     props = scenario.properties
@@ -674,7 +684,13 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
 def _render_constraints_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-[var(--text-secondary)]")
+        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
+            ui.label("No scenario loaded.").classes(
+                "text-[var(--text-secondary)] text-sm font-medium"
+            )
+            ui.markdown(
+                "Click **Open Sample SAS** in the toolbar to try the example."
+            ).classes("text-[var(--text-muted)] text-xs")
         return
 
     def _refresh() -> None:
@@ -710,7 +726,7 @@ def _render_threshold_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
             ui.button(
                 "+ Add Threshold",
                 on_click=lambda: _do_add_threshold(vm, props[0].id, refresh),
-            ).props("flat color=positive")
+            ).props("flat color=secondary")
 
     threshold_cs = [
         (i, c)
@@ -845,7 +861,7 @@ def _render_dependency_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
             ui.button(
                 "+ Add Dependency",
                 on_click=lambda: _do_add_dependency(vm, alts[0].id, alts[1].id, refresh),
-            ).props("flat color=positive")
+            ).props("flat color=secondary")
 
     dep_cs = [
         (i, c)
@@ -950,7 +966,7 @@ def _render_conflict_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
             ui.button(
                 "+ Add Conflict",
                 on_click=lambda: _do_add_conflict(vm, alts[0].id, alts[1].id, refresh),
-            ).props("flat color=positive")
+            ).props("flat color=secondary")
 
     conf_cs = [
         (i, c)
@@ -1069,14 +1085,24 @@ def _build_alt_maps(
 def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-[var(--text-secondary)]")
+        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
+            ui.label("No scenario loaded.").classes(
+                "text-[var(--text-secondary)] text-sm font-medium"
+            )
+            ui.markdown(
+                "Click **Open Sample SAS** in the toolbar to try the example."
+            ).classes("text-[var(--text-muted)] text-xs")
         return
 
     candidates = vm.candidates
     if not candidates:
-        ui.label("No candidates — check scenario and constraints.").classes(
-            "text-[var(--text-muted)] py-8"
-        )
+        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
+            ui.label("No candidates — check scenario and constraints.").classes(
+                "text-[var(--text-secondary)] text-sm font-medium"
+            )
+            ui.label(
+                "All architecture combinations may be eliminated by constraints."
+            ).classes("text-[var(--text-muted)] text-xs")
         return
 
     alt_map, alt_dec, _ = _build_alt_maps(vm)
@@ -1087,35 +1113,29 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
 
     # ── Candidates table columns/rows (left pane) ────────────────────────────
     columns: list[dict[str, Any]] = [
-        {"name": "rank", "label": "#", "field": "rank", "align": "right", "sortable": True},
-        {"name": "score", "label": "Score", "field": "score", "align": "right", "sortable": True},
-        {"name": "alternatives", "label": "Alternatives", "field": "alternatives", "align": "left"},
+        {
+            "name": "rank", "label": "#", "field": "rank",
+            "align": "right", "sortable": True,
+            "style": "width: 48px; font-variant-numeric: tabular-nums;",
+        },
+        {
+            "name": "score", "label": "Score", "field": "score",
+            "align": "right", "sortable": True,
+            "style": "width: 90px; font-variant-numeric: tabular-nums;",
+        },
+        {
+            "name": "alternatives", "label": "Alternatives", "field": "alternatives",
+            "align": "left",
+        },
     ]
 
-    rows = []
-    for cand in top50:
-        alt_labels = [
-            f"{alt_dec.get(aid, '?')}/{alt_map.get(aid, aid[:8])}"
-            for aid in cand.alternative_ids
-        ]
-        display = ", ".join(alt_labels[:4])
-        if len(alt_labels) > 4:
-            display += f", … +{len(alt_labels) - 4}"
-        rows.append(
-            {
-                "rank": cand.rank,
-                "score": f"{cand.score:.6g}",
-                "alternatives": display,
-            }
-        )
-
     # ── Split layout ─────────────────────────────────────────────────────────
-    with ui.row().classes("w-full gap-0 items-start"):
-        # Left: table (~60%)
-        with ui.column().classes("w-3/5 pr-4"):
+    with ui.row().classes("w-full gap-4 items-start"):
+        # Left: table (~58%)
+        with ui.column().classes("flex-1 min-w-0"):
             ui.label(
                 f"Top {len(top50)} of {len(candidates)} ranked candidates"
-            ).classes("text-base font-semibold text-[var(--text-primary)] mb-2")
+            ).classes("text-sm font-semibold text-[var(--text-primary)] mb-2")
 
             sel_idx = vm.selected_candidate_index
             # Build rows with selection highlight
@@ -1151,13 +1171,17 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                 lambda e, v=vm: _on_candidate_row_click(v, e),
             )
 
-        # Right: charts (~40%)
-        with ui.column().classes("w-2/5 gap-2"):
+        # Right: charts (fixed ~420px, or 40%)
+        with ui.column().classes("w-96 gap-3 shrink-0"):
             from guidearch.view.chart_data import candidates_bar_option, triangle_option
 
             # Chart A — bar chart
             chart_a_opt = candidates_bar_option(top30, alt_map, vm.selected_candidate_index)
-            chart_a = ui.echart(chart_a_opt).classes("w-full").style("height:220px")
+            chart_a = (
+                ui.echart(chart_a_opt)
+                .classes("w-full rounded border border-[var(--border-strong)]")
+                .style("height:280px; background: var(--bg-surface);")
+            )
 
             # Chart A click handler
             chart_a.on(
@@ -1172,7 +1196,11 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                 chart_b_opt = triangle_option(selected_cand, prop_names, alt_map)
             else:
                 chart_b_opt = triangle_option(candidates[0], prop_names, alt_map)
-            ui.echart(chart_b_opt).classes("w-full").style("height:220px")
+            (
+                ui.echart(chart_b_opt)
+                .classes("w-full rounded border border-[var(--border-strong)]")
+                .style("height:280px; background: var(--bg-surface);")
+            )
 
 
 def _on_candidate_row_click(vm: ScenarioVM, event: Any) -> None:
@@ -1205,14 +1233,24 @@ def _on_chart_a_click(
 def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-[var(--text-secondary)]")
+        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
+            ui.label("No scenario loaded.").classes(
+                "text-[var(--text-secondary)] text-sm font-medium"
+            )
+            ui.markdown(
+                "Click **Open Sample SAS** in the toolbar to try the example."
+            ).classes("text-[var(--text-muted)] text-xs")
         return
 
     crit = vm.critical_decisions_result
     if not crit:
-        ui.label("No critical decisions — run solve first.").classes(
-            "text-[var(--text-muted)] py-8"
-        )
+        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
+            ui.label("No critical decisions computed yet.").classes(
+                "text-[var(--text-secondary)] text-sm font-medium"
+            )
+            ui.label("Click Solve to compute critical decisions.").classes(
+                "text-[var(--text-muted)] text-xs"
+            )
         return
 
     dec_map = {d.id: d.name for d in scenario.decisions}
@@ -1261,14 +1299,24 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
 def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-[var(--text-secondary)]")
+        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
+            ui.label("No scenario loaded.").classes(
+                "text-[var(--text-secondary)] text-sm font-medium"
+            )
+            ui.markdown(
+                "Click **Open Sample SAS** in the toolbar to try the example."
+            ).classes("text-[var(--text-muted)] text-xs")
         return
 
     crit = vm.critical_constraints_result
     if not crit:
-        ui.label("No critical constraints — run solve first.").classes(
-            "text-[var(--text-muted)] py-8"
-        )
+        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
+            ui.label("No constraints active — add constraints to see analysis.").classes(
+                "text-[var(--text-secondary)] text-sm font-medium"
+            )
+            ui.label("Threshold, dependency, and conflict constraints appear here.").classes(
+                "text-[var(--text-muted)] text-xs"
+            )
         return
 
     # Sort descending by eliminated (most-binding first)
@@ -1327,7 +1375,8 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
                 ui.label(str(row["eliminated"])).classes("w-24 text-right pr-2 font-mono")
                 ui.label(str(row["total"])).classes("w-20 text-right pr-2 font-mono")
                 ui.label(str(row["elim_pct"])).classes("w-20 text-right pr-2 font-mono")
-                badge_color = "grey-7" if redundant else "positive"
+                # Redundant=Yes → warning color; No → neutral (secondary)
+                badge_color = "warning" if redundant else "grey-8"
                 ui.badge(str(row["redundant"]), color=badge_color).classes("w-20 justify-center")
 
 
@@ -1412,7 +1461,7 @@ def index() -> None:
                     f"Open Sample {_sample_label}",
                     icon="science",
                     on_click=lambda _p=_sample_path: vm.open_cmd.execute(_p),
-                ).props("flat color=positive")
+                ).props("flat color=primary")
 
             save_btn = ui.button("Save", icon="save", on_click=lambda: _do_save(vm)).props(
                 "flat color=white"

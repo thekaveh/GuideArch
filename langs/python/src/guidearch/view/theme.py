@@ -129,8 +129,18 @@ body {{
   color: var(--text-secondary) !important;
   font-size: 14px !important;
 }}
+.q-tab__label {{
+  text-transform: none !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}}
 .q-tab--active {{
   color: var(--text-primary) !important;
+}}
+.q-tab--active .q-tab__label {{
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
 }}
 .q-tab__indicator {{
   background: var(--accent) !important;
@@ -150,6 +160,34 @@ body {{
   border-radius: 8px !important;
 }}
 
+/* §5.1 Buttons: no text-transform */
+.q-btn .q-btn__content span {{
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 600 !important;
+}}
+
+/* Disable Quasar table zebra stripes */
+.q-table tbody tr:nth-child(even) {{
+  background: var(--bg-page) !important;
+}}
+.q-table tbody tr:nth-child(odd) {{
+  background: var(--bg-page) !important;
+}}
+
+/* Ensure table body background is correct */
+.q-table__middle {{
+  background: var(--bg-page) !important;
+}}
+
+/* §5.6 Status chips — small, compact */
+.q-badge {{
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 3px 7px !important;
+  border-radius: 10px !important;
+}}
+
 /* Toolbar height §6 */
 .guidearch-toolbar {{
   height: 56px !important;
@@ -162,6 +200,7 @@ body {{
   padding: 0 24px !important;
   font-size: 12px !important;
   color: var(--text-secondary) !important;
+  font-family: {_FONT_SANS};
 }}
 
 /* NiceGUI content reset */
