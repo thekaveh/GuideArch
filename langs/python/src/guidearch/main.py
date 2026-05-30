@@ -38,6 +38,7 @@ from typing import Any
 
 from nicegui import ui
 
+from guidearch.view.theme import inject_css
 from guidearch.viewmodels.scenario_vm import ScenarioVM, make_scenario_vm
 
 # ---------------------------------------------------------------------------
@@ -144,10 +145,11 @@ def _status_text(vm: ScenarioVM) -> str:
 def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
+        # §8 empty state
         ui.markdown(
             "No scenario loaded. Click **Open Sample SAS** in the toolbar to try the example,"
             " or **New** to start blank."
-        ).classes("text-gray-400 py-4")
+        ).classes("text-[var(--text-secondary)] py-4")
         return
 
     def _refresh() -> None:
@@ -156,17 +158,20 @@ def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
             _render_decisions_tab(vm, container)
 
     with ui.row().classes("items-center gap-2 mb-3"):
-        ui.label("Decisions").classes("text-lg font-semibold text-gray-200")
+        ui.label("Decisions").classes("text-base font-semibold text-[var(--text-primary)]")
         ui.space()
         ui.button("+ Add Decision", on_click=lambda: _do_add_decision(vm, _refresh)).props(
             "flat color=positive"
         )
 
     if not scenario.decisions:
-        ui.label("No decisions yet.").classes("text-gray-500 py-4")
+        ui.label("No decisions yet.").classes("text-[var(--text-muted)] py-4")
         return
 
-    _dec_card_cls = "w-full mb-2 bg-gray-800 border border-gray-700"
+    # §5.5 Cards: bg-surface, border-strong, 8px radius, 16px padding
+    _dec_card_cls = (
+        "w-full mb-2 bg-[var(--bg-surface)] border border-[var(--border-strong)]"
+    )
     _dec_row_cls = "items-center gap-3 w-full"
     for dec in scenario.decisions:
         with ui.card().classes(_dec_card_cls), ui.row().classes(_dec_row_cls):
@@ -181,8 +186,9 @@ def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
                         vm, d.id, ni.value, _refresh
                     ),
                 )
+                # §3 Code/ID: 12px monospace
                 ui.label(f"id: {dec.id[:8]}…").classes(
-                    "text-xs text-gray-500 font-mono"
+                    "text-xs text-[var(--text-muted)] font-mono"
                 )
                 ui.button(
                     icon="delete",
@@ -223,9 +229,11 @@ def _do_delete_decision(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    with ui.dialog() as dlg, ui.card().classes("bg-gray-900"):
+    with ui.dialog() as dlg, ui.card().classes(
+        "bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"
+    ):
         ui.label("Delete this decision and all its alternatives?").classes(
-            "text-white text-base mb-4"
+            "text-[var(--text-primary)] text-base mb-4"
         )
         with ui.row():
             ui.button(
@@ -247,7 +255,7 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
         ui.markdown(
             "No scenario loaded. Click **Open Sample SAS** in the toolbar to try the example,"
             " or **New** to start blank."
-        ).classes("text-gray-400 py-4")
+        ).classes("text-[var(--text-secondary)] py-4")
         return
 
     def _refresh() -> None:
@@ -255,10 +263,12 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
         with container:
             _render_alternatives_tab(vm, container)
 
-    ui.label("Alternatives").classes("text-lg font-semibold text-gray-200 mb-3")
+    ui.label("Alternatives").classes(
+        "text-base font-semibold text-[var(--text-primary)] mb-3"
+    )
 
     if not scenario.decisions:
-        ui.label("Add decisions first.").classes("text-gray-500")
+        ui.label("Add decisions first.").classes("text-[var(--text-muted)]")
         return
 
     for dec in scenario.decisions:
@@ -266,7 +276,9 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
         with ui.expansion(
             f"{dec.name}  ({len(dec_alts)} alternatives)",
             icon="folder",
-        ).classes("w-full mb-2 bg-gray-800 border border-gray-700 rounded"):
+        ).classes(
+            "w-full mb-2 bg-[var(--bg-surface)] border border-[var(--border-strong)] rounded-lg"
+        ):
             with ui.row().classes("items-center gap-2 mb-2"):
                 ui.space()
                 ui.button(
@@ -275,7 +287,9 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
                 ).props("flat color=positive dense")
 
             if not dec_alts:
-                ui.label("No alternatives.").classes("text-gray-500 text-sm py-2 pl-4")
+                ui.label("No alternatives.").classes(
+                    "text-[var(--text-muted)] text-sm py-2 pl-4"
+                )
                 continue
 
             for alt in dec_alts:
@@ -291,7 +305,9 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
                             vm, a.id, ni.value, _refresh
                         ),
                     )
-                    ui.label(f"id: {alt.id[:8]}…").classes("text-xs text-gray-500 font-mono")
+                    ui.label(f"id: {alt.id[:8]}…").classes(
+                        "text-xs text-[var(--text-muted)] font-mono"
+                    )
                     ui.button(
                         icon="delete",
                         on_click=lambda a=alt: _do_delete_alternative(vm, a.id, _refresh),
@@ -326,9 +342,11 @@ def _do_delete_alternative(vm: ScenarioVM, alt_id: str, refresh: Any) -> None:
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    with ui.dialog() as dlg, ui.card().classes("bg-gray-900"):
+    with ui.dialog() as dlg, ui.card().classes(
+        "bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"
+    ):
         ui.label("Delete this alternative and its coefficients?").classes(
-            "text-white text-base mb-4"
+            "text-[var(--text-primary)] text-base mb-4"
         )
         with ui.row():
             ui.button("Delete", on_click=lambda: (dlg.close(), _confirmed())).props(
@@ -349,7 +367,7 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
         ui.markdown(
             "No scenario loaded. Click **Open Sample SAS** in the toolbar to try the example,"
             " or **New** to start blank."
-        ).classes("text-gray-400 py-4")
+        ).classes("text-[var(--text-secondary)] py-4")
         return
 
     def _refresh() -> None:
@@ -358,17 +376,20 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
             _render_properties_tab(vm, container)
 
     with ui.row().classes("items-center gap-2 mb-3"):
-        ui.label("Properties").classes("text-lg font-semibold text-gray-200")
+        ui.label("Properties").classes("text-base font-semibold text-[var(--text-primary)]")
         ui.space()
         ui.button("+ Add Property", on_click=lambda: _do_add_property(vm, _refresh)).props(
             "flat color=positive"
         )
 
     if not scenario.properties:
-        ui.label("No properties yet.").classes("text-gray-500 py-4")
+        ui.label("No properties yet.").classes("text-[var(--text-muted)] py-4")
         return
 
-    _prop_card_cls = "w-full mb-2 bg-gray-800 border border-gray-700"
+    # §5.5 Cards: bg-surface, border-strong, 8px radius, 16px padding
+    _prop_card_cls = (
+        "w-full mb-2 bg-[var(--bg-surface)] border border-[var(--border-strong)]"
+    )
     _prop_row_cls = "items-center gap-3 w-full flex-wrap"
     for prop in scenario.properties:
         with ui.card().classes(_prop_card_cls), ui.row().classes(_prop_row_cls):
@@ -421,7 +442,9 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
                     ),
                 )
 
-                ui.label(f"id: {prop.id[:8]}…").classes("text-xs text-gray-500 font-mono")
+                ui.label(f"id: {prop.id[:8]}…").classes(
+                    "text-xs text-[var(--text-muted)] font-mono"
+                )
                 ui.button(
                     icon="delete",
                     on_click=lambda p=prop: _do_delete_property(vm, p.id, _refresh),
@@ -466,9 +489,11 @@ def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    with ui.dialog() as dlg, ui.card().classes("bg-gray-900"):
+    with ui.dialog() as dlg, ui.card().classes(
+        "bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"
+    ):
         ui.label("Delete this property and its coefficients?").classes(
-            "text-white text-base mb-4"
+            "text-[var(--text-primary)] text-base mb-4"
         )
         with ui.row():
             ui.button("Delete", on_click=lambda: (dlg.close(), _confirmed())).props(
@@ -486,12 +511,12 @@ def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
 def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-gray-400")
+        ui.label("No scenario loaded.").classes("text-[var(--text-secondary)]")
         return
 
     if not scenario.properties or not scenario.alternatives:
         ui.label("Add decisions, alternatives and properties first.").classes(
-            "text-gray-500"
+            "text-[var(--text-muted)]"
         )
         return
 
@@ -510,24 +535,28 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
             _render_coefficients_tab(vm, container)
 
     ui.label("Coefficients (fuzzy matrix)").classes(
-        "text-lg font-semibold text-gray-200 mb-2"
+        "text-base font-semibold text-[var(--text-primary)] mb-2"
     )
-    ui.label("Format: lower · modal · upper").classes("text-xs text-gray-500 mb-3")
+    ui.label("Format: lower · modal · upper").classes(
+        "text-xs text-[var(--text-muted)] mb-3"
+    )
 
     with ui.scroll_area().classes("w-full"):
-        # Header row
-        with ui.row().classes("gap-1 mb-1 sticky-top bg-gray-900 pb-1"):
+        # §5.3 Table header: bg-surface, text-secondary, 12px, 32px row height, sticky
+        with ui.row().classes(
+            "gap-1 mb-1 sticky-top bg-[var(--bg-surface)] pb-1"
+        ):
             ui.label("Alternative").classes(
-                "font-semibold text-gray-300 w-44 text-sm"
+                "font-semibold text-[var(--text-secondary)] w-44 text-xs"
             )
             for prop in props:
                 kind_badge = "↓" if prop.kind == "min" else "↑"
                 with ui.column().classes("items-center w-36"):
                     ui.label(prop.name).classes(
-                        "font-semibold text-gray-300 text-xs text-center"
+                        "font-semibold text-[var(--text-secondary)] text-xs text-center"
                     )
                     ui.label(f"{kind_badge} w={prop.weight:.3g}").classes(
-                        "text-xs text-gray-500"
+                        "text-xs text-[var(--text-muted)]"
                     )
 
         # Group by decision
@@ -535,28 +564,36 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
             dec_alts = [a for a in alts if a.decision_id == dec.id]
             if not dec_alts:
                 continue
-            # Group header
-            with ui.row().classes("w-full bg-gray-700 rounded px-2 py-1 mb-1"):
-                ui.label(dec.name).classes("font-bold text-gray-200 text-sm")
+            # Group header: bg-surface-2
+            with ui.row().classes(
+                "w-full bg-[var(--bg-surface-2)] rounded px-2 py-1 mb-1"
+            ):
+                ui.label(dec.name).classes(
+                    "font-semibold text-[var(--text-primary)] text-sm"
+                )
 
             for alt in dec_alts:
+                # §5.3 Body rows: 36px height, border-subtle between rows
                 with ui.row().classes("gap-1 mb-1 items-center"):
                     ui.label(alt.name).classes(
-                        "text-gray-300 text-sm w-44 truncate"
+                        "text-[var(--text-primary)] text-sm w-44 truncate"
                     )
                     for prop in props:
                         coef = coef_map.get((alt.id, prop.id))
                         if coef is None:
-                            ui.label("—").classes("w-36 text-center text-gray-600")
+                            ui.label("—").classes(
+                                "w-36 text-center text-[var(--text-muted)]"
+                            )
                             continue
 
                         lower_v = coef.value.lower
                         modal_v = coef.value.modal
                         upper_v = coef.value.upper
+                        # §2.4 warning token for invalid fuzzy triplet
                         warn_color = (
-                            "border-yellow-500"
+                            "border-[var(--warning)]"
                             if lower_v > modal_v or modal_v > upper_v
-                            else "border-gray-600"
+                            else "border-[var(--border-strong)]"
                         )
 
                         with ui.column().classes(
@@ -572,7 +609,9 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
                                     .props("dense dark borderless")
                                     .classes("w-10 font-mono text-xs")
                                 )
-                                ui.label("·").classes("text-gray-500 text-xs")
+                                ui.label("·").classes(
+                                    "text-[var(--text-muted)] text-xs"
+                                )
                                 m_in = (
                                     ui.number(
                                         value=modal_v,
@@ -582,7 +621,9 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
                                     .props("dense dark borderless")
                                     .classes("w-10 font-mono text-xs")
                                 )
-                                ui.label("·").classes("text-gray-500 text-xs")
+                                ui.label("·").classes(
+                                    "text-[var(--text-muted)] text-xs"
+                                )
                                 u_in = (
                                     ui.number(
                                         value=upper_v,
@@ -633,7 +674,7 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
 def _render_constraints_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-gray-400")
+        ui.label("No scenario loaded.").classes("text-[var(--text-secondary)]")
         return
 
     def _refresh() -> None:
@@ -641,7 +682,7 @@ def _render_constraints_tab(vm: ScenarioVM, container: Any) -> None:
         with container:
             _render_constraints_tab(vm, container)
 
-    ui.label("Constraints").classes("text-lg font-semibold text-gray-200 mb-2")
+    ui.label("Constraints").classes("text-base font-semibold text-[var(--text-primary)] mb-2")
 
     with ui.tabs() as sub_tabs:
         tab_thresh = ui.tab("Threshold")
@@ -678,13 +719,18 @@ def _render_threshold_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
     ]
 
     if not threshold_cs:
-        ui.label("No threshold constraints.").classes("text-gray-500 py-4")
+        ui.label("No threshold constraints.").classes("text-[var(--text-muted)] py-4")
         return
 
     for idx, c in threshold_cs:
         invalid = c.min is not None and c.max is not None and c.min > c.max
-        card_border = "border-red-600" if invalid else "border-gray-700"
-        with ui.card().classes(f"w-full mb-2 bg-gray-800 border {card_border}"):  # noqa: SIM117
+        # §2.4 danger for invalid range, border-strong otherwise
+        card_border = (
+            "border-[var(--danger)]" if invalid else "border-[var(--border-strong)]"
+        )
+        with ui.card().classes(  # noqa: SIM117
+            f"w-full mb-2 bg-[var(--bg-surface)] border {card_border}"
+        ):
             with ui.row().classes("items-center gap-3 flex-wrap"):
                 # Property dropdown
                 prop_sel = (
@@ -808,13 +854,17 @@ def _render_dependency_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
     ]
 
     if not dep_cs:
-        ui.label("No dependency constraints.").classes("text-gray-500 py-4")
+        ui.label("No dependency constraints.").classes("text-[var(--text-muted)] py-4")
         return
 
     for idx, c in dep_cs:
         self_edge = c.source_alternative_id == c.target_alternative_id
-        card_border = "border-yellow-600" if self_edge else "border-gray-700"
-        with ui.card().classes(f"w-full mb-2 bg-gray-800 border {card_border}"):  # noqa: SIM117
+        card_border = (
+            "border-[var(--warning)]" if self_edge else "border-[var(--border-strong)]"
+        )
+        with ui.card().classes(  # noqa: SIM117
+            f"w-full mb-2 bg-[var(--bg-surface)] border {card_border}"
+        ):
             with ui.row().classes("items-center gap-3 flex-wrap"):
                 src_sel = (
                     ui.select(
@@ -832,7 +882,7 @@ def _render_dependency_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
                     ),
                 )
 
-                ui.label("→").classes("text-gray-400 text-lg")
+                ui.label("→").classes("text-[var(--text-secondary)] text-lg")
 
                 tgt_sel = (
                     ui.select(
@@ -909,13 +959,17 @@ def _render_conflict_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
     ]
 
     if not conf_cs:
-        ui.label("No conflict constraints.").classes("text-gray-500 py-4")
+        ui.label("No conflict constraints.").classes("text-[var(--text-muted)] py-4")
         return
 
     for idx, c in conf_cs:
         self_edge = c.alternative_a_id == c.alternative_b_id
-        card_border = "border-yellow-600" if self_edge else "border-gray-700"
-        with ui.card().classes(f"w-full mb-2 bg-gray-800 border {card_border}"):  # noqa: SIM117
+        card_border = (
+            "border-[var(--warning)]" if self_edge else "border-[var(--border-strong)]"
+        )
+        with ui.card().classes(  # noqa: SIM117
+            f"w-full mb-2 bg-[var(--bg-surface)] border {card_border}"
+        ):
             with ui.row().classes("items-center gap-3 flex-wrap"):
                 a_sel = (
                     ui.select(
@@ -933,7 +987,7 @@ def _render_conflict_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
                     ),
                 )
 
-                ui.label("✗").classes("text-red-400 text-lg")
+                ui.label("✗").classes("text-[var(--danger)] text-lg")
 
                 b_sel = (
                     ui.select(
@@ -1015,13 +1069,13 @@ def _build_alt_maps(
 def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-gray-400")
+        ui.label("No scenario loaded.").classes("text-[var(--text-secondary)]")
         return
 
     candidates = vm.candidates
     if not candidates:
         ui.label("No candidates — check scenario and constraints.").classes(
-            "text-gray-500 py-8"
+            "text-[var(--text-muted)] py-8"
         )
         return
 
@@ -1061,7 +1115,7 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
         with ui.column().classes("w-3/5 pr-4"):
             ui.label(
                 f"Top {len(top50)} of {len(candidates)} ranked candidates"
-            ).classes("text-lg font-semibold text-gray-200 mb-2")
+            ).classes("text-base font-semibold text-[var(--text-primary)] mb-2")
 
             sel_idx = vm.selected_candidate_index
             # Build rows with selection highlight
@@ -1076,7 +1130,8 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                     display += f", … +{len(alt_labels) - 4}"
                 row_class = ""
                 if sel_idx is not None and cand.rank == sel_idx:
-                    row_class = "bg-yellow-900"
+                    # §5.3 Selected: accent-muted background
+                    row_class = "bg-[var(--accent-muted)]"
                 sel_rows.append(
                     {
                         "rank": cand.rank,
@@ -1150,13 +1205,13 @@ def _on_chart_a_click(
 def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-gray-400")
+        ui.label("No scenario loaded.").classes("text-[var(--text-secondary)]")
         return
 
     crit = vm.critical_decisions_result
     if not crit:
         ui.label("No critical decisions — run solve first.").classes(
-            "text-gray-500 py-8"
+            "text-[var(--text-muted)] py-8"
         )
         return
 
@@ -1187,10 +1242,12 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
             }
         )
 
-    ui.label("Critical Decisions").classes("text-lg font-semibold text-gray-200 mb-2")
+    ui.label("Critical Decisions").classes(
+        "text-base font-semibold text-[var(--text-primary)] mb-2"
+    )
     ui.label(
         "Sorted ascending by rank (lower score = more critical)"
-    ).classes("text-xs text-gray-500 mb-3")
+    ).classes("text-xs text-[var(--text-muted)] mb-3")
     ui.table(columns=columns, rows=rows, row_key="rank").classes(
         "w-full max-h-screen overflow-y-auto"
     ).props("dark dense flat")
@@ -1204,13 +1261,13 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
 def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.label("No scenario loaded.").classes("text-gray-400")
+        ui.label("No scenario loaded.").classes("text-[var(--text-secondary)]")
         return
 
     crit = vm.critical_constraints_result
     if not crit:
         ui.label("No critical constraints — run solve first.").classes(
-            "text-gray-500 py-8"
+            "text-[var(--text-muted)] py-8"
         )
         return
 
@@ -1232,17 +1289,20 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
             }
         )
 
-    ui.label("Critical Constraints").classes("text-lg font-semibold text-gray-200 mb-2")
+    ui.label("Critical Constraints").classes(
+        "text-base font-semibold text-[var(--text-primary)] mb-2"
+    )
     ui.label(
         "Sorted descending by eliminated (most-binding first). "
         "Redundant rows shown with faded background."
-    ).classes("text-xs text-gray-500 mb-3")
+    ).classes("text-xs text-[var(--text-muted)] mb-3")
 
     # Render as a custom table to support per-row background styling
     with ui.scroll_area().classes("w-full max-h-screen"):
-        # Header
+        # §5.3 Header: bg-surface, text-secondary, 12px, 32px height
         with ui.row().classes(
-            "w-full bg-gray-700 rounded px-2 py-1 mb-1 font-semibold text-gray-300 text-xs gap-0"
+            "w-full bg-[var(--bg-surface)] rounded px-2 py-1 mb-1 "
+            "font-semibold text-[var(--text-secondary)] text-xs gap-0"
         ):
             ui.label("Idx").classes("w-12 text-right pr-2")
             ui.label("Kind").classes("w-28 pr-2")
@@ -1253,18 +1313,21 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
 
         for row in rows:
             redundant = row["_redundant"]
+            # Redundant rows faded per spec §5.3; bg-page for body rows
             row_cls = "opacity-40" if redundant else ""
-            bg_cls = "bg-gray-800" if not redundant else "bg-gray-900"
+            bg_cls = (
+                "bg-[var(--bg-page)]" if not redundant else "bg-[var(--bg-surface)]"
+            )
             with ui.row().classes(
-                f"w-full {bg_cls} border border-gray-700 rounded px-2 py-1 mb-1 "
-                f"text-gray-300 text-xs gap-0 {row_cls}"
+                f"w-full {bg_cls} border border-[var(--border-subtle)] rounded px-2 py-1 mb-1 "
+                f"text-[var(--text-primary)] text-xs gap-0 {row_cls}"
             ):
                 ui.label(str(row["index"])).classes("w-12 text-right pr-2 font-mono")
                 ui.label(str(row["kind"])).classes("w-28 pr-2")
                 ui.label(str(row["eliminated"])).classes("w-24 text-right pr-2 font-mono")
                 ui.label(str(row["total"])).classes("w-20 text-right pr-2 font-mono")
                 ui.label(str(row["elim_pct"])).classes("w-20 text-right pr-2 font-mono")
-                badge_color = "gray" if redundant else "positive"
+                badge_color = "grey-7" if redundant else "positive"
                 ui.badge(str(row["redundant"]), color=badge_color).classes("w-20 justify-center")
 
 
@@ -1278,10 +1341,9 @@ def index() -> None:
     vm = _get_vm()
 
     ui.dark_mode().enable()
+    inject_css()
     ui.add_head_html(
         "<style>"
-        "body { background: #111827; } "
-        ".nicegui-content { padding: 0 !important; }"
         ".sticky-top { position: sticky; top: 0; z-index: 10; }"
         "</style>"
     )
@@ -1292,28 +1354,37 @@ def index() -> None:
 
         open_dialog: _Dialog
         if not _is_native:
-            with ui.dialog() as open_dialog, ui.card().classes("bg-gray-900 w-96"):
-                ui.label("Open Scenario File").classes("text-white text-lg mb-2")
+            with ui.dialog() as open_dialog, ui.card().classes(
+                "bg-[var(--bg-surface)] border border-[var(--border-strong)] w-96"
+            ):
+                ui.label("Open Scenario File").classes(
+                    "text-[var(--text-primary)] text-base font-semibold mb-2"
+                )
                 path_input = (
                     ui.input("Paste file path…").props("dark outlined").classes("w-full")
                 )
                 ui.button(
                     "Open by path",
                     on_click=lambda: _do_open_by_path(vm, path_input.value, open_dialog),
-                ).props("color=indigo")
+                ).props("color=primary")
                 ui.separator().classes("my-2")
-                ui.label("Or upload a JSON file:").classes("text-gray-400 text-sm")
+                ui.label("Or upload a JSON file:").classes(
+                    "text-[var(--text-secondary)] text-sm"
+                )
                 ui.upload(
                     label="Choose file",
                     on_upload=lambda e: _do_open_upload(vm, e, open_dialog),
                     auto_upload=True,
                 ).props("dark accept=.json")
 
-        # ── Toolbar ─────────────────────────────────────────────────────────
+        # ── Toolbar (§6: 56px tall, 24px h-padding, ghost buttons) ─────────
         with ui.row().classes(
-            "w-full items-center bg-gray-900 border-b border-gray-700 px-4 py-2 gap-2"
+            "guidearch-toolbar w-full items-center "
+            "bg-[var(--bg-page)] border-b border-[var(--border-subtle)] gap-2"
         ):
-            ui.label("GuideArch").classes("text-xl font-bold text-indigo-400 mr-4")
+            ui.label("GuideArch").classes(
+                "text-xl font-bold text-[var(--accent)] mr-4"
+            )
 
             ui.button("New", icon="add", on_click=lambda: _do_new(vm)).props(
                 "flat color=white"
@@ -1341,7 +1412,7 @@ def index() -> None:
                     f"Open Sample {_sample_label}",
                     icon="science",
                     on_click=lambda _p=_sample_path: vm.open_cmd.execute(_p),
-                ).props("flat color=teal")
+                ).props("flat color=positive")
 
             save_btn = ui.button("Save", icon="save", on_click=lambda: _do_save(vm)).props(
                 "flat color=white"
@@ -1364,15 +1435,16 @@ def index() -> None:
 
             ui.space()
 
+            # §5.1 Primary button: accent bg, accent-on text, 8/16 padding, 6px radius
             ui.button(
                 "Solve",
                 icon="play_arrow",
                 on_click=lambda: _do_explicit_solve(vm),
-            ).props("color=indigo")
+            ).props("color=primary")
 
-        # ── Tab strip ───────────────────────────────────────────────────────
+        # ── Tab strip (§5.4: 40px tall, border-subtle underline) ───────────
         with ui.tabs().classes(
-            "w-full bg-gray-800 border-b border-gray-700 text-white"
+            "w-full bg-[var(--bg-surface)] text-[var(--text-secondary)]"
         ) as tabs:
             tab_decisions = ui.tab("Decisions")
             tab_alts = ui.tab("Alternatives")
@@ -1384,56 +1456,59 @@ def index() -> None:
             tab_crit_con = ui.tab("Critical constraints")
 
         # ── Tab panels ──────────────────────────────────────────────────────
+        # §6 Main pane: bg-page, 24px padding (applied per tab panel)
         main_content = (
             ui.tab_panels(tabs, value=tab_results if vm.scenario else tab_decisions)
-            .classes("flex-1 w-full bg-gray-900 overflow-auto")
+            .classes("flex-1 w-full bg-[var(--bg-page)] overflow-auto")
             .props("dark")
         )
 
         with main_content:
             with ui.tab_panel(tab_decisions):
-                dec_container: Any = ui.column().classes("w-full p-4")
+                dec_container: Any = ui.column().classes("w-full p-6")
                 with dec_container:
                     _render_decisions_tab(vm, dec_container)
 
             with ui.tab_panel(tab_alts):
-                alt_container: Any = ui.column().classes("w-full p-4")
+                alt_container: Any = ui.column().classes("w-full p-6")
                 with alt_container:
                     _render_alternatives_tab(vm, alt_container)
 
             with ui.tab_panel(tab_props):
-                prop_container: Any = ui.column().classes("w-full p-4")
+                prop_container: Any = ui.column().classes("w-full p-6")
                 with prop_container:
                     _render_properties_tab(vm, prop_container)
 
             with ui.tab_panel(tab_coefs):
-                coef_container: Any = ui.column().classes("w-full p-4")
+                coef_container: Any = ui.column().classes("w-full p-6")
                 with coef_container:
                     _render_coefficients_tab(vm, coef_container)
 
             with ui.tab_panel(tab_constraints):
-                constr_container: Any = ui.column().classes("w-full p-4")
+                constr_container: Any = ui.column().classes("w-full p-6")
                 with constr_container:
                     _render_constraints_tab(vm, constr_container)
 
             with ui.tab_panel(tab_results):
-                res_container: Any = ui.column().classes("w-full p-4")
+                res_container: Any = ui.column().classes("w-full p-6")
                 with res_container:
                     _render_results_tab(vm, res_container)
 
             with ui.tab_panel(tab_crit_dec):
-                crit_dec_container: Any = ui.column().classes("w-full p-4")
+                crit_dec_container: Any = ui.column().classes("w-full p-6")
                 with crit_dec_container:
                     _render_critical_decisions_tab(vm, crit_dec_container)
 
             with ui.tab_panel(tab_crit_con):
-                crit_con_container: Any = ui.column().classes("w-full p-4")
+                crit_con_container: Any = ui.column().classes("w-full p-6")
                 with crit_con_container:
                     _render_critical_constraints_tab(vm, crit_con_container)
 
-        # ── Status bar ──────────────────────────────────────────────────────
+        # ── Status bar (§6: 32px tall, 24px h-padding, 12px text-secondary) ─
         status_label = ui.label(_status_text(vm)).classes(
-            "w-full px-4 py-1 bg-gray-950 text-gray-400 text-xs border-t border-gray-800 font-mono"
+            "guidearch-statusbar w-full flex items-center "
+            "bg-[var(--bg-page)] text-[var(--text-secondary)] "
+            "border-t border-[var(--border-subtle)] font-mono"
         )
 
     # ── Reactive updates ─────────────────────────────────────────────────────
