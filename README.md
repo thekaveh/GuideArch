@@ -6,16 +6,16 @@ GuideArch helps software architects pick between competing technology stacks by 
 
 ## 1. Status
 
-**M1 complete — domain + TOPSIS engine; UI deferred to M2+.** All three implementations (TypeScript, C#, Python) implement the full domain model, the fuzzy TOPSIS solver, critical-decisions sensitivity analysis, and critical-constraints elimination analysis. They produce identical numerical results to 1e-9 absolute on the seed conformance corpus (`spec/conformance/scenarios/sas.json`, `eds.json`). Cross-impl conformance is gated in CI.
+**M2 complete — domain + TOPSIS + ViewModel layer + skeleton UI; editors and charts still ahead.** All three implementations (TypeScript, C#, Python) realize the full canonical ViewModel tree from [`spec/viewmodels.md`](spec/viewmodels.md) and ship a skeleton "open scenario → see ranked candidates table" UI that exercises the VM tree end-to-end.
 
 What does **not** yet exist:
 
-- The ViewModel layer (M2) — apps still render the M1 "domain ready" placeholder.
-- Editors for decisions / alternatives / properties / coefficients / constraints (M3).
-- Ranking tables, sensitivity views, and charts (M4).
-- Installer / distributable artifacts (M5).
+- Full editors for decisions / alternatives / properties / coefficients (the fuzzy matrix) / constraints (M3).
+- Critical-decisions / critical-constraints views (M4).
+- Charts: ranked-candidates bar, fuzzy-value triangle visualizer (M4).
+- Installer / distributable artifacts: Tauri installers, Avalonia binaries + WASM, PyPI package, Docker (M5).
 
-Tag `v0.0.0-bootstrap` marks M0; the most recent milestone tag identifies the current cut.
+Milestone tags: `v0.0.0-bootstrap` (M0), `v0.1.0-m1` (M1 — domain + TOPSIS), `v0.2.0-m2` (M2 — ViewModels + skeleton UI).
 
 ## 2. What's in the box
 
