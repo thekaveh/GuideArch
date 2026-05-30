@@ -108,13 +108,14 @@
     overflow: hidden;
   }
 
+  /* §8 Empty state */
   .empty {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #555566;
-    font-size: 1rem;
+    color: var(--text-secondary);
+    font-size: 14px;
   }
 
   .split-pane {
@@ -129,7 +130,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border-right: 1px solid #2e2e38;
+    border-right: 1px solid var(--border-subtle);
   }
 
   .right-pane {
@@ -137,92 +138,104 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    padding: 0.5rem 0.75rem;
-    gap: 0.75rem;
+    padding: 12px;
+    gap: 12px;
     min-height: 0;
+    background: var(--bg-surface);
   }
 
+  /* §5.5 Card for chart sections */
   .chart-section {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 8px;
   }
 
   .chart-title {
-    font-size: 0.75rem;
+    font-size: 12px;
     font-weight: 600;
-    color: #888899;
-    padding: 0 0.25rem;
+    color: var(--text-secondary);
   }
 
   .table-wrap {
     flex: 1;
     overflow: auto;
-    padding: 1rem 1.25rem;
+    padding: 16px 24px;
   }
 
+  /* §5.3 Tables */
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: 13px;
+  }
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
 
   thead tr {
-    background: #1a1a20;
+    background: var(--bg-surface);
   }
 
   th {
-    padding: 0.5rem 0.75rem;
+    height: 32px;
+    padding: 0 8px;
     text-align: left;
-    color: #888899;
-    font-weight: 600;
-    border-bottom: 1px solid #2e2e38;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-subtle);
     white-space: nowrap;
+    background: var(--bg-surface);
   }
 
   tbody tr {
     cursor: pointer;
   }
 
-  tbody tr:nth-child(odd) {
-    background: #111118;
+  tbody tr:hover td {
+    background: var(--bg-surface-2);
   }
 
-  tbody tr:nth-child(even) {
-    background: #0f0f16;
-  }
-
-  tbody tr:hover {
-    background: #1e1e28;
-  }
-
-  tbody tr.selected {
-    background: #2a1f4e;
-    outline: 1px solid #7c3aed;
-    outline-offset: -1px;
+  /* §5.3 Selected row */
+  tbody tr.selected td {
+    background: var(--accent-muted);
+    border-left: 2px solid var(--accent);
   }
 
   td {
-    padding: 0.4rem 0.75rem;
-    border-bottom: 1px solid #22222c;
+    height: 36px;
+    padding: 0 8px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-page);
     vertical-align: middle;
   }
 
+  /* §5.3 Numeric columns */
   .rank {
-    color: #a78bfa;
+    color: var(--accent-hover);
     font-weight: 600;
     text-align: right;
     width: 3.5rem;
+    font-variant-numeric: tabular-nums;
   }
 
   .score {
-    font-family: monospace;
-    color: #6ee7b7;
+    font-family: var(--font-mono);
+    color: var(--success);
     width: 8rem;
+    font-variant-numeric: tabular-nums;
   }
 
   .alts {
-    color: #94a3b8;
+    color: var(--text-secondary);
     max-width: 30vw;
     overflow: hidden;
     text-overflow: ellipsis;

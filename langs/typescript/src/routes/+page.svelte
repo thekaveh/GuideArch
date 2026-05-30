@@ -89,19 +89,12 @@
 {/if}
 
 <style>
-  :global(body) {
-    margin: 0;
-    font-family: system-ui, sans-serif;
-    background: #0f0f11;
-    color: #e8e8ec;
-    overflow: hidden;
-  }
-
   .app-shell {
     display: flex;
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
+    background: var(--bg-page);
   }
 
   .tab-body {
@@ -124,26 +117,26 @@
   }
 
   .modal {
-    background: #1e1e2e;
-    border: 1px solid #3e3e50;
+    background: var(--bg-surface-3);
+    border: 1px solid var(--border-strong);
     border-radius: 8px;
-    padding: 1.5rem 2rem;
+    padding: 24px 32px;
     max-width: 28rem;
     width: 90vw;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   }
 
   .modal-title {
-    margin: 0 0 0.75rem;
-    font-size: 1rem;
-    color: #f87171;
-    font-weight: 700;
+    margin: 0 0 12px;
+    font-size: 16px;
+    color: var(--danger);
+    font-weight: 600;
   }
 
   .modal-body {
-    margin: 0 0 1.25rem;
-    font-size: 0.88rem;
-    color: #e8e8ec;
+    margin: 0 0 20px;
+    font-size: 14px;
+    color: var(--text-primary);
     line-height: 1.5;
     word-break: break-word;
   }
@@ -153,19 +146,20 @@
     justify-content: flex-end;
   }
 
+  /* Primary button — §5.1 */
   .btn-ok {
-    padding: 0.35rem 1.2rem;
-    background: #4f46e5;
-    color: #fff;
+    padding: 8px 16px;
+    background: var(--accent);
+    color: var(--accent-on);
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 14px;
     font-weight: 600;
-    transition: background 0.12s;
+    transition: background 120ms ease-out;
   }
 
   .btn-ok:hover {
-    background: #6366f1;
+    background: var(--accent-hover);
   }
 </style>

@@ -84,9 +84,9 @@
             y={y + 2}
             width={Math.max(1, bw)}
             height={ROW_HEIGHT - 4}
-            fill="#7c3aed"
+            fill="var(--accent)"
             fill-opacity={opacity}
-            stroke={isSelected ? '#c4b5fd' : 'none'}
+            stroke={isSelected ? 'var(--accent-hover)' : 'none'}
             stroke-width={isSelected ? 1.5 : 0}
             class="bar"
             role="button"
@@ -109,15 +109,17 @@
 </div>
 
 <style>
+  /* §5.7 Charts */
   .chart-wrap {
     width: 100%;
     overflow: hidden;
+    background: var(--bg-surface);
   }
 
   .empty {
-    color: #555566;
-    font-size: 0.8rem;
-    padding: 1rem;
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 16px;
     text-align: center;
   }
 
@@ -125,38 +127,41 @@
     display: block;
   }
 
+  /* Grid lines at 50% alpha per §5.7 */
   .axis-line {
-    stroke: #3e3e50;
+    stroke: var(--border-subtle);
     stroke-width: 1;
+    stroke-opacity: 0.5;
   }
 
+  /* Axis labels: text-secondary, 12px per §5.7 */
   .axis-label {
-    fill: #666677;
+    fill: var(--text-secondary);
     font-size: 9px;
   }
 
   .axis-title {
-    fill: #666677;
+    fill: var(--text-secondary);
     font-size: 9px;
   }
 
   .rank-label {
-    fill: #888899;
+    fill: var(--text-secondary);
     font-size: 9px;
   }
 
   .bar {
     cursor: pointer;
     outline: none;
-    transition: fill-opacity 0.1s;
+    transition: fill-opacity 120ms ease-out;
   }
 
   .bar:hover {
-    fill: #9f7aea;
+    fill: var(--accent-hover);
   }
 
   .bar:focus {
-    stroke: #c4b5fd;
+    stroke: var(--accent-hover);
     stroke-width: 1.5px;
   }
 </style>

@@ -46,31 +46,41 @@
 </span>
 
 <style>
+  /* §5.2 Input styling — 32px height, 6px radius, bg-surface-2, border-strong */
   .fuzzy-input {
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    border: 1px solid #3e3e50;
-    border-radius: 4px;
-    padding: 1px 4px;
-    background: #1a1a28;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 0 4px;
+    height: 32px;
+    background: var(--bg-surface-2);
+    transition: border-color 120ms ease-out;
+  }
+
+  .fuzzy-input:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
   }
 
   .fuzzy-input.warn {
-    border-color: #ca8a04;
-    background: #1e1800;
+    border-color: var(--warning);
+    background: color-mix(in srgb, var(--warning) 8%, var(--bg-surface-2));
   }
 
+  /* §5.3 Numeric / monospace for inputs */
   .fnum {
     width: 4.5rem;
     background: transparent;
     border: none;
-    color: #e8e8ec;
-    font-family: monospace;
-    font-size: 0.8rem;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
     text-align: right;
     outline: none;
-    padding: 2px 2px;
+    padding: 0 2px;
   }
 
   /* Remove spinner arrows */
@@ -84,8 +94,8 @@
   }
 
   .dot {
-    color: #555570;
-    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-size: 12px;
     user-select: none;
   }
 </style>

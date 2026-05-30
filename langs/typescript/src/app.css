@@ -1,0 +1,69 @@
+/* GuideArch Design System — Global Tokens & Base Styles */
+
+/* ── §2 Color Tokens ─────────────────────────────────────────────── */
+:root {
+  /* Surface */
+  --bg-page: #0b0d12;
+  --bg-surface: #13161d;
+  --bg-surface-2: #1a1e27;
+  --bg-surface-3: #252a36;
+  --border-subtle: #262b36;
+  --border-strong: #363c4a;
+
+  /* Text */
+  --text-primary: #e6e7ed;
+  --text-secondary: #9298a8;
+  --text-muted: #5e6478;
+  --text-inverse: #0b0d12;
+
+  /* Accent */
+  --accent: #8b5cf6;
+  --accent-hover: #a78bfa;
+  --accent-muted: #3d2a6b;
+  --accent-on: #ffffff;
+
+  /* Semantic */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+
+  /* Fuzzy axes */
+  --fuzzy-positive: #34d399;
+  --fuzzy-average: #fbbf24;
+  --fuzzy-negative: #fb7185;
+
+  /* §3 Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'Cascadia Code', 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+}
+
+/* ── Base Reset / Body ───────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Motion — §7 ────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  transition-duration: 0s; /* components set their own */
+}

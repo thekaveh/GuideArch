@@ -104,15 +104,16 @@
     overflow: hidden;
   }
 
+  /* §8 Empty state */
   .empty {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #555566;
-    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-size: 14px;
     text-align: center;
-    padding: 2rem;
+    padding: 32px;
   }
 
   .grid-wrap {
@@ -121,31 +122,33 @@
     padding: 0;
   }
 
+  /* §5.3 Coefficient matrix table */
   .coeff-table {
     border-collapse: collapse;
-    font-size: 0.82rem;
+    font-size: 13px;
     min-width: 100%;
   }
 
   thead tr {
-    background: #1a1a20;
+    background: var(--bg-surface);
     position: sticky;
     top: 0;
     z-index: 2;
   }
 
   .prop-header {
-    padding: 0.4rem 0.5rem;
-    border-bottom: 1px solid #2e2e38;
-    border-right: 1px solid #2e2e38;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border-subtle);
+    border-right: 1px solid var(--border-subtle);
     min-width: 14rem;
     text-align: center;
+    background: var(--bg-surface);
   }
 
   .prop-name {
-    color: #e8e8ec;
+    color: var(--text-primary);
     font-weight: 600;
-    font-size: 0.82rem;
+    font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -154,100 +157,115 @@
 
   .prop-meta {
     display: flex;
-    gap: 0.3rem;
+    gap: 4px;
     justify-content: center;
     margin-top: 2px;
   }
 
+  /* §5.6 Chip-like badges */
   .kind-badge {
-    padding: 0 0.35rem;
-    background: #1e2a3a;
-    color: #93c5fd;
-    border-radius: 3px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    border: 1px solid #1e3a5a;
+    display: inline-flex;
+    align-items: center;
+    height: 16px;
+    padding: 0 6px;
+    background: color-mix(in srgb, var(--info) 12%, transparent);
+    color: var(--info);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
   }
 
   .kind-badge.max {
-    background: #2a1e3a;
-    color: #c4b5fd;
-    border-color: #3a1e5a;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent-hover);
   }
 
   .weight-badge {
-    padding: 0 0.35rem;
-    background: #1e3a2a;
-    color: #6ee7b7;
-    border-radius: 3px;
-    font-size: 0.7rem;
-    font-family: monospace;
-    border: 1px solid #1e5a3a;
+    display: inline-flex;
+    align-items: center;
+    height: 16px;
+    padding: 0 6px;
+    background: color-mix(in srgb, var(--success) 12%, transparent);
+    color: var(--success);
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: var(--font-mono);
   }
 
   .sticky-col {
     position: sticky;
     left: 0;
     z-index: 1;
-    background: #16161e;
+    background: var(--bg-page);
   }
 
   .group-col {
     min-width: 14rem;
-    padding: 0.4rem 0.65rem;
-    color: #888899;
-    font-weight: 600;
-    border-bottom: 1px solid #2e2e38;
-    border-right: 1px solid #2e2e38;
+    padding: 0 8px;
+    height: 32px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-subtle);
+    border-right: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
   }
 
   .group-row td {
-    background: #1a1a28;
+    background: var(--bg-surface-2);
     z-index: 2;
   }
 
   .group-label {
-    padding: 0.4rem 0.65rem;
-    color: #c4b5fd;
-    font-weight: 700;
-    font-size: 0.84rem;
-    border-bottom: 1px solid #2e2e38;
-    border-right: 1px solid #2e2e38;
+    padding: 0 8px;
+    height: 32px;
+    vertical-align: middle;
+    color: var(--accent-hover);
+    font-weight: 600;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border-subtle);
+    border-right: 1px solid var(--border-subtle);
   }
 
   .alt-label {
-    padding: 0.32rem 0.65rem;
-    border-bottom: 1px solid #22222c;
-    border-right: 1px solid #2e2e38;
-    background: #15151e;
+    padding: 0 8px;
+    height: 36px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-subtle);
+    border-right: 1px solid var(--border-subtle);
+    background: var(--bg-page);
     min-width: 14rem;
   }
 
   .alt-name {
     display: block;
-    color: #e8e8ec;
-    font-size: 0.82rem;
+    color: var(--text-primary);
+    font-size: 13px;
   }
 
   .alt-id {
     display: block;
-    color: #555566;
-    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-family: var(--font-mono);
   }
 
   .coeff-cell {
-    padding: 0.3rem 0.4rem;
-    border-bottom: 1px solid #22222c;
-    border-right: 1px solid #22222c;
+    padding: 4px 6px;
+    height: 36px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-subtle);
+    border-right: 1px solid var(--border-subtle);
     text-align: center;
+    background: var(--bg-page);
   }
 
   .missing {
-    color: #555566;
-    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-size: 13px;
   }
 
   .mono {
-    font-family: monospace;
+    font-family: var(--font-mono);
   }
 </style>

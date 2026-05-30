@@ -95,101 +95,130 @@
   }
 
   .tab-toolbar {
-    padding: 0.6rem 1.25rem;
-    border-bottom: 1px solid #2e2e38;
+    display: flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border-subtle);
     flex-shrink: 0;
+    gap: 8px;
   }
 
+  /* Secondary button — §5.1 */
   .btn-add {
-    padding: 0.3rem 0.85rem;
-    background: #2d4a2d;
-    color: #86efac;
-    border: 1px solid #3a6a3a;
-    border-radius: 4px;
+    height: 28px;
+    padding: 0 16px;
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.82rem;
-    transition: background 0.12s;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 120ms ease-out;
   }
 
   .btn-add:hover {
-    background: #3a5e3a;
+    background: var(--bg-surface-2);
   }
 
+  /* §8 Empty state */
   .empty {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #555566;
-    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-size: 14px;
   }
 
   .table-wrap {
     flex: 1;
     overflow: auto;
-    padding: 0.75rem 1.25rem;
+    padding: 16px 24px;
   }
 
+  /* §5.3 Tables */
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: 13px;
+  }
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
 
   th {
-    padding: 0.45rem 0.65rem;
+    height: 32px;
+    padding: 0 8px;
     text-align: left;
-    color: #888899;
-    font-weight: 600;
-    border-bottom: 1px solid #2e2e38;
-    background: #1a1a20;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
   }
 
   td {
-    padding: 0.35rem 0.65rem;
-    border-bottom: 1px solid #22222c;
+    height: 36px;
+    padding: 0 8px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-page);
+    vertical-align: middle;
   }
 
-  tbody tr:hover {
-    background: #1e1e28;
+  tbody tr:hover td {
+    background: var(--bg-surface-2);
   }
 
+  /* §5.3 Monospace IDs */
   .mono {
-    font-family: monospace;
-    font-size: 0.78rem;
-    color: #888899;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
   }
 
+  /* Inline name input — transparent until focused */
   .name-input {
     background: transparent;
     border: 1px solid transparent;
-    color: #e8e8ec;
-    font-size: 0.85rem;
-    padding: 0.2rem 0.4rem;
-    border-radius: 3px;
+    color: var(--text-primary);
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: 6px;
     width: 100%;
     min-width: 12rem;
-    transition: border-color 0.12s;
+    transition:
+      border-color 120ms ease-out,
+      background 120ms ease-out;
   }
 
   .name-input:focus {
     outline: none;
-    border-color: #4f46e5;
-    background: #1a1a28;
+    border-color: var(--accent);
+    background: var(--bg-surface-2);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
   }
 
+  /* Destructive button — §5.1 */
   .btn-delete {
-    padding: 0.2rem 0.6rem;
-    background: #3d1a1a;
-    color: #f87171;
-    border: 1px solid #6b2020;
-    border-radius: 3px;
+    height: 26px;
+    padding: 0 10px;
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.78rem;
-    transition: background 0.12s;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background 120ms ease-out;
   }
 
   .btn-delete:hover {
-    background: #5a2020;
+    background: color-mix(in srgb, var(--danger) 15%, transparent);
   }
 </style>

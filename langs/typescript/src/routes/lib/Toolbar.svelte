@@ -161,42 +161,51 @@
 </header>
 
 <style>
+  /* §6 Toolbar — 56px tall, 24px horizontal padding */
   .toolbar {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1.25rem;
-    background: #1a1a20;
-    border-bottom: 1px solid #2e2e38;
+    gap: 8px;
+    height: 56px;
+    padding: 0 24px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
     flex-shrink: 0;
   }
 
   .app-name {
-    font-weight: 700;
-    font-size: 1.05rem;
-    color: #a78bfa;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--accent-hover);
     letter-spacing: 0.03em;
-    margin-right: 0.75rem;
+    margin-right: 8px;
   }
 
   .btn-group {
     display: flex;
-    gap: 0.4rem;
+    gap: 8px;
   }
 
+  /* Ghost button — §5.1 */
   .btn {
-    padding: 0.3rem 0.85rem;
-    background: #2d2d3a;
-    color: #e8e8ec;
-    border: 1px solid #3e3e50;
+    padding: 0 12px;
+    height: 32px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.82rem;
-    transition: background 0.12s;
+    font-size: 13px;
+    font-weight: 500;
+    transition:
+      background 120ms ease-out,
+      color 120ms ease-out;
+    white-space: nowrap;
   }
 
   .btn:hover:not(:disabled) {
-    background: #3d3d50;
+    background: var(--bg-surface-2);
+    color: var(--text-primary);
   }
 
   .btn:disabled {
@@ -204,29 +213,35 @@
     cursor: not-allowed;
   }
 
+  /* Primary button — §5.1 — for sample openers */
   .btn-sample {
-    background: #1e3a2f;
-    border-color: #2d6a4f;
-    color: #74c69d;
+    background: var(--accent);
+    color: var(--accent-on);
+    border: none;
+    font-weight: 600;
+    padding: 0 16px;
   }
 
   .btn-sample:hover:not(:disabled) {
-    background: #2d5a3d;
-    border-color: #40916c;
+    background: var(--accent-hover);
+    color: var(--accent-on);
   }
 
   .spacer {
     flex: 1;
   }
 
+  /* Primary button — Solve */
   .btn-solve {
-    background: #4f46e5;
-    border-color: #4f46e5;
+    background: var(--accent);
+    color: var(--accent-on);
+    border: none;
     font-weight: 600;
+    padding: 0 16px;
   }
 
   .btn-solve:hover:not(:disabled) {
-    background: #6366f1;
-    border-color: #6366f1;
+    background: var(--accent-hover);
+    color: var(--accent-on);
   }
 </style>

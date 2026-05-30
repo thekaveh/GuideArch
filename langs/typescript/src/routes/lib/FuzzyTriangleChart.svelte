@@ -6,18 +6,19 @@
   const PADDING = { top: 8, right: 90, bottom: 28, left: 40 };
   const CHART_HEIGHT = 140;
 
-  // Distinct property colors (accent palette)
+  // §5.7 Fuzzy triangle colors — cycle through distinct property colors
+  // First three map to the three fuzzy-axis tokens; rest use accent palette
   const COLORS = [
-    '#7c3aed',
-    '#10b981',
-    '#f59e0b',
-    '#ef4444',
-    '#3b82f6',
-    '#ec4899',
-    '#14b8a6',
-    '#f97316',
-    '#a855f7',
-    '#22c55e',
+    '#8b5cf6', // accent
+    '#34d399', // fuzzy-positive
+    '#fbbf24', // fuzzy-average
+    '#fb7185', // fuzzy-negative
+    '#3b82f6', // info
+    '#10b981', // success
+    '#f59e0b', // warning
+    '#a78bfa', // accent-hover
+    '#ef4444', // danger
+    '#9298a8', // text-secondary
   ];
 
   function seriesColor(i: number): string {
@@ -122,15 +123,17 @@
 </div>
 
 <style>
+  /* §5.7 Charts */
   .chart-wrap {
     width: 100%;
     overflow: hidden;
+    background: var(--bg-surface);
   }
 
   .empty {
-    color: #555566;
-    font-size: 0.8rem;
-    padding: 0.75rem;
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 12px;
     text-align: center;
   }
 
@@ -138,23 +141,26 @@
     display: block;
   }
 
+  /* Grid lines at 50% alpha per §5.7 */
   .axis-line {
-    stroke: #3e3e50;
+    stroke: var(--border-subtle);
     stroke-width: 1;
+    stroke-opacity: 0.5;
   }
 
+  /* Axis labels: text-secondary, 12px per §5.7 */
   .axis-label {
-    fill: #666677;
+    fill: var(--text-secondary);
     font-size: 9px;
   }
 
   .axis-title {
-    fill: #666677;
+    fill: var(--text-secondary);
     font-size: 9px;
   }
 
   .legend-label {
-    fill: #aaaabc;
+    fill: var(--text-secondary);
     font-size: 9px;
   }
 </style>

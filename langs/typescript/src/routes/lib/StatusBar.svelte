@@ -27,45 +27,52 @@
 </footer>
 
 <style>
+  /* §6 Status bar — 32px tall, 24px horizontal padding, 12px text */
   .status-bar {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 1.25rem;
-    background: #13131a;
-    border-top: 1px solid #2e2e38;
-    font-size: 0.78rem;
-    color: #a0a0b0;
+    gap: 8px;
+    height: 32px;
+    padding: 0 24px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-subtle);
+    font-size: 12px;
+    color: var(--text-secondary);
     flex-shrink: 0;
   }
 
   .scenario-name {
     font-weight: 600;
-    color: #c4b5fd;
+    color: var(--accent-hover);
   }
 
   .sep {
     opacity: 0.4;
   }
 
+  /* §5.6 Status chips — 20px tall, 4/8 padding, 10px radius */
   .dirty-chip {
-    padding: 0.1rem 0.45rem;
-    background: #3d2a00;
-    color: #fbbf24;
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 8px;
+    background: color-mix(in srgb, var(--warning) 12%, transparent);
+    color: var(--warning);
     border-radius: 10px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    border: 1px solid #78400a;
+    font-size: 12px;
+    font-weight: 500;
   }
 
   .warn-chip {
-    padding: 0.1rem 0.45rem;
-    background: #2d2000;
-    color: #fcd34d;
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 8px;
+    background: color-mix(in srgb, var(--warning) 12%, transparent);
+    color: var(--warning);
     border-radius: 10px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    border: 1px solid #78400a;
+    font-size: 12px;
+    font-weight: 500;
     cursor: help;
   }
 </style>
