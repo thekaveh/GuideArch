@@ -1,69 +1,108 @@
 # GuideArch
 
-Modern fuzzy multi-criteria decision analysis for software architecture.
+Modern fuzzy multi-criteria decision analysis for software architecture, shipped as three concurrent implementations sharing one spec.
 
-GuideArch helps software architects model a decision space — *decisions*, *alternatives*, quality *properties*, and *constraints* — and ranks the resulting candidate architectures using fuzzy TOPSIS. It identifies which decisions matter most (sensitivity analysis) and which constraints are most binding (elimination counting).
+GuideArch helps software architects pick between competing technology stacks by modeling a decision space — *decisions*, *alternatives*, quality *properties* with priority weights, and three families of *constraints* — and ranking the resulting candidate architectures using fuzzy TOPSIS. It also reports which decisions matter most (sensitivity analysis) and which constraints are most binding (elimination counting).
 
-Three implementations of the same application share one language-neutral spec:
+## 1. Status
 
-| Language | UI Framework | Desktop | Web |
-|---|---|---|---|
-| TypeScript | Svelte 5 + [Tauri 2](https://tauri.app) | ✓ | ✓ |
-| C# | [Avalonia 12](https://avaloniaui.net) | ✓ | ✓ (WebAssembly) |
-| Python | [NiceGUI 3.x](https://nicegui.io) | ✓ (pywebview) | ✓ |
+**Bootstrap (M0). Pre-1.0 — not yet usable as an application.** The repo currently contains three "hello VMx" scaffolds proving wiring across languages, plus the architectural spec and milestone plans. Tag `v0.0.0-bootstrap` marks M0 completion. Domain model, TOPSIS engine, editors, and conformance corpus arrive in M1+ (see [§3 Documentation hub](#3-documentation-hub)).
+
+## 2. What's in the box
+
+Three implementations of the same application, kept in conformance by a shared spec and a cross-impl test corpus.
+
+| # | Language | UI framework | Desktop | Web |
+|---|---|---|---|---|
+| 2.1 | TypeScript | Svelte 5 + [Tauri 2](https://tauri.app) | ✓ | ✓ |
+| 2.2 | C# | [Avalonia 12](https://avaloniaui.net) | ✓ | ✓ (WebAssembly) |
+| 2.3 | Python | [NiceGUI 3.x](https://nicegui.io) | ✓ (pywebview) | ✓ |
 
 All three are built on the [VMx](https://github.com/thekaveh/VMx) MVVM framework, included as a git submodule at `vendor/vmx/`.
 
-## Status
+## 3. Documentation hub
 
-Bootstrap (M0). Not yet usable. See [docs/design/](docs/design/) for the rewrite spec and [docs/plans/](docs/plans/) for the milestone plans.
+Read most-to-least essential. Each link includes when to use it.
 
-## Repository layout
+### 3.1 Architecture & design
+
+- **[Design specification](docs/design/2026-05-29-guidearch-rewrite-design.md)** — the full architectural spec: domain model, TOPSIS algorithm, per-impl design, conformance strategy, GitHub plan, v1 scope, M0–M5 roadmap. *Read this first if you want to understand the project, contribute to design, or evaluate the architecture.*
+
+### 3.2 Milestone plans
+
+- **[M0 — Repo bootstrap](docs/plans/2026-05-30-m0-repo-bootstrap.md)** — the 27-task implementation plan that produced the current state of this repo. *Read this if you want to understand how the scaffolding was assembled, or to mirror the bootstrap structure in another project.*
+- *M1–M5 plans land in [`docs/plans/`](docs/plans/) as each milestone begins.*
+
+### 3.3 Specification & conformance
+
+- **[`spec/`](spec/README.md)** — the language-neutral source of truth that every implementation must satisfy. Currently a skeleton; the scenario JSON schema, formal TOPSIS write-up, and conformance corpus arrive in M1. *Read this when authoring features that touch the domain or algorithm — the spec changes first, then the impls follow.*
+
+### 3.4 Architecture decision records
+
+Numbered rationale for each non-obvious design choice. Read when questioning *why* something is the way it is.
+
+- [ADR-0001 — Three implementations + VMx submodule](spec/ADRs/0001-three-impls-vmx-submodule.md)
+- [ADR-0002 — JSON Schema for scenarios, not legacy XML](spec/ADRs/0002-json-schema-not-xml.md)
+- [ADR-0003 — TOPSIS as in-repo code, no Microsoft Solver Foundation](spec/ADRs/0003-topsis-no-msf.md)
+- [ADR-0004 — MIT license](spec/ADRs/0004-mit-license.md)
+- [ADR-0005 — Single monorepo version](spec/ADRs/0005-single-monorepo-version.md)
+- [ADR-0006 — NiceGUI 3.x for Python, not Shiny](spec/ADRs/0006-nicegui-over-shiny.md)
+
+### 3.5 Contributing & governance
+
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — feature workflow (spec-first, all three impls in lockstep), local development, test layout, code style per language. *Read before opening a PR.*
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1. Report violations to kaveh.razavi@gmail.com.
+- **[SECURITY.md](SECURITY.md)** — private vulnerability reporting.
+
+## 4. Repository layout
 
 ```
-spec/                 language-neutral spec (schema, algorithms, conformance corpus, ADRs)
-vendor/vmx/           VMx submodule
-langs/typescript/     TS + Tauri + Svelte impl
-langs/csharp/         C# + Avalonia impl
-langs/python/         Python + NiceGUI impl
-tools/                cross-cutting scripts
-docs/                 design specs and milestone plans
+spec/                language-neutral spec (schema, algorithms, conformance corpus, ADRs)
+vendor/vmx/          VMx submodule (do not edit directly; PR upstream)
+langs/typescript/    TS + Tauri 2 + Svelte 5 implementation
+langs/csharp/        C# + Avalonia 12 implementation
+langs/python/        Python + NiceGUI 3.x implementation
+tools/               cross-cutting scripts (VMx mode switch, legacy XML import)
+docs/                design specs and milestone plans
+.github/             CI workflows, issue/PR templates, dependabot config
 ```
 
-## Quickstart (per impl)
+## 5. Quickstart
 
-Bootstrap stage — each impl runs a hello-world that imports VMx as a wiring proof.
+Each implementation runs a "hello VMx" page at M0 — useful as a wiring smoke test only.
 
-### TypeScript
+### 5.1 TypeScript (Tauri 2 + Svelte 5)
+
+Requires Node 22+, pnpm, and Rust (for Tauri's native shell).
 
 ```bash
 cd langs/typescript
 pnpm install
-pnpm dev          # browser
-pnpm tauri dev    # desktop
+pnpm dev          # web (browser at http://localhost:1420)
+pnpm tauri dev    # desktop (native window)
 ```
 
-### C#
+### 5.2 C# (Avalonia 12)
+
+Requires .NET 8 SDK or newer (the build targets `net8.0`).
 
 ```bash
 cd langs/csharp
 dotnet build
-dotnet run --project src/GuideArch.View
+dotnet run --project src/GuideArch.View   # desktop window
 ```
 
-### Python
+### 5.3 Python (NiceGUI 3.x)
+
+Requires Python 3.11+ and [uv](https://github.com/astral-sh/uv).
 
 ```bash
 cd langs/python
 uv sync
-uv run guidearch          # web
-uv run guidearch --native # desktop (pywebview)
+uv run guidearch           # web (browser at http://localhost:8080)
+uv run guidearch --native  # desktop (pywebview window)
 ```
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). All implementations must stay in conformance with `spec/conformance/`.
-
-## License
+## 6. License
 
 MIT — see [LICENSE](LICENSE).
