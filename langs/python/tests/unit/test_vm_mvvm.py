@@ -124,7 +124,7 @@ def test_add_decision_add_alt_add_prop_save_reload_preserves_state(
 
     # Verify the file is valid JSON
     saved_data = json.loads(Path(tmp_path).read_text(encoding="utf-8"))
-    assert saved_data["name"] == "New Scenario"
+    assert saved_data["name"] == "New scenario"
 
     # Reload into a fresh VM
     vm2 = make_scenario_vm()

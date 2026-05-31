@@ -114,7 +114,7 @@ def test_new_cmd_clears_scenario(vm: ScenarioVM) -> None:
 
     vm.new_cmd.execute()
     assert vm.scenario is not None
-    assert vm.scenario.name == "New Scenario"
+    assert vm.scenario.name == "New scenario"
     assert vm.candidates == ()
     assert vm.file_path is None
     assert vm.is_dirty is False

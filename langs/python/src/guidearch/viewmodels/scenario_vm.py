@@ -248,7 +248,7 @@ class ScenarioVM:
 
         empty = ScenarioM(
             schema_version="1.0.0",
-            name="New Scenario",
+            name="New scenario",
             description="",
             decisions=(),
             alternatives=(),
@@ -343,9 +343,7 @@ class ScenarioVM:
             self._candidates = solve(scenario)
             self._critical_decisions = critical_decisions(scenario, self._candidates)
             self._critical_constraints = critical_constraints(scenario)
-            self._status = (
-                f"{scenario.name}: {len(self._candidates)} candidate(s)"
-            )
+            self._status = f"Solved: {len(self._candidates)} candidates"
         except Exception as exc:
             self._status = f"Solve error: {exc}"
             self._candidates = ()

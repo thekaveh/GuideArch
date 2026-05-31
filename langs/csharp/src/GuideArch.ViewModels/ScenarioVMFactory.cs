@@ -72,7 +72,7 @@ public static class ScenarioVMFactory
                 Candidates = candidates,
                 CriticalDecisions = critDec,
                 CriticalConstraints = critCon,
-                Status = $"Solved: {candidates.Length} candidates — \"{scenario.Name}\"",
+                Status = $"Solved: {candidates.Length} candidates",
                 SelectedCandidateIndex = newSelIdx
             });
         }
