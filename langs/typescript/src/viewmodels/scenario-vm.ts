@@ -273,8 +273,11 @@ export function makeScenarioVm(): ScenarioVM {
         fs.writeFileSync(filePath, JSON.stringify(persistable, null, 2) + '\n', 'utf-8');
         _setState({ isDirty: false });
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        _setState({ status: `Save failed: ${msg}` });
+        const msg = `Save failed: ${err instanceof Error ? err.message : String(err)}`;
+        // Mirror Python and C#: set status AND append the same message to
+        // warnings so the warnings tray reflects the error along with the
+        // status bar.
+        _setState({ status: msg, warnings: [..._getModel().warnings, msg] });
       }
     })
     .build();
@@ -338,6 +341,9 @@ export function makeScenarioVm(): ScenarioVM {
 
   function updateDecisionName(id: string, name: string): void {
     const s = _requireScenario();
+    if (!s.decisions.some((d) => d.id === id)) {
+      throw new ScenarioMutationError(`Decision '${id}' not found.`);
+    }
     const decisions = s.decisions.map((d) => (d.id === id ? { ...d, name } : d));
     _setState({ scenario: { ...s, decisions }, isDirty: true });
     // Name change does not trigger solve (spec §3.3)
@@ -394,6 +400,9 @@ export function makeScenarioVm(): ScenarioVM {
 
   function updateAlternativeName(id: string, name: string): void {
     const s = _requireScenario();
+    if (!s.alternatives.some((a) => a.id === id)) {
+      throw new ScenarioMutationError(`Alternative '${id}' not found.`);
+    }
     const alternatives = s.alternatives.map((a) => (a.id === id ? { ...a, name } : a));
     _setState({ scenario: { ...s, alternatives }, isDirty: true });
     // Name change doesn't trigger solve

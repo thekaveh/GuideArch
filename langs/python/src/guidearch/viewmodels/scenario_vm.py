@@ -683,10 +683,18 @@ class ScenarioVM:
     # ── Update operations ─────────────────────────────────────────────────────
 
     def update_decision_name(self, decision_id: str, name: str) -> None:
-        """Rename a decision (does not trigger a solve)."""
+        """Rename a decision (does not trigger a solve).
+
+        Raises ScenarioMutationError if `decision_id` is not present in the
+        scenario — matches the C# behavior and the add/delete validators
+        added in commit 4096492 so a UI bug calling rename on a stale id
+        surfaces as an error rather than a silent no-op.
+        """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
+        if not any(d.id == decision_id for d in scenario.decisions):
+            raise ScenarioMutationError(f"Decision '{decision_id}' not found.")
         new_decisions = tuple(
             replace(d, name=name) if d.id == decision_id else d for d in scenario.decisions
         )
@@ -697,10 +705,15 @@ class ScenarioVM:
         self._raise_property_changed("is_dirty")
 
     def update_alternative_name(self, alternative_id: str, name: str) -> None:
-        """Rename an alternative (does not trigger a solve)."""
+        """Rename an alternative (does not trigger a solve).
+
+        Raises ScenarioMutationError on unknown id; see update_decision_name.
+        """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
+        if not any(a.id == alternative_id for a in scenario.alternatives):
+            raise ScenarioMutationError(f"Alternative '{alternative_id}' not found.")
         new_alts = tuple(
             replace(a, name=name) if a.id == alternative_id else a for a in scenario.alternatives
         )
