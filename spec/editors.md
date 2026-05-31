@@ -22,7 +22,7 @@ A persistent app shell hosts:
 
 ## 2. Per-tab editors
 
-All editors operate **on the live `ScenarioM`** via the M2 VM tree. Mutations propagate through the VMx hub; `ScenarioVM` sees property-change messages and triggers `SolveCmd` on a 100 ms debounce. The candidates table on the `Results` tab updates automatically.
+All editors operate **on the live `ScenarioM`** via the M2 VM tree. Mutations propagate through the VMx hub; `ScenarioVM` sees property-change messages and re-runs `SolveCmd` synchronously (per the v1.0 status note in §0 above). The candidates table on the `Results` tab updates automatically.
 
 ### 2.1 Decisions tab
 
@@ -64,7 +64,7 @@ A 2-D editable grid:
 - **Rows**: alternatives, grouped by decision (sticky group headers).
 - **Columns**: properties, each shown with its kind and weight badge.
 - **Cell contents**: three numeric inputs `(lower, modal, upper)` — render compactly as `[L · M · U]`. Soft warning (yellow border) if `lower > modal` or `modal > upper`.
-- **Edit semantics**: typing in any input updates the corresponding `CoefficientM` immediately; solve fires debounced.
+- **Edit semantics**: typing in any input updates the corresponding `CoefficientM` immediately; solve fires synchronously (v1.0 status — see §0).
 
 ### 2.5 Constraints tab
 
@@ -80,7 +80,7 @@ Three sub-tabs: `Threshold`, `Dependency`, `Conflict`.
 | (toolbar) Add Threshold | — | New row with first property selected; min/max empty |
 | (per row) Delete | — | |
 
-Validation per spec invariant 6: at least one of `min`/`max` must be set; if both, `min ≤ max`. Invalid rows highlight red but the impl tolerates them by skipping the constraint at solve time (warn in status bar).
+Validation per spec invariant 6.1 / 6.2: at least one of `min`/`max` must be set, and if both, `min ≤ max`. **Both rules are fatal at load** (invariants.md §6 categorises them as fatal, and the schema enforces 6.1 with an `anyOf` on `[min]`/`[max]`). Editors therefore block the Add/Update path with a `ScenarioMutationError` when these would be violated; the row never persists. Earlier drafts described "highlight red but tolerate at solve time" — that text was wrong; reject at mutation time.
 
 **Dependency sub-tab** — table:
 
@@ -91,7 +91,7 @@ Validation per spec invariant 6: at least one of `min`/`max` must be set; if bot
 | (toolbar) Add Dependency | — | |
 | (per row) Delete | — | |
 
-Self-edges (source == target) are flagged but tolerated.
+Self-edges (source == target) are **fatal** per invariant 7.1; the editor rejects the Add/Update at mutation time with a `ScenarioMutationError`, matching the loader. The row never persists.
 
 **Conflict sub-tab** — same shape as Dependency but with columns `Alternative A`, `Alternative B`.
 

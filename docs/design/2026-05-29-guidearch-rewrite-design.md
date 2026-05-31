@@ -1,6 +1,6 @@
 # GuideArch — Modernized Rewrite Design Spec
 
-**Status:** Design approved, ready for implementation planning
+**Status:** Historical. Approved 2026-05-29 to bootstrap the rewrite; preserved unchanged for archaeology. Where this document and the authoritative spec under `spec/` disagree, **`spec/` wins** — algorithm details (`spec/algorithms/topsis.md`), domain shape (`spec/domain/scenario.schema.json`, `spec/domain/invariants.md`), ViewModel contract (`spec/viewmodels.md`), and editor semantics (`spec/editors.md`) are the v1.0 source of truth. Known drifts: §7 sketched centroid defuzz / descending sort / ±10% sensitivity, but the v1.0 implementation uses lower-vertex defuzz, ascending sort, and `exp(-0.1·rank)` weighting; §4 promised `docs/architecture.md` and other docs that did not materialize; §10 promised hand-crafted synthetic conformance scenarios that were not built.
 **Date:** 2026-05-29
 **Author:** Kaveh Razavi
 
