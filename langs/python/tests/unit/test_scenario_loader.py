@@ -56,9 +56,7 @@ _BASE_SCENARIO: dict[str, Any] = {
 
 
 def _write_scenario(data: dict[str, Any]) -> Path:
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=False, encoding="utf-8"
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
         json.dump(data, f)
         return Path(f.name)
 
@@ -188,9 +186,7 @@ def test_inv7_1_dependency_self_edge() -> None:
 
 def test_inv7_1_conflict_self_edge() -> None:
     s = _clone()
-    s["constraints"] = [
-        {"kind": "conflict", "alternativeAId": "a1", "alternativeBId": "a1"}
-    ]
+    s["constraints"] = [{"kind": "conflict", "alternativeAId": "a1", "alternativeBId": "a1"}]
     path = _write_scenario(s)
     with pytest.raises(ScenarioValidationError, match=re.escape("7.1")):
         load_scenario(path)

@@ -66,9 +66,7 @@ def critical_decisions(
             d_idx = dec_index[d.id]
             alt_id = c.alternative_ids[d_idx]
             alt_contrib = _alt_contribution(alt_id, scenario, coeff, M)
-            dec_contributions[d.id] = dec_contributions[d.id] + (
-                alt_contrib * weight_factor
-            )
+            dec_contributions[d.id] = dec_contributions[d.id] + (alt_contrib * weight_factor)
 
     # -----------------------------------------------------------------------
     # Convert to Z-space, compute PIS/NIS, normalize -- same as §3.6-3.8

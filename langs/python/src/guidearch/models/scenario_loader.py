@@ -92,9 +92,7 @@ def load_scenario(
     # ------------------------------------------------------------------ #
     # Parse raw objects
     # ------------------------------------------------------------------ #
-    decisions = tuple(
-        DecisionM(id=d["id"], name=d["name"]) for d in raw["decisions"]
-    )
+    decisions = tuple(DecisionM(id=d["id"], name=d["name"]) for d in raw["decisions"])
     alternatives = tuple(
         AlternativeM(id=a["id"], decision_id=a["decisionId"], name=a["name"])
         for a in raw["alternatives"]
@@ -192,19 +190,16 @@ def load_scenario(
     for a in alternatives:
         if a.decision_id not in dec_id_set:
             raise ScenarioValidationError(
-                f"Invariant 2.1: alternative '{a.id}' references unknown "
-                f"decision '{a.decision_id}'"
+                f"Invariant 2.1: alternative '{a.id}' references unknown decision '{a.decision_id}'"
             )
     for c in coefficients:
         if c.alternative_id not in alt_id_set:
             raise ScenarioValidationError(
-                f"Invariant 2.2: coefficient references unknown alternative "
-                f"'{c.alternative_id}'"
+                f"Invariant 2.2: coefficient references unknown alternative '{c.alternative_id}'"
             )
         if c.property_id not in prop_id_set:
             raise ScenarioValidationError(
-                f"Invariant 2.3: coefficient references unknown property "
-                f"'{c.property_id}'"
+                f"Invariant 2.3: coefficient references unknown property '{c.property_id}'"
             )
     for con in constraints:
         if isinstance(con, ThresholdConstraint):
@@ -249,8 +244,7 @@ def load_scenario(
         for p_id in prop_ids:
             if (a_id, p_id) not in coeff_pair_set:
                 raise ScenarioValidationError(
-                    f"Invariant 3.1: missing coefficient for "
-                    f"(alternative={a_id}, property={p_id})"
+                    f"Invariant 3.1: missing coefficient for (alternative={a_id}, property={p_id})"
                 )
 
     # ------------------------------------------------------------------ #
@@ -271,9 +265,7 @@ def load_scenario(
     w = config.weights
     for val, label in [(w.positive, "positive"), (w.average, "average"), (w.negative, "negative")]:
         if not (0.0 <= val <= 1.0):
-            raise ScenarioValidationError(
-                f"Invariant 5.2: weight.{label}={val} is outside [0, 1]"
-            )
+            raise ScenarioValidationError(f"Invariant 5.2: weight.{label}={val} is outside [0, 1]")
     w_sum = w.positive + w.average + w.negative
     if abs(w_sum - 1.0) > 1e-9:
         raise ScenarioValidationError(
@@ -291,8 +283,7 @@ def load_scenario(
                 )
             if con.min is not None and con.max is not None and con.min > con.max:
                 raise ScenarioValidationError(
-                    f"Invariant 6.2: threshold constraint[{i}] has min={con.min} > "
-                    f"max={con.max}"
+                    f"Invariant 6.2: threshold constraint[{i}] has min={con.min} > max={con.max}"
                 )
 
     # ------------------------------------------------------------------ #
@@ -305,9 +296,7 @@ def load_scenario(
                 raise ScenarioValidationError(
                     f"Invariant 7.1: dependency constraint[{i}] is a self-edge"
                 )
-            if dec_of.get(con.source_alternative_id) == dec_of.get(
-                con.target_alternative_id
-            ):
+            if dec_of.get(con.source_alternative_id) == dec_of.get(con.target_alternative_id):
                 warnings.append(
                     f"Invariant 7.2: dependency constraint[{i}] connects "
                     f"alternatives of the same decision — rarely meaningful"
@@ -317,9 +306,7 @@ def load_scenario(
                 raise ScenarioValidationError(
                     f"Invariant 7.1: conflict constraint[{i}] is a self-edge"
                 )
-            if dec_of.get(con.alternative_a_id) == dec_of.get(
-                con.alternative_b_id
-            ):
+            if dec_of.get(con.alternative_a_id) == dec_of.get(con.alternative_b_id):
                 warnings.append(
                     f"Invariant 7.2: conflict constraint[{i}] connects "
                     f"alternatives of the same decision — rarely meaningful"

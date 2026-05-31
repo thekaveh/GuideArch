@@ -58,9 +58,7 @@ def _assert_cross_refs_valid(vm: ScenarioVM) -> None:
 
     # 2.3 coefficient.property_id
     for c in s.coefficients:
-        assert c.property_id in prop_ids, (
-            f"Coefficient references missing property {c.property_id}"
-        )
+        assert c.property_id in prop_ids, f"Coefficient references missing property {c.property_id}"
 
     # 2.4/2.5 constraints
     for con in s.constraints:

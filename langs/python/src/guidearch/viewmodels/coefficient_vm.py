@@ -37,9 +37,7 @@ class CoefficientVM(ComponentVMOf[CoefficientM]):
             name=f"coefficient-vm-{model.alternative_id}-{model.property_id}",
             hint="",
             initial_model=model,
-            modeled_hinter=lambda m: (
-                f"[{m.value.lower}, {m.value.modal}, {m.value.upper}]"
-            ),
+            modeled_hinter=lambda m: f"[{m.value.lower}, {m.value.modal}, {m.value.upper}]",
             on_model_changed=None,
             hub=hub,
             dispatcher=dispatcher,

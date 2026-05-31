@@ -140,9 +140,7 @@ class ScenarioVM:
 
         # ── Hub subscription — detect child mutations ────────────────────────
         self._solve_needed: bool = False
-        self._hub_sub = self._hub.messages.subscribe(
-            on_next=self._on_hub_message
-        )
+        self._hub_sub = self._hub.messages.subscribe(on_next=self._on_hub_message)
 
         # ── Commands ─────────────────────────────────────────────────────────
         # solve_cmd trigger: property_changed observable fires when scenario
@@ -157,18 +155,10 @@ class ScenarioVM:
             .build()
         )
 
-        self.new_cmd: RelayCommand = (
-            RelayCommand.builder()
-            .task(self._do_new)
-            .build()
-        )
+        self.new_cmd: RelayCommand = RelayCommand.builder().task(self._do_new).build()
 
         # open_cmd accepts a path parameter (string)
-        self.open_cmd: RelayCommandOfT[str] = (
-            RelayCommandOfT.builder()
-            .task(self._do_open)
-            .build()
-        )
+        self.open_cmd: RelayCommandOfT[str] = RelayCommandOfT.builder().task(self._do_open).build()
 
         # save_cmd — disabled when no file_path
         self.save_cmd: RelayCommand = (
@@ -181,9 +171,7 @@ class ScenarioVM:
 
         # save_as_cmd accepts a path parameter (string)
         self.save_as_cmd: RelayCommandOfT[str] = (
-            RelayCommandOfT.builder()
-            .task(self._do_save_as)
-            .build()
+            RelayCommandOfT.builder().task(self._do_save_as).build()
         )
 
     # ── Observable properties ────────────────────────────────────────────────
@@ -404,9 +392,7 @@ class ScenarioVM:
     def _raise_property_changed(self, property_name: str) -> None:
         self._property_changed_subject.on_next(property_name)
         # Also broadcast on hub for cross-VM subscribers
-        self._hub.send(
-            PropertyChangedMessage.create(self, "scenario-vm", property_name)
-        )
+        self._hub.send(PropertyChangedMessage.create(self, "scenario-vm", property_name))
 
     @staticmethod
     def _write_scenario(scenario: ScenarioM, path: str) -> None:
@@ -485,9 +471,7 @@ class ScenarioVM:
         new_coefficients = tuple(
             c for c in scenario.coefficients if c.alternative_id != alternative_id
         )
-        new_constraints = _remove_constraints_for_alternatives(
-            scenario.constraints, affected_ids
-        )
+        new_constraints = _remove_constraints_for_alternatives(scenario.constraints, affected_ids)
 
         self._apply_scenario_mutation(
             replace(
@@ -511,9 +495,7 @@ class ScenarioVM:
             raise ScenarioMutationError(f"Property '{property_id}' not found.")
 
         new_properties = tuple(p for p in scenario.properties if p.id != property_id)
-        new_coefficients = tuple(
-            c for c in scenario.coefficients if c.property_id != property_id
-        )
+        new_coefficients = tuple(c for c in scenario.coefficients if c.property_id != property_id)
         new_constraints = tuple(
             c
             for c in scenario.constraints
@@ -637,9 +619,7 @@ class ScenarioVM:
         if not any(p.id == property_id for p in scenario.properties):
             raise ScenarioMutationError(f"Property '{property_id}' not found.")
         if min_val is None and max_val is None:
-            raise ScenarioMutationError(
-                "ThresholdConstraint requires at least one of min or max."
-            )
+            raise ScenarioMutationError("ThresholdConstraint requires at least one of min or max.")
         new_c: Constraint = ThresholdConstraint(
             kind="threshold", property_id=property_id, min=min_val, max=max_val
         )
@@ -708,8 +688,7 @@ class ScenarioVM:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         new_decisions = tuple(
-            replace(d, name=name) if d.id == decision_id else d
-            for d in scenario.decisions
+            replace(d, name=name) if d.id == decision_id else d for d in scenario.decisions
         )
         # Name change does not trigger solve — use a lighter update
         self._scenario = replace(scenario, decisions=new_decisions)
@@ -723,8 +702,7 @@ class ScenarioVM:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         new_alts = tuple(
-            replace(a, name=name) if a.id == alternative_id else a
-            for a in scenario.alternatives
+            replace(a, name=name) if a.id == alternative_id else a for a in scenario.alternatives
         )
         self._scenario = replace(scenario, alternatives=new_alts)
         self._is_dirty = True
@@ -746,9 +724,7 @@ class ScenarioVM:
         if weight is not None and weight <= 0:
             # Schema $defs/Property.weight is exclusiveMinimum 0 — match at the
             # mutation boundary instead of letting it surface at save-time only.
-            raise ScenarioMutationError(
-                f"Property weight must be > 0 (got {weight})."
-            )
+            raise ScenarioMutationError(f"Property weight must be > 0 (got {weight}).")
         scenario = self._scenario
         if not any(p.id == property_id for p in scenario.properties):
             raise ScenarioMutationError(f"Property '{property_id}' not found.")
@@ -839,8 +815,7 @@ class ScenarioVM:
             max=c.max if max_val is _UNSET else max_val,  # type: ignore[arg-type]
         )
         new_constraints = tuple(
-            new_c if i == index else old_c
-            for i, old_c in enumerate(scenario.constraints)
+            new_c if i == index else old_c for i, old_c in enumerate(scenario.constraints)
         )
         self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
 
@@ -861,16 +836,11 @@ class ScenarioVM:
             )
         new_c = DependencyConstraint(
             kind="dependency",
-            source_alternative_id=(
-                source_id if source_id is not None else c.source_alternative_id
-            ),
-            target_alternative_id=(
-                target_id if target_id is not None else c.target_alternative_id
-            ),
+            source_alternative_id=(source_id if source_id is not None else c.source_alternative_id),
+            target_alternative_id=(target_id if target_id is not None else c.target_alternative_id),
         )
         new_constraints = tuple(
-            new_c if i == index else old_c
-            for i, old_c in enumerate(scenario.constraints)
+            new_c if i == index else old_c for i, old_c in enumerate(scenario.constraints)
         )
         self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
 
@@ -889,16 +859,11 @@ class ScenarioVM:
             raise ScenarioMutationError(f"Constraint at index {index} is not a ConflictConstraint.")
         new_c = ConflictConstraint(
             kind="conflict",
-            alternative_a_id=(
-                alt_a_id if alt_a_id is not None else c.alternative_a_id
-            ),
-            alternative_b_id=(
-                alt_b_id if alt_b_id is not None else c.alternative_b_id
-            ),
+            alternative_a_id=(alt_a_id if alt_a_id is not None else c.alternative_a_id),
+            alternative_b_id=(alt_b_id if alt_b_id is not None else c.alternative_b_id),
         )
         new_constraints = tuple(
-            new_c if i == index else old_c
-            for i, old_c in enumerate(scenario.constraints)
+            new_c if i == index else old_c for i, old_c in enumerate(scenario.constraints)
         )
         self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
 
@@ -962,8 +927,7 @@ def _scenario_to_dict(scenario: ScenarioM) -> dict[str, Any]:
         "description": scenario.description,
         "decisions": [{"id": d.id, "name": d.name} for d in scenario.decisions],
         "alternatives": [
-            {"id": a.id, "decisionId": a.decision_id, "name": a.name}
-            for a in scenario.alternatives
+            {"id": a.id, "decisionId": a.decision_id, "name": a.name} for a in scenario.alternatives
         ],
         "properties": [
             {"id": p.id, "name": p.name, "kind": p.kind, "weight": p.weight}

@@ -67,9 +67,7 @@ def critical_constraints(scenario: ScenarioM) -> tuple[CriticalConstraintM, ...]
         alts_by_dec.setdefault(a.decision_id, []).append(a.id)
 
     pools: list[list[str]] = [alts_by_dec.get(d.id, []) for d in scenario.decisions]
-    unconstrained: list[tuple[str, ...]] = [
-        tuple(combo) for combo in itertools.product(*pools)
-    ]
+    unconstrained: list[tuple[str, ...]] = [tuple(combo) for combo in itertools.product(*pools)]
     total = len(unconstrained)
 
     coeff: dict[tuple[str, str], TriangularFuzzyM] = {
@@ -80,9 +78,7 @@ def critical_constraints(scenario: ScenarioM) -> tuple[CriticalConstraintM, ...]
     results: list[CriticalConstraintM] = []
     for idx, constraint in enumerate(scenario.constraints):
         passed = sum(
-            1
-            for c in unconstrained
-            if _apply_single_constraint(c, constraint, coeff, prop_kind)
+            1 for c in unconstrained if _apply_single_constraint(c, constraint, coeff, prop_kind)
         )
         eliminated = total - passed
         results.append(

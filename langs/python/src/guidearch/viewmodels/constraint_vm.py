@@ -130,9 +130,7 @@ class ConflictConstraintVM(ComponentVMOf[ConflictConstraint]):
             name=f"conflict-constraint-vm-{index}",
             hint="",
             initial_model=model,
-            modeled_hinter=lambda m: (
-                f"conflict({m.alternative_a_id} ✗ {m.alternative_b_id})"
-            ),
+            modeled_hinter=lambda m: f"conflict({m.alternative_a_id} ✗ {m.alternative_b_id})",
             on_model_changed=None,
             hub=hub,
             dispatcher=dispatcher,

@@ -726,7 +726,7 @@ dev = [
 ]
 
 [package.dev-dependencies]
-dev = [
+visual = [
     { name = "playwright" },
     { name = "pytest-playwright" },
 ]
@@ -745,7 +745,7 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [
+visual = [
     { name = "playwright", specifier = ">=1.60.0" },
     { name = "pytest-playwright", specifier = ">=0.8.0" },
 ]

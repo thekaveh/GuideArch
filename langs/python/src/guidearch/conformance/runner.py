@@ -61,9 +61,7 @@ def _compare_tfm(
 ) -> None:
     for key in ("lower", "modal", "upper"):
         if not _float_close(exp[key], act[key]):
-            diffs.append(
-                Difference(scenario, kind, idx, f"{prefix}.{key}", exp[key], act[key])
-            )
+            diffs.append(Difference(scenario, kind, idx, f"{prefix}.{key}", exp[key], act[key]))
 
 
 def _compare_nfm(
@@ -77,9 +75,7 @@ def _compare_nfm(
 ) -> None:
     for key in ("positive", "average", "negative"):
         if not _float_close(exp[key], act[key]):
-            diffs.append(
-                Difference(scenario, kind, idx, f"{prefix}.{key}", exp[key], act[key])
-            )
+            diffs.append(Difference(scenario, kind, idx, f"{prefix}.{key}", exp[key], act[key]))
 
 
 def _compare_candidates(
@@ -90,34 +86,42 @@ def _compare_candidates(
 ) -> None:
     kind = "candidates"
     if len(exp_list) != len(act_list):
-        diffs.append(
-            Difference(scenario, kind, -1, "count", len(exp_list), len(act_list))
-        )
+        diffs.append(Difference(scenario, kind, -1, "count", len(exp_list), len(act_list)))
         return
     for i, (exp, act) in enumerate(zip(exp_list, act_list, strict=True)):
         if exp["alternativeIds"] != act["alternativeIds"]:
             diffs.append(
                 Difference(
-                    scenario, kind, i, "alternativeIds",
-                    exp["alternativeIds"], act["alternativeIds"],
+                    scenario,
+                    kind,
+                    i,
+                    "alternativeIds",
+                    exp["alternativeIds"],
+                    act["alternativeIds"],
                 )
             )
         _compare_tfm(
-            exp["triangularValue"], act["triangularValue"],
-            diffs, scenario, kind, i, "triangularValue",
+            exp["triangularValue"],
+            act["triangularValue"],
+            diffs,
+            scenario,
+            kind,
+            i,
+            "triangularValue",
         )
         _compare_nfm(
-            exp["normalizedValue"], act["normalizedValue"],
-            diffs, scenario, kind, i, "normalizedValue",
+            exp["normalizedValue"],
+            act["normalizedValue"],
+            diffs,
+            scenario,
+            kind,
+            i,
+            "normalizedValue",
         )
         if not _float_close(exp["score"], act["score"]):
-            diffs.append(
-                Difference(scenario, kind, i, "score", exp["score"], act["score"])
-            )
+            diffs.append(Difference(scenario, kind, i, "score", exp["score"], act["score"]))
         if exp["rank"] != act["rank"]:
-            diffs.append(
-                Difference(scenario, kind, i, "rank", exp["rank"], act["rank"])
-            )
+            diffs.append(Difference(scenario, kind, i, "rank", exp["rank"], act["rank"]))
 
 
 def _compare_critical_decisions(
@@ -128,34 +132,42 @@ def _compare_critical_decisions(
 ) -> None:
     kind = "critical-decisions"
     if len(exp_list) != len(act_list):
-        diffs.append(
-            Difference(scenario, kind, -1, "count", len(exp_list), len(act_list))
-        )
+        diffs.append(Difference(scenario, kind, -1, "count", len(exp_list), len(act_list)))
         return
     for i, (exp, act) in enumerate(zip(exp_list, act_list, strict=True)):
         if exp["decisionId"] != act["decisionId"]:
             diffs.append(
                 Difference(
-                    scenario, kind, i, "decisionId",
-                    exp["decisionId"], act["decisionId"],
+                    scenario,
+                    kind,
+                    i,
+                    "decisionId",
+                    exp["decisionId"],
+                    act["decisionId"],
                 )
             )
         _compare_tfm(
-            exp["triangularValue"], act["triangularValue"],
-            diffs, scenario, kind, i, "triangularValue",
+            exp["triangularValue"],
+            act["triangularValue"],
+            diffs,
+            scenario,
+            kind,
+            i,
+            "triangularValue",
         )
         _compare_nfm(
-            exp["normalizedValue"], act["normalizedValue"],
-            diffs, scenario, kind, i, "normalizedValue",
+            exp["normalizedValue"],
+            act["normalizedValue"],
+            diffs,
+            scenario,
+            kind,
+            i,
+            "normalizedValue",
         )
         if not _float_close(exp["score"], act["score"]):
-            diffs.append(
-                Difference(scenario, kind, i, "score", exp["score"], act["score"])
-            )
+            diffs.append(Difference(scenario, kind, i, "score", exp["score"], act["score"]))
         if exp["rank"] != act["rank"]:
-            diffs.append(
-                Difference(scenario, kind, i, "rank", exp["rank"], act["rank"])
-            )
+            diffs.append(Difference(scenario, kind, i, "rank", exp["rank"], act["rank"]))
 
 
 def _compare_critical_constraints(
@@ -166,16 +178,12 @@ def _compare_critical_constraints(
 ) -> None:
     kind = "critical-constraints"
     if len(exp_list) != len(act_list):
-        diffs.append(
-            Difference(scenario, kind, -1, "count", len(exp_list), len(act_list))
-        )
+        diffs.append(Difference(scenario, kind, -1, "count", len(exp_list), len(act_list)))
         return
     for i, (exp, act) in enumerate(zip(exp_list, act_list, strict=True)):
         for field in ("constraintIndex", "kind", "eliminated", "total", "redundant"):
             if exp[field] != act[field]:
-                diffs.append(
-                    Difference(scenario, kind, i, field, exp[field], act[field])
-                )
+                diffs.append(Difference(scenario, kind, i, field, exp[field], act[field]))
 
 
 def run_conformance(spec_dir: Path = _SPEC_DIR) -> list[Difference]:
@@ -211,8 +219,12 @@ def run_conformance(spec_dir: Path = _SPEC_DIR) -> list[Difference]:
         else:
             all_diffs.append(
                 Difference(
-                    name, "candidates", -1, "expected_file",
-                    str(cand_exp_path), "missing",
+                    name,
+                    "candidates",
+                    -1,
+                    "expected_file",
+                    str(cand_exp_path),
+                    "missing",
                 )
             )
 
@@ -222,8 +234,12 @@ def run_conformance(spec_dir: Path = _SPEC_DIR) -> list[Difference]:
         else:
             all_diffs.append(
                 Difference(
-                    name, "critical-decisions", -1, "expected_file",
-                    str(cd_exp_path), "missing",
+                    name,
+                    "critical-decisions",
+                    -1,
+                    "expected_file",
+                    str(cd_exp_path),
+                    "missing",
                 )
             )
 
@@ -233,8 +249,12 @@ def run_conformance(spec_dir: Path = _SPEC_DIR) -> list[Difference]:
         else:
             all_diffs.append(
                 Difference(
-                    name, "critical-constraints", -1, "expected_file",
-                    str(cc_exp_path), "missing",
+                    name,
+                    "critical-constraints",
+                    -1,
+                    "expected_file",
+                    str(cc_exp_path),
+                    "missing",
                 )
             )
 

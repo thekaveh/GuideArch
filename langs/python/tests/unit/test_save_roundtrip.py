@@ -28,9 +28,7 @@ def vm() -> Generator[ScenarioVM, None, None]:
     v.dispose()
 
 
-def test_save_roundtrip_persists_property_weight(
-    vm: ScenarioVM, tmp_path: Path
-) -> None:
+def test_save_roundtrip_persists_property_weight(vm: ScenarioVM, tmp_path: Path) -> None:
     """Edit a property weight, save, reload, assert the change is present."""
     s = vm.scenario
     assert s is not None

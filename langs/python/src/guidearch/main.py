@@ -114,9 +114,7 @@ def _download_scenario(vm: ScenarioVM) -> None:
 
     data = _scenario_to_dict(vm.scenario)
     buf = io.BytesIO(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False).encode())
-    filename = (
-        Path(vm.file_path).name if vm.file_path else "scenario.json"
-    )
+    filename = Path(vm.file_path).name if vm.file_path else "scenario.json"
     ui.download(buf.read(), filename)
 
 
@@ -169,31 +167,25 @@ def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
         return
 
     # §5.5 Cards: bg-surface, border-strong, 8px radius, 16px padding
-    _dec_card_cls = (
-        "w-full mb-2 bg-[var(--bg-surface)] border border-[var(--border-strong)]"
-    )
+    _dec_card_cls = "w-full mb-2 bg-[var(--bg-surface)] border border-[var(--border-strong)]"
     _dec_row_cls = "items-center gap-3 w-full"
     for dec in scenario.decisions:
         with ui.card().classes(_dec_card_cls), ui.row().classes(_dec_row_cls):
-                name_input = (
-                    ui.input(value=dec.name)
-                    .props("dense outlined dark")
-                    .classes("flex-1 font-medium")
-                )
-                name_input.on(
-                    "blur",
-                    lambda e, d=dec, ni=name_input: _do_update_decision_name(
-                        vm, d.id, ni.value, _refresh
-                    ),
-                )
-                # §3 Code/ID: 12px monospace
-                ui.label(f"id: {dec.id[:8]}…").classes(
-                    "text-xs text-[var(--text-muted)] font-mono"
-                )
-                ui.button(
-                    icon="delete",
-                    on_click=lambda d=dec: _do_delete_decision(vm, d.id, _refresh),
-                ).props("flat color=negative dense")
+            name_input = (
+                ui.input(value=dec.name).props("dense outlined dark").classes("flex-1 font-medium")
+            )
+            name_input.on(
+                "blur",
+                lambda e, d=dec, ni=name_input: _do_update_decision_name(
+                    vm, d.id, ni.value, _refresh
+                ),
+            )
+            # §3 Code/ID: 12px monospace
+            ui.label(f"id: {dec.id[:8]}…").classes("text-xs text-[var(--text-muted)] font-mono")
+            ui.button(
+                icon="delete",
+                on_click=lambda d=dec: _do_delete_decision(vm, d.id, _refresh),
+            ).props("flat color=negative dense")
 
 
 def _do_add_decision(vm: ScenarioVM, refresh: Any) -> None:
@@ -210,9 +202,7 @@ def _do_add_decision(vm: ScenarioVM, refresh: Any) -> None:
         ui.notify(str(exc), color="negative")
 
 
-def _do_update_decision_name(
-    vm: ScenarioVM, decision_id: str, name: str, refresh: Any
-) -> None:
+def _do_update_decision_name(vm: ScenarioVM, decision_id: str, name: str, refresh: Any) -> None:
     try:
         vm.update_decision_name(decision_id, name.strip() or "Decision")
         refresh()
@@ -229,8 +219,9 @@ def _do_delete_decision(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    with ui.dialog() as dlg, ui.card().classes(
-        "bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"
+    with (
+        ui.dialog() as dlg,
+        ui.card().classes("bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"),
     ):
         ui.label("Delete this decision and all its alternatives?").classes(
             "text-[var(--text-primary)] text-base mb-4"
@@ -263,9 +254,7 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
         with container:
             _render_alternatives_tab(vm, container)
 
-    ui.label("Alternatives").classes(
-        "text-base font-semibold text-[var(--text-primary)] mb-3"
-    )
+    ui.label("Alternatives").classes("text-base font-semibold text-[var(--text-primary)] mb-3")
 
     if not scenario.decisions:
         ui.label("Add decisions first.").classes("text-[var(--text-muted)]")
@@ -287,17 +276,13 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
                 ).props("flat color=secondary dense")
 
             if not dec_alts:
-                ui.label("No alternatives.").classes(
-                    "text-[var(--text-muted)] text-sm py-2 pl-4"
-                )
+                ui.label("No alternatives.").classes("text-[var(--text-muted)] text-sm py-2 pl-4")
                 continue
 
             for alt in dec_alts:
                 with ui.row().classes("items-center gap-3 w-full pl-4 py-1"):
                     name_input = (
-                        ui.input(value=alt.name)
-                        .props("dense outlined dark")
-                        .classes("flex-1")
+                        ui.input(value=alt.name).props("dense outlined dark").classes("flex-1")
                     )
                     name_input.on(
                         "blur",
@@ -323,9 +308,7 @@ def _do_add_alternative(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
         ui.notify(str(exc), color="negative")
 
 
-def _do_update_alternative_name(
-    vm: ScenarioVM, alt_id: str, name: str, refresh: Any
-) -> None:
+def _do_update_alternative_name(vm: ScenarioVM, alt_id: str, name: str, refresh: Any) -> None:
     try:
         vm.update_alternative_name(alt_id, name.strip() or "Alternative")
         refresh()
@@ -342,8 +325,9 @@ def _do_delete_alternative(vm: ScenarioVM, alt_id: str, refresh: Any) -> None:
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    with ui.dialog() as dlg, ui.card().classes(
-        "bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"
+    with (
+        ui.dialog() as dlg,
+        ui.card().classes("bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"),
     ):
         ui.label("Delete this alternative and its coefficients?").classes(
             "text-[var(--text-primary)] text-base mb-4"
@@ -387,68 +371,64 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
         return
 
     # §5.5 Cards: bg-surface, border-strong, 8px radius, 16px padding
-    _prop_card_cls = (
-        "w-full mb-2 bg-[var(--bg-surface)] border border-[var(--border-strong)]"
-    )
+    _prop_card_cls = "w-full mb-2 bg-[var(--bg-surface)] border border-[var(--border-strong)]"
     _prop_row_cls = "items-center gap-3 w-full flex-wrap"
     for prop in scenario.properties:
         with ui.card().classes(_prop_card_cls), ui.row().classes(_prop_row_cls):
-                name_input = (
-                    ui.input(value=prop.name, label="Name")
-                    .props("dense outlined dark")
-                    .classes("flex-1 min-w-32")
-                )
-                name_input.on(
-                    "blur",
-                    lambda e, p=prop, ni=name_input: _do_update_property(
-                        vm, p.id, name=ni.value, refresh=_refresh
-                    ),
-                )
+            name_input = (
+                ui.input(value=prop.name, label="Name")
+                .props("dense outlined dark")
+                .classes("flex-1 min-w-32")
+            )
+            name_input.on(
+                "blur",
+                lambda e, p=prop, ni=name_input: _do_update_property(
+                    vm, p.id, name=ni.value, refresh=_refresh
+                ),
+            )
 
-                kind_select = (
-                    ui.select(
-                        options=["min", "max"],
-                        value=prop.kind,
-                        label="Kind",
-                    )
-                    .props("dense outlined dark")
-                    .classes("w-24")
+            kind_select = (
+                ui.select(
+                    options=["min", "max"],
+                    value=prop.kind,
+                    label="Kind",
                 )
-                kind_select.on(
-                    "update:model-value",
-                    lambda e, p=prop, ks=kind_select: _do_update_property(
-                        vm, p.id, kind=ks.value, refresh=_refresh
-                    ),
-                )
+                .props("dense outlined dark")
+                .classes("w-24")
+            )
+            kind_select.on(
+                "update:model-value",
+                lambda e, p=prop, ks=kind_select: _do_update_property(
+                    vm, p.id, kind=ks.value, refresh=_refresh
+                ),
+            )
 
-                weight_input = (
-                    ui.number(
-                        value=prop.weight,
-                        label="Weight",
-                        min=0.0001,
-                        step=0.5,
-                        format="%.4g",
-                    )
-                    .props("dense outlined dark")
-                    .classes("w-28")
+            weight_input = (
+                ui.number(
+                    value=prop.weight,
+                    label="Weight",
+                    min=0.0001,
+                    step=0.5,
+                    format="%.4g",
                 )
-                weight_input.on(
-                    "blur",
-                    lambda e, p=prop, wi=weight_input: _do_update_property(
-                        vm,
-                        p.id,
-                        weight=float(wi.value) if wi.value else p.weight,
-                        refresh=_refresh,
-                    ),
-                )
+                .props("dense outlined dark")
+                .classes("w-28")
+            )
+            weight_input.on(
+                "blur",
+                lambda e, p=prop, wi=weight_input: _do_update_property(
+                    vm,
+                    p.id,
+                    weight=float(wi.value) if wi.value else p.weight,
+                    refresh=_refresh,
+                ),
+            )
 
-                ui.label(f"id: {prop.id[:8]}…").classes(
-                    "text-xs text-[var(--text-muted)] font-mono"
-                )
-                ui.button(
-                    icon="delete",
-                    on_click=lambda p=prop: _do_delete_property(vm, p.id, _refresh),
-                ).props("flat color=negative dense")
+            ui.label(f"id: {prop.id[:8]}…").classes("text-xs text-[var(--text-muted)] font-mono")
+            ui.button(
+                icon="delete",
+                on_click=lambda p=prop: _do_delete_property(vm, p.id, _refresh),
+            ).props("flat color=negative dense")
 
 
 def _do_add_property(vm: ScenarioVM, refresh: Any) -> None:
@@ -489,8 +469,9 @@ def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    with ui.dialog() as dlg, ui.card().classes(
-        "bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"
+    with (
+        ui.dialog() as dlg,
+        ui.card().classes("bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"),
     ):
         ui.label("Delete this property and its coefficients?").classes(
             "text-[var(--text-primary)] text-base mb-4"
@@ -515,9 +496,9 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
             ui.label("No scenario loaded.").classes(
                 "text-[var(--text-secondary)] text-sm font-medium"
             )
-            ui.markdown(
-                "Click **Open Sample SAS** in the toolbar to try the example."
-            ).classes("text-[var(--text-muted)] text-xs")
+            ui.markdown("Click **Open Sample SAS** in the toolbar to try the example.").classes(
+                "text-[var(--text-muted)] text-xs"
+            )
         return
 
     if not scenario.properties or not scenario.alternatives:
@@ -547,15 +528,11 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
     ui.label("Coefficients (fuzzy matrix)").classes(
         "text-base font-semibold text-[var(--text-primary)] mb-2"
     )
-    ui.label("Format: lower · modal · upper").classes(
-        "text-xs text-[var(--text-muted)] mb-3"
-    )
+    ui.label("Format: lower · modal · upper").classes("text-xs text-[var(--text-muted)] mb-3")
 
     with ui.scroll_area().style("height: calc(100vh - 220px)").classes("w-full"):
         # §5.3 Table header: bg-surface, text-secondary, 12px, 32px row height, sticky
-        with ui.row().classes(
-            "gap-1 mb-1 bg-[var(--bg-surface)] pb-1"
-        ):
+        with ui.row().classes("gap-1 mb-1 bg-[var(--bg-surface)] pb-1"):
             ui.label("Alternative").classes(
                 "font-semibold text-[var(--text-secondary)] w-44 text-xs"
             )
@@ -575,25 +552,17 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
             if not dec_alts:
                 continue
             # Group header: bg-surface-2
-            with ui.row().classes(
-                "w-full bg-[var(--bg-surface-2)] rounded px-2 py-1 mb-1"
-            ):
-                ui.label(dec.name).classes(
-                    "font-semibold text-[var(--text-primary)] text-sm"
-                )
+            with ui.row().classes("w-full bg-[var(--bg-surface-2)] rounded px-2 py-1 mb-1"):
+                ui.label(dec.name).classes("font-semibold text-[var(--text-primary)] text-sm")
 
             for alt in dec_alts:
                 # §5.3 Body rows: 36px height, border-subtle between rows
                 with ui.row().classes("gap-1 mb-1 items-center"):
-                    ui.label(alt.name).classes(
-                        "text-[var(--text-primary)] text-sm w-44 truncate"
-                    )
+                    ui.label(alt.name).classes("text-[var(--text-primary)] text-sm w-44 truncate")
                     for prop in props:
                         coef = coef_map.get((alt.id, prop.id))
                         if coef is None:
-                            ui.label("—").classes(
-                                "w-36 text-center text-[var(--text-muted)]"
-                            )
+                            ui.label("—").classes("w-36 text-center text-[var(--text-muted)]")
                             continue
 
                         lower_v = coef.value.lower
@@ -618,9 +587,7 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
                                 .props("dense dark borderless")
                                 .classes("w-10 font-mono text-xs")
                             )
-                            ui.label("·").classes(
-                                "text-[var(--text-muted)] text-xs"
-                            )
+                            ui.label("·").classes("text-[var(--text-muted)] text-xs")
                             m_in = (
                                 ui.number(
                                     value=modal_v,
@@ -630,9 +597,7 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
                                 .props("dense dark borderless")
                                 .classes("w-10 font-mono text-xs")
                             )
-                            ui.label("·").classes(
-                                "text-[var(--text-muted)] text-xs"
-                            )
+                            ui.label("·").classes("text-[var(--text-muted)] text-xs")
                             u_in = (
                                 ui.number(
                                     value=upper_v,
@@ -667,9 +632,7 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
 
                             return _handler
 
-                        handler = _make_blur_handler(
-                            alt.id, prop.id, l_in, m_in, u_in, _refresh
-                        )
+                        handler = _make_blur_handler(alt.id, prop.id, l_in, m_in, u_in, _refresh)
                         l_in.on("blur", handler)
                         m_in.on("blur", handler)
                         u_in.on("blur", handler)
@@ -687,9 +650,9 @@ def _render_constraints_tab(vm: ScenarioVM, container: Any) -> None:
             ui.label("No scenario loaded.").classes(
                 "text-[var(--text-secondary)] text-sm font-medium"
             )
-            ui.markdown(
-                "Click **Open Sample SAS** in the toolbar to try the example."
-            ).classes("text-[var(--text-muted)] text-xs")
+            ui.markdown("Click **Open Sample SAS** in the toolbar to try the example.").classes(
+                "text-[var(--text-muted)] text-xs"
+            )
         return
 
     def _refresh() -> None:
@@ -728,9 +691,7 @@ def _render_threshold_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
             ).props("flat color=secondary")
 
     threshold_cs = [
-        (i, c)
-        for i, c in enumerate(scenario.constraints)
-        if isinstance(c, ThresholdConstraint)
+        (i, c) for i, c in enumerate(scenario.constraints) if isinstance(c, ThresholdConstraint)
     ]
 
     if not threshold_cs:
@@ -740,9 +701,7 @@ def _render_threshold_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
     for idx, c in threshold_cs:
         invalid = c.min is not None and c.max is not None and c.min > c.max
         # §2.4 danger for invalid range, border-strong otherwise
-        card_border = (
-            "border-[var(--danger)]" if invalid else "border-[var(--border-strong)]"
-        )
+        card_border = "border-[var(--danger)]" if invalid else "border-[var(--border-strong)]"
         with ui.card().classes(  # noqa: SIM117
             f"w-full mb-2 bg-[var(--bg-surface)] border {card_border}"
         ):
@@ -863,9 +822,7 @@ def _render_dependency_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
             ).props("flat color=secondary")
 
     dep_cs = [
-        (i, c)
-        for i, c in enumerate(scenario.constraints)
-        if isinstance(c, DependencyConstraint)
+        (i, c) for i, c in enumerate(scenario.constraints) if isinstance(c, DependencyConstraint)
     ]
 
     if not dep_cs:
@@ -874,9 +831,7 @@ def _render_dependency_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
 
     for idx, c in dep_cs:
         self_edge = c.source_alternative_id == c.target_alternative_id
-        card_border = (
-            "border-[var(--warning)]" if self_edge else "border-[var(--border-strong)]"
-        )
+        card_border = "border-[var(--warning)]" if self_edge else "border-[var(--border-strong)]"
         with ui.card().classes(  # noqa: SIM117
             f"w-full mb-2 bg-[var(--bg-surface)] border {card_border}"
         ):
@@ -924,9 +879,7 @@ def _render_dependency_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
                 ).props("flat color=negative dense")
 
 
-def _do_add_dependency(
-    vm: ScenarioVM, src: str, tgt: str, refresh: Any
-) -> None:
+def _do_add_dependency(vm: ScenarioVM, src: str, tgt: str, refresh: Any) -> None:
     try:
         vm.add_dependency_constraint(src, tgt)
         _schedule_solve()
@@ -968,9 +921,7 @@ def _render_conflict_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
             ).props("flat color=secondary")
 
     conf_cs = [
-        (i, c)
-        for i, c in enumerate(scenario.constraints)
-        if isinstance(c, ConflictConstraint)
+        (i, c) for i, c in enumerate(scenario.constraints) if isinstance(c, ConflictConstraint)
     ]
 
     if not conf_cs:
@@ -979,9 +930,7 @@ def _render_conflict_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
 
     for idx, c in conf_cs:
         self_edge = c.alternative_a_id == c.alternative_b_id
-        card_border = (
-            "border-[var(--warning)]" if self_edge else "border-[var(--border-strong)]"
-        )
+        card_border = "border-[var(--warning)]" if self_edge else "border-[var(--border-strong)]"
         with ui.card().classes(  # noqa: SIM117
             f"w-full mb-2 bg-[var(--bg-surface)] border {card_border}"
         ):
@@ -1088,9 +1037,9 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
             ui.label("No scenario loaded.").classes(
                 "text-[var(--text-secondary)] text-sm font-medium"
             )
-            ui.markdown(
-                "Click **Open Sample SAS** in the toolbar to try the example."
-            ).classes("text-[var(--text-muted)] text-xs")
+            ui.markdown("Click **Open Sample SAS** in the toolbar to try the example.").classes(
+                "text-[var(--text-muted)] text-xs"
+            )
         return
 
     candidates = vm.candidates
@@ -1099,9 +1048,9 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
             ui.label("No candidates — check scenario and constraints.").classes(
                 "text-[var(--text-secondary)] text-sm font-medium"
             )
-            ui.label(
-                "All architecture combinations may be eliminated by constraints."
-            ).classes("text-[var(--text-muted)] text-xs")
+            ui.label("All architecture combinations may be eliminated by constraints.").classes(
+                "text-[var(--text-muted)] text-xs"
+            )
         return
 
     alt_map, alt_dec, _ = _build_alt_maps(vm)
@@ -1113,17 +1062,25 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
     # ── Candidates table columns/rows (left pane) ────────────────────────────
     columns: list[dict[str, Any]] = [
         {
-            "name": "rank", "label": "#", "field": "rank",
-            "align": "right", "sortable": True,
+            "name": "rank",
+            "label": "#",
+            "field": "rank",
+            "align": "right",
+            "sortable": True,
             "style": "width: 48px; font-variant-numeric: tabular-nums;",
         },
         {
-            "name": "score", "label": "Score", "field": "score",
-            "align": "right", "sortable": True,
+            "name": "score",
+            "label": "Score",
+            "field": "score",
+            "align": "right",
+            "sortable": True,
             "style": "width: 90px; font-variant-numeric: tabular-nums;",
         },
         {
-            "name": "alternatives", "label": "Alternatives", "field": "alternatives",
+            "name": "alternatives",
+            "label": "Alternatives",
+            "field": "alternatives",
             "align": "left",
         },
     ]
@@ -1132,9 +1089,9 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
     with ui.row().classes("w-full gap-4 items-start"):
         # Left: table (~58%)
         with ui.column().classes("flex-1 min-w-0"):
-            ui.label(
-                f"Top {len(top50)} of {len(candidates)} ranked candidates"
-            ).classes("text-sm font-semibold text-[var(--text-primary)] mb-2")
+            ui.label(f"Top {len(top50)} of {len(candidates)} ranked candidates").classes(
+                "text-sm font-semibold text-[var(--text-primary)] mb-2"
+            )
 
             sel_idx = vm.selected_candidate_index
             # Build rows with selection highlight
@@ -1160,9 +1117,11 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                     }
                 )
 
-            tbl = ui.table(columns=columns, rows=sel_rows, row_key="rank").classes(
-                "w-full max-h-screen overflow-y-auto"
-            ).props("dark dense flat")
+            tbl = (
+                ui.table(columns=columns, rows=sel_rows, row_key="rank")
+                .classes("w-full max-h-screen overflow-y-auto")
+                .props("dark dense flat")
+            )
 
             # Row click selects candidate
             tbl.on(
@@ -1218,9 +1177,7 @@ def _on_candidate_row_click(vm: ScenarioVM, event: Any) -> None:
     vm.selected_candidate_index = rank
 
 
-def _on_chart_a_click(
-    vm: ScenarioVM, top_candidates: tuple[Any, ...], event: Any
-) -> None:
+def _on_chart_a_click(vm: ScenarioVM, top_candidates: tuple[Any, ...], event: Any) -> None:
     """Handle ECharts click on Chart A bar: set selected_candidate_index.
 
     ECharts passes back `event.args` whose `dataIndex` is the bar index
@@ -1247,9 +1204,9 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
             ui.label("No scenario loaded.").classes(
                 "text-[var(--text-secondary)] text-sm font-medium"
             )
-            ui.markdown(
-                "Click **Open Sample SAS** in the toolbar to try the example."
-            ).classes("text-[var(--text-muted)] text-xs")
+            ui.markdown("Click **Open Sample SAS** in the toolbar to try the example.").classes(
+                "text-[var(--text-muted)] text-xs"
+            )
         return
 
     crit = vm.critical_decisions_result
@@ -1293,9 +1250,9 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
     ui.label("Critical Decisions").classes(
         "text-base font-semibold text-[var(--text-primary)] mb-2"
     )
-    ui.label(
-        "Sorted ascending by rank (lower score = more critical)"
-    ).classes("text-xs text-[var(--text-muted)] mb-3")
+    ui.label("Sorted ascending by rank (lower score = more critical)").classes(
+        "text-xs text-[var(--text-muted)] mb-3"
+    )
     ui.table(columns=columns, rows=rows, row_key="rank").classes(
         "w-full max-h-screen overflow-y-auto"
     ).props("dark dense flat")
@@ -1313,9 +1270,9 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
             ui.label("No scenario loaded.").classes(
                 "text-[var(--text-secondary)] text-sm font-medium"
             )
-            ui.markdown(
-                "Click **Open Sample SAS** in the toolbar to try the example."
-            ).classes("text-[var(--text-muted)] text-xs")
+            ui.markdown("Click **Open Sample SAS** in the toolbar to try the example.").classes(
+                "text-[var(--text-muted)] text-xs"
+            )
         return
 
     crit = vm.critical_constraints_result
@@ -1373,9 +1330,7 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
             redundant = row["_redundant"]
             # Redundant rows faded per spec §5.3; bg-page for body rows
             row_cls = "opacity-40" if redundant else ""
-            bg_cls = (
-                "bg-[var(--bg-page)]" if not redundant else "bg-[var(--bg-surface)]"
-            )
+            bg_cls = "bg-[var(--bg-page)]" if not redundant else "bg-[var(--bg-surface)]"
             with ui.row().classes(
                 f"w-full {bg_cls} border border-[var(--border-subtle)] rounded px-2 py-1 mb-1 "
                 f"text-[var(--text-primary)] text-xs gap-0 {row_cls}"
@@ -1401,11 +1356,7 @@ def index() -> None:
 
     ui.dark_mode().enable()
     inject_css()
-    ui.add_head_html(
-        "<style>"
-        ".sticky-top { position: sticky; top: 0; z-index: 10; }"
-        "</style>"
-    )
+    ui.add_head_html("<style>.sticky-top { position: sticky; top: 0; z-index: 10; }</style>")
 
     with ui.column().classes("w-full min-h-screen gap-0"):
         # Build the Open dialog first so it's always defined before the toolbar refs it
@@ -1413,23 +1364,22 @@ def index() -> None:
 
         open_dialog: _Dialog
         if not _is_native:
-            with ui.dialog() as open_dialog, ui.card().classes(
-                "bg-[var(--bg-surface)] border border-[var(--border-strong)] w-96"
+            with (
+                ui.dialog() as open_dialog,
+                ui.card().classes(
+                    "bg-[var(--bg-surface)] border border-[var(--border-strong)] w-96"
+                ),
             ):
                 ui.label("Open Scenario File").classes(
                     "text-[var(--text-primary)] text-base font-semibold mb-2"
                 )
-                path_input = (
-                    ui.input("Paste file path…").props("dark outlined").classes("w-full")
-                )
+                path_input = ui.input("Paste file path…").props("dark outlined").classes("w-full")
                 ui.button(
                     "Open by path",
                     on_click=lambda: _do_open_by_path(vm, path_input.value, open_dialog),
                 ).props("color=primary")
                 ui.separator().classes("my-2")
-                ui.label("Or upload a JSON file:").classes(
-                    "text-[var(--text-secondary)] text-sm"
-                )
+                ui.label("Or upload a JSON file:").classes("text-[var(--text-secondary)] text-sm")
                 ui.upload(
                     label="Choose file",
                     on_upload=lambda e: _do_open_upload(vm, e, open_dialog),
@@ -1441,13 +1391,9 @@ def index() -> None:
             "guidearch-toolbar w-full items-center "
             "bg-[var(--bg-page)] border-b border-[var(--border-subtle)] gap-2"
         ):
-            ui.label("GuideArch").classes(
-                "text-xl font-bold text-[var(--accent)] mr-4"
-            )
+            ui.label("GuideArch").classes("text-xl font-bold text-[var(--accent)] mr-4")
 
-            ui.button("New", icon="add", on_click=lambda: _do_new(vm)).props(
-                "flat color=white"
-            )
+            ui.button("New", icon="add", on_click=lambda: _do_new(vm)).props("flat color=white")
 
             if _is_native:
                 ui.button(
@@ -1651,9 +1597,7 @@ def _do_open_upload(vm: ScenarioVM, event: Any, dialog: Any) -> None:
         # Write to a temp file so open_cmd can read it
         import tempfile
 
-        with tempfile.NamedTemporaryFile(
-            suffix=".json", delete=False, mode="wb"
-        ) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="wb") as tmp:
             tmp.write(content)
             tmp_path = tmp.name
         vm.open_cmd.execute(tmp_path)

@@ -275,9 +275,7 @@ class TestConstruction:
         from guidearch.viewmodels import ConflictConstraintVM
 
         hub, dispatcher = _make_hub_and_dispatcher()
-        m = ConflictConstraint(
-            kind="conflict", alternative_a_id="a1", alternative_b_id="a2"
-        )
+        m = ConflictConstraint(kind="conflict", alternative_a_id="a1", alternative_b_id="a2")
         vm = ConflictConstraintVM(m, index=2, hub=hub, dispatcher=dispatcher)
         assert isinstance(vm, ComponentVMOf)
         assert vm.constraint_index == 2
@@ -547,7 +545,9 @@ class TestMutationPropagation:
 
         # Scenario updated
         updated_prop = next(
-            p for p in vm_sas.scenario.properties if p.id == first_prop.id  # type: ignore[attr-defined]
+            p
+            for p in vm_sas.scenario.properties
+            if p.id == first_prop.id  # type: ignore[attr-defined]
         )
         assert updated_prop.weight == pytest.approx(old_weight * 10.0)
 
@@ -672,23 +672,27 @@ def _candidates_change_after(vm_sas_factory: object, op: object) -> bool:
         ),
         pytest.param(
             "adding a dependency constraint triggers solve",
-            lambda vm: vm.add_dependency_constraint(
-                vm.scenario.alternatives[0].id,
-                vm.scenario.alternatives[1].id,
-            )
-            if len(vm.scenario.alternatives) >= 2
-            else None,
+            lambda vm: (
+                vm.add_dependency_constraint(
+                    vm.scenario.alternatives[0].id,
+                    vm.scenario.alternatives[1].id,
+                )
+                if len(vm.scenario.alternatives) >= 2
+                else None
+            ),
             True,
             id="add_dependency_constraint_triggers_solve",
         ),
         pytest.param(
             "adding a conflict constraint triggers solve",
-            lambda vm: vm.add_conflict_constraint(
-                vm.scenario.alternatives[0].id,
-                vm.scenario.alternatives[1].id,
-            )
-            if len(vm.scenario.alternatives) >= 2
-            else None,
+            lambda vm: (
+                vm.add_conflict_constraint(
+                    vm.scenario.alternatives[0].id,
+                    vm.scenario.alternatives[1].id,
+                )
+                if len(vm.scenario.alternatives) >= 2
+                else None
+            ),
             True,
             id="add_conflict_constraint_triggers_solve",
         ),
@@ -799,9 +803,9 @@ class TestResultVMsAreReadOnly:
         )
         vm = CandidateVM(m)
         # Must not have any *_cmd attributes
-        assert not any(
-            attr.endswith("_cmd") for attr in dir(vm)
-        ), "CandidateVM must not have command attributes"
+        assert not any(attr.endswith("_cmd") for attr in dir(vm)), (
+            "CandidateVM must not have command attributes"
+        )
 
     def test_critical_decision_vm_no_setters(self) -> None:
         from guidearch.models.critical_decision import CriticalDecisionM
@@ -833,9 +837,9 @@ class TestResultVMsAreReadOnly:
             rank=0,
         )
         vm = CriticalDecisionVM(m)
-        assert not any(
-            attr.endswith("_cmd") for attr in dir(vm)
-        ), "CriticalDecisionVM must not have command attributes"
+        assert not any(attr.endswith("_cmd") for attr in dir(vm)), (
+            "CriticalDecisionVM must not have command attributes"
+        )
 
     def test_critical_constraint_vm_no_setters(self) -> None:
         from guidearch.models.critical_constraint import CriticalConstraintM
@@ -863,9 +867,9 @@ class TestResultVMsAreReadOnly:
             redundant=True,
         )
         vm = CriticalConstraintVM(m)
-        assert not any(
-            attr.endswith("_cmd") for attr in dir(vm)
-        ), "CriticalConstraintVM must not have command attributes"
+        assert not any(attr.endswith("_cmd") for attr in dir(vm)), (
+            "CriticalConstraintVM must not have command attributes"
+        )
 
 
 # ---------------------------------------------------------------------------

@@ -46,11 +46,11 @@ def candidates_bar_option(
 
     # Bar data: score value, with itemStyle for gradient + selection highlight
     # Design-system tokens (§2.3 accent, §2.5 fuzzy axes)
-    _ACCENT = "#8b5cf6"       # accent
+    _ACCENT = "#8b5cf6"  # accent
     _ACCENT_MUTED = "#3d2a6b"  # accent-muted (selected highlight)
     _ACCENT_HOVER = "#a78bfa"  # accent-hover
-    _TEXT_SEC = "#9298a8"     # text-secondary
-    _BORDER_SUB = "#262b36"   # border-subtle
+    _TEXT_SEC = "#9298a8"  # text-secondary
+    _BORDER_SUB = "#262b36"  # border-subtle
 
     bar_data: list[dict[str, Any]] = []
     for i, cand in enumerate(top):
@@ -62,7 +62,7 @@ def candidates_bar_option(
         if is_selected:
             color = _ACCENT_HOVER
         else:
-            r, g, b = 0x8b, 0x5c, 0xf6
+            r, g, b = 0x8B, 0x5C, 0xF6
             color = f"rgba({r},{g},{b},{opacity:.3f})"
         alt_names = [alt_name_map.get(aid, aid[:8]) for aid in cand.alternative_ids]
         bar_data.append(
@@ -122,9 +122,9 @@ def candidates_bar_option(
 _DS_ACCENT = "#8b5cf6"
 _DS_TEXT_SEC = "#9298a8"
 _DS_BORDER_SUB = "#262b36"
-_DS_FUZZY_POS = "#34d399"   # fuzzy-positive
-_DS_FUZZY_AVG = "#fbbf24"   # fuzzy-average
-_DS_FUZZY_NEG = "#fb7185"   # fuzzy-negative
+_DS_FUZZY_POS = "#34d399"  # fuzzy-positive
+_DS_FUZZY_AVG = "#fbbf24"  # fuzzy-average
+_DS_FUZZY_NEG = "#fb7185"  # fuzzy-negative
 
 # Distinguishable colours for chart series (accent-based palette)
 _PALETTE = [

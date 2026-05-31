@@ -53,12 +53,9 @@ TOKENS: dict[str, str] = {
 # ---------------------------------------------------------------------------
 
 _FONT_SANS = (
-    "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, "
-    "\"Helvetica Neue\", Arial, sans-serif"
+    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
 )
-_FONT_MONO = (
-    "\"Cascadia Code\", \"JetBrains Mono\", \"SF Mono\", Consolas, monospace"
-)
+_FONT_MONO = '"Cascadia Code", "JetBrains Mono", "SF Mono", Consolas, monospace'
 
 
 def inject_css() -> None:
@@ -67,9 +64,7 @@ def inject_css() -> None:
     Must be called before any UI elements are rendered in the page function.
     """
     # Build :root CSS-variable block from TOKENS
-    css_vars = "\n".join(
-        f"  --{name}: {value};" for name, value in TOKENS.items()
-    )
+    css_vars = "\n".join(f"  --{name}: {value};" for name, value in TOKENS.items())
 
     css = f"""
 :root {{
@@ -213,10 +208,10 @@ body {{
 
     # Configure Quasar accent palette to match §2.3 / §2.4 semantic tokens
     ui.colors(
-        primary="#8b5cf6",    # accent
+        primary="#8b5cf6",  # accent
         secondary="#9298a8",  # text-secondary (used as Quasar secondary)
-        positive="#10b981",   # success
-        negative="#ef4444",   # danger
-        info="#3b82f6",       # info
-        warning="#f59e0b",    # warning
+        positive="#10b981",  # success
+        negative="#ef4444",  # danger
+        info="#3b82f6",  # info
+        warning="#f59e0b",  # warning
     )

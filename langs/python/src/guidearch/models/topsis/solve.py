@@ -178,9 +178,7 @@ def solve(scenario: ScenarioM) -> tuple[CandidateM, ...]:
         alts_by_dec.setdefault(a.decision_id, []).append(a.id)
 
     pools: list[list[str]] = [alts_by_dec.get(d.id, []) for d in dec_order]
-    raw_candidates: list[tuple[str, ...]] = [
-        tuple(combo) for combo in itertools.product(*pools)
-    ]
+    raw_candidates: list[tuple[str, ...]] = [tuple(combo) for combo in itertools.product(*pools)]
 
     if not raw_candidates:
         return ()
@@ -241,9 +239,7 @@ def solve(scenario: ScenarioM) -> tuple[CandidateM, ...]:
     # -----------------------------------------------------------------------
     # §3.5  Total triangular value per candidate
     # -----------------------------------------------------------------------
-    total_values = [
-        _candidate_total_value(c, scenario, coeff, M) for c in feasible
-    ]
+    total_values = [_candidate_total_value(c, scenario, coeff, M) for c in feasible]
 
     # -----------------------------------------------------------------------
     # §3.6  Convert to Z-space
