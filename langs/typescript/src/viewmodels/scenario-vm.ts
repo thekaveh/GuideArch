@@ -540,6 +540,12 @@ export function makeScenarioVm(): ScenarioVM {
       if (c.min === undefined && c.max === undefined) {
         throw new ScenarioMutationError('ThresholdConstraint requires at least one of min or max.');
       }
+      // Invariant 6.2: min ≤ max is FATAL. Match Python+C# + loader.
+      if (c.min !== undefined && c.max !== undefined && c.min > c.max) {
+        throw new ScenarioMutationError(
+          `Threshold constraint min (${c.min}) must be ≤ max (${c.max}).`,
+        );
+      }
       return;
     }
     const altIds = new Set(s.alternatives.map((a) => a.id));

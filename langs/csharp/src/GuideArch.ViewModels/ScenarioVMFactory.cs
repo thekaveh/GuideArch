@@ -679,7 +679,8 @@ public sealed class ScenarioMutator
         if (!s.Properties.Any(p => p.Id == propertyId))
             throw new ScenarioMutationException($"Property '{propertyId}' not found.");
         if (min is null && max is null)
-            throw new ScenarioMutationException("A threshold constraint needs at least one of min or max.");
+            throw new ScenarioMutationException(
+                "ThresholdConstraint requires at least one of min or max.");
         if (min.HasValue && max.HasValue && min.Value > max.Value)
             throw new ScenarioMutationException($"Threshold constraint min ({min}) must be ≤ max ({max}).");
 
@@ -726,33 +727,22 @@ public sealed class ScenarioMutator
             throw new ScenarioMutationException(
                 "ThresholdConstraint requires at least one of min or max.");
 
+        // Invariant 6.2: min ≤ max is FATAL (the loader throws). The earlier
+        // warn-and-persist behavior would have let an editor save a file that
+        // failed to re-open. Match Add* + loader by throwing here too.
         if (newMin.HasValue && newMax.HasValue && newMin.Value > newMax.Value)
+            throw new ScenarioMutationException(
+                $"Threshold constraint min ({newMin.Value}) must be ≤ max ({newMax.Value}).");
+
+        _setState(State with
         {
-            var w = $"Threshold constraint {index}: min > max, constraint skipped at solve.";
-            var warnings = State.Warnings.Contains(w) ? State.Warnings : State.Warnings.Add(w);
-            _setState(State with
+            Scenario = s with
             {
-                Scenario = s with
-                {
-                    Constraints = s.Constraints.SetItem(globalIdx,
-                        new ThresholdConstraintM(newPropId, newMin, newMax))
-                },
-                IsDirty = true,
-                Warnings = warnings
-            });
-        }
-        else
-        {
-            _setState(State with
-            {
-                Scenario = s with
-                {
-                    Constraints = s.Constraints.SetItem(globalIdx,
-                        new ThresholdConstraintM(newPropId, newMin, newMax))
-                },
-                IsDirty = true
-            });
-        }
+                Constraints = s.Constraints.SetItem(globalIdx,
+                    new ThresholdConstraintM(newPropId, newMin, newMax))
+            },
+            IsDirty = true
+        });
         _solve();
     }
 

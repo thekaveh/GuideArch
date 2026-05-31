@@ -204,15 +204,17 @@ public static class ScenarioLoader
         var altIdSet = new HashSet<string>(altIds);
         var propIdSet = new HashSet<string>(propIds);
 
-        var overlapDa = decIdSet.Intersect(altIdSet).ToList();
-        var overlapDp = decIdSet.Intersect(propIdSet).ToList();
-        var overlapAp = altIdSet.Intersect(propIdSet).ToList();
+        var overlapDa = decIdSet.Intersect(altIdSet).OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var overlapDp = decIdSet.Intersect(propIdSet).OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var overlapAp = altIdSet.Intersect(propIdSet).OrderBy(x => x, StringComparer.Ordinal).ToList();
         if (overlapDa.Count > 0 || overlapDp.Count > 0 || overlapAp.Count > 0)
+            // Serialise the sorted overlap lists as JSON arrays so the message
+            // text is byte-identical to the Python and TypeScript loaders.
             throw new ScenarioValidationException(
-                $"Invariant 1.4: id namespace collision: " +
-                $"d∩a={string.Join(",", overlapDa)}, " +
-                $"d∩p={string.Join(",", overlapDp)}, " +
-                $"a∩p={string.Join(",", overlapAp)}");
+                "Invariant 1.4: id namespace collision: " +
+                $"d∩a={JsonSerializer.Serialize(overlapDa)}, " +
+                $"d∩p={JsonSerializer.Serialize(overlapDp)}, " +
+                $"a∩p={JsonSerializer.Serialize(overlapAp)}");
 
         // ------------------------------------------------------------------ //
         // Invariant 2: Cross-reference validity (fatal)

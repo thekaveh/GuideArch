@@ -179,9 +179,14 @@ def load_scenario(
     overlap_dp = dec_id_set & prop_id_set
     overlap_ap = alt_id_set & prop_id_set
     if overlap_da or overlap_dp or overlap_ap:
+        # Render as sorted JSON arrays so the message is byte-identical to the
+        # TypeScript and C# impls. Python's default set repr (`{'x'}`) and
+        # comma-join would each look different.
         raise ScenarioValidationError(
             f"Invariant 1.4: id namespace collision: "
-            f"d∩a={overlap_da}, d∩p={overlap_dp}, a∩p={overlap_ap}"
+            f"d∩a={json.dumps(sorted(overlap_da))}, "
+            f"d∩p={json.dumps(sorted(overlap_dp))}, "
+            f"a∩p={json.dumps(sorted(overlap_ap))}"
         )
 
     # ------------------------------------------------------------------ #

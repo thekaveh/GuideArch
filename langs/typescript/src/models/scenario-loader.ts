@@ -221,8 +221,13 @@ function _parseRaw(raw: Record<string, any>, warnings: string[]): ScenarioM {
   const overlapDP = decIds.filter((id) => propIdSet.has(id));
   const overlapAP = altIds.filter((id) => propIdSet.has(id));
   if (overlapDA.length || overlapDP.length || overlapAP.length) {
+    // Sort before serialising so the message is byte-identical to the
+    // Python and C# loaders' renderings of the same collision set.
+    const sortedDA = [...overlapDA].sort();
+    const sortedDP = [...overlapDP].sort();
+    const sortedAP = [...overlapAP].sort();
     throw new ScenarioValidationError(
-      `Invariant 1.4: id namespace collision: d∩a=${JSON.stringify(overlapDA)}, d∩p=${JSON.stringify(overlapDP)}, a∩p=${JSON.stringify(overlapAP)}`,
+      `Invariant 1.4: id namespace collision: d∩a=${JSON.stringify(sortedDA)}, d∩p=${JSON.stringify(sortedDP)}, a∩p=${JSON.stringify(sortedAP)}`,
       ['id namespace collision'],
     );
   }

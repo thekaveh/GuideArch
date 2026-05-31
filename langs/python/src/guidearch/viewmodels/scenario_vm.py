@@ -646,6 +646,13 @@ class ScenarioVM:
             raise ScenarioMutationError(f"Property '{property_id}' not found.")
         if min_val is None and max_val is None:
             raise ScenarioMutationError("ThresholdConstraint requires at least one of min or max.")
+        # Invariant 6.2: min ≤ max is FATAL (the loader throws). Match at the
+        # mutation boundary so editor-driven Add can't produce a file the
+        # loader will reject on round-trip.
+        if min_val is not None and max_val is not None and min_val > max_val:
+            raise ScenarioMutationError(
+                f"Threshold constraint min ({min_val}) must be ≤ max ({max_val})."
+            )
         new_c: Constraint = ThresholdConstraint(
             kind="threshold", property_id=property_id, min=min_val, max=max_val
         )
@@ -851,11 +858,19 @@ class ScenarioVM:
             raise ScenarioMutationError(
                 f"Constraint at index {index} is not a ThresholdConstraint."
             )
+        new_min = c.min if min_val is _UNSET else min_val
+        new_max = c.max if max_val is _UNSET else max_val
+        if new_min is None and new_max is None:
+            raise ScenarioMutationError("ThresholdConstraint requires at least one of min or max.")
+        if new_min is not None and new_max is not None and new_min > new_max:
+            raise ScenarioMutationError(
+                f"Threshold constraint min ({new_min}) must be ≤ max ({new_max})."
+            )
         new_c = ThresholdConstraint(
             kind="threshold",
             property_id=property_id if property_id is not None else c.property_id,
-            min=c.min if min_val is _UNSET else min_val,  # type: ignore[arg-type]
-            max=c.max if max_val is _UNSET else max_val,  # type: ignore[arg-type]
+            min=new_min,  # type: ignore[arg-type]
+            max=new_max,  # type: ignore[arg-type]
         )
         new_constraints = tuple(
             new_c if i == index else old_c for i, old_c in enumerate(scenario.constraints)
