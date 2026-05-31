@@ -161,8 +161,18 @@
                                   IsReadOnly="True"
                                   FontFamily="Cascadia Code,Consolas,monospace"
                                   FontSize="13" />
+              <!--
+                Name is read-only here because DecisionM is a positional record
+                (Id, Name) with init-only setters. Two-way binding into an
+                init-only property silently fails — the user could appear to
+                edit the name but the change never persisted. Inline editing
+                via a CellEditEnded → Mutator.UpdateDecisionName roundtrip is
+                a v1.1 backlog item; for v1.0 marking it read-only avoids
+                misleading the user.
+              -->
               <DataGridTextColumn Header="Name"
                                   Binding="{ReflectionBinding Name}"
+                                  IsReadOnly="True"
                                   Width="*" />
             </DataGrid.Columns>
           </DataGrid>
@@ -213,8 +223,11 @@
                                   IsReadOnly="True"
                                   FontFamily="Cascadia Code,Consolas,monospace"
                                   FontSize="13" />
+              <!-- AlternativeM (Id, DecisionId, Name) is init-only — see the
+                   Decisions tab comment for the same reasoning. -->
               <DataGridTextColumn Header="Name"
                                   Binding="{ReflectionBinding Name}"
+                                  IsReadOnly="True"
                                   Width="*" />
             </DataGrid.Columns>
           </DataGrid>
@@ -254,14 +267,21 @@
                                   IsReadOnly="True"
                                   FontFamily="Cascadia Code,Consolas,monospace"
                                   FontSize="13" />
+              <!-- PropertyM (Id, Name, Kind, Weight) is init-only — inline
+                   edits would silently fail. Marked read-only for v1.0; a
+                   CellEditEnded → Mutator.UpdateProperty roundtrip is the
+                   v1.1 fix. See the Decisions tab comment for context. -->
               <DataGridTextColumn Header="Name"
                                   Binding="{ReflectionBinding Name}"
+                                  IsReadOnly="True"
                                   Width="*" />
               <DataGridTextColumn Header="Kind"
                                   Binding="{ReflectionBinding Kind}"
+                                  IsReadOnly="True"
                                   Width="80" />
               <DataGridTextColumn Header="Weight"
                                   Binding="{ReflectionBinding Weight, StringFormat={}{0:F4}}"
+                                  IsReadOnly="True"
                                   Width="100"
                                   FontFamily="Cascadia Code,Consolas,monospace" />
             </DataGrid.Columns>
