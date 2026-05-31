@@ -105,15 +105,16 @@ public static class ScenarioVMFactory
                         FilePath = path,
                         IsDirty = false,
                         Warnings = scenario.Warnings,
-                        Status = $"Loading \"{scenario.Name}\"…"
                     });
                     Solve();
                 }
                 catch (Exception ex)
                 {
+                    var msg = $"Open failed: {ex.Message}";
                     SetState(state with
                     {
-                        Warnings = state.Warnings.Add($"Open failed: {ex.Message}")
+                        Status = msg,
+                        Warnings = state.Warnings.Add(msg)
                     });
                 }
             })
@@ -131,7 +132,30 @@ public static class ScenarioVMFactory
         void DoSave(string path)
         {
             if (state.Scenario is null) return;
-            WriteScenario(state.Scenario, path);
+            try
+            {
+                WriteScenario(state.Scenario, path);
+            }
+            catch (IOException ex)
+            {
+                var msg = $"Save failed: {ex.Message}";
+                SetState(state with
+                {
+                    Status = msg,
+                    Warnings = state.Warnings.Add(msg)
+                });
+                return;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                var msg = $"Save failed: {ex.Message}";
+                SetState(state with
+                {
+                    Status = msg,
+                    Warnings = state.Warnings.Add(msg)
+                });
+                return;
+            }
             SetState(state with { FilePath = path, IsDirty = false });
         }
 

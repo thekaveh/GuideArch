@@ -117,7 +117,12 @@
       // Tauri dialog would go here; for now fall through to browser behavior
       handleSave();
     } else {
-      // Browser: prompt for file name, then download
+      // Browser: prompt for file name, then download.
+      // NB: we deliberately do NOT call vm.saveAsCmd.execute() afterwards —
+      // the VM's saveAs path goes through fs.writeFileSync which the Vite
+      // browser-shim throws on, producing a spurious "Save failed: …" toast
+      // after a successful download. The download itself is the save in
+      // browser mode; the file_path/isDirty bookkeeping isn't meaningful here.
       const suggested = vm.model.filePath ?? 'scenario.json';
       const saveName = prompt('Save as…', suggested);
       if (!saveName) return;
@@ -130,7 +135,6 @@
       a.download = saveName;
       a.click();
       URL.revokeObjectURL(url);
-      vm.saveAsCmd.execute(saveName);
     }
   }
 
