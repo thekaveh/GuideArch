@@ -32,21 +32,18 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/guidearch"]
-# JSON sample files are automatically included as package data by hatchling.
-
-[tool.hatch.build.targets.wheel.force-include]
-# Ship spec/domain/scenario.schema.json *inside* the wheel as
-# guidearch/_data/scenario.schema.json so `pip install guidearch` works
-# stand-alone. The repo-root walk in scenario_loader._load_default_schema()
-# fails after a wheel install (site-packages/guidearch/.../parents[5] is /),
-# so the package-data path is the only one that resolves outside this repo.
-"../../spec/domain/scenario.schema.json" = "guidearch/_data/scenario.schema.json"
-
-[tool.hatch.build.targets.sdist]
-include = [
-    "src/guidearch/**",
-    "../../spec/domain/scenario.schema.json",
-]
+# JSON sample files + the bundled scenario.schema.json under _data/ are
+# automatically included as package data by hatchling. The schema is a
+# committed copy of spec/domain/scenario.schema.json; .github/workflows/
+# spec.yml CI-gates the two files against each other to catch drift, the
+# same pattern used for langs/typescript/src/samples/scenario.schema.json.
+#
+# Previously this project used `[tool.hatch.build.targets.wheel.force-include]`
+# to pull the schema in from `../../spec/...`, but the relative path is
+# resolved against the project root inside hatchling's sdist build dir
+# where `../../spec/` does not exist — `uv build` failed with
+# 'Forced include not found'. Committing a synchronised copy keeps both
+# `uv build --wheel` and the full `uv build` (wheel+sdist) green.
 
 [tool.ruff]
 line-length = 100

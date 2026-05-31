@@ -7,6 +7,7 @@ on:
       - 'spec/**'
       - 'langs/typescript/src/samples/**'
       - 'langs/python/src/guidearch/samples/**'
+      - 'langs/python/src/guidearch/_data/**'
       - 'langs/csharp/src/GuideArch.View/Assets/Samples/**'
       - '.github/workflows/spec.yml'
   pull_request:
@@ -14,6 +15,7 @@ on:
       - 'spec/**'
       - 'langs/typescript/src/samples/**'
       - 'langs/python/src/guidearch/samples/**'
+      - 'langs/python/src/guidearch/_data/**'
       - 'langs/csharp/src/GuideArch.View/Assets/Samples/**'
       - '.github/workflows/spec.yml'
   workflow_dispatch:
@@ -70,6 +72,22 @@ jobs:
             fi
           done
           echo "All ADR filenames are well-formed."
+
+      - name: Check Python bundled schema matches canonical spec schema
+        run: |
+          # langs/python/src/guidearch/_data/scenario.schema.json is a committed
+          # copy of spec/domain/scenario.schema.json so the Python wheel ships
+          # the schema as package data. (Hatchling's force-include from
+          # `../../spec/...` doesn't work in sdist builds — see pyproject.toml.)
+          # Diff against canonical and fail loudly on drift.
+          if ! diff -q spec/domain/scenario.schema.json \
+                       langs/python/src/guidearch/_data/scenario.schema.json >/dev/null; then
+            echo "Python bundled schema has drifted from spec/domain/scenario.schema.json." >&2
+            diff -u spec/domain/scenario.schema.json langs/python/src/guidearch/_data/scenario.schema.json || true
+            echo "Sync by copying spec/domain/scenario.schema.json over the Python _data/ copy." >&2
+            exit 1
+          fi
+          echo "Python bundled schema matches canonical."
 
       - name: Check TS bundled schema matches canonical spec schema
         run: |
