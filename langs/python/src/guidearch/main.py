@@ -1596,11 +1596,17 @@ def index() -> None:
                 cont.clear()
                 with cont:
                     fn(vm, cont)
-        # Save-button enabled state must also refresh on file_path change
-        # (Save As sets file_path without emitting 'scenario'). Track on
-        # the three properties that determine SaveCmd's predicate.
+        # Save-button enabled state must refresh on the same properties the
+        # Save button's initial-state gate reads. Native mode requires both
+        # scenario AND file_path (vm.save_cmd predicate); web mode requires
+        # only scenario (anchor-download, no file path needed). Without this
+        # split, a New in web mode would disable the Save button even
+        # though _do_save_browser would work fine.
         if prop in ("scenario", "file_path", "is_dirty"):
-            if vm.scenario and vm.file_path:
+            scenario_ok = vm.scenario is not None
+            file_path_ok = vm.file_path is not None
+            can_save = scenario_ok and (file_path_ok if _is_native else True)
+            if can_save:
                 save_btn.props(remove="disabled")
             else:
                 save_btn.props(add="disabled")
