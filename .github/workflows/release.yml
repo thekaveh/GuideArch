@@ -33,8 +33,9 @@ jobs:
           submodules: recursive
 
       - uses: pnpm/action-setup@v4
+        # Pin to match typescript.yml — see commit 3b83bb9.
         with:
-          version: latest
+          version: '9'
 
       - uses: actions/setup-node@v4
         with:
@@ -262,8 +263,9 @@ jobs:
           submodules: recursive
 
       - uses: pnpm/action-setup@v4
+        # Pin to match typescript.yml — see commit 3b83bb9.
         with:
-          version: latest
+          version: '9'
 
       - uses: actions/setup-node@v4
         with:

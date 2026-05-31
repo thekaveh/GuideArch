@@ -157,18 +157,10 @@ public static class ScenarioVMFactory
             {
                 WriteScenario(state.Scenario, path);
             }
-            catch (IOException ex)
+            catch (Exception ex)
             {
-                var msg = $"Save failed: {ex.Message}";
-                SetState(state with
-                {
-                    Status = msg,
-                    Warnings = state.Warnings.Add(msg)
-                });
-                return;
-            }
-            catch (UnauthorizedAccessException ex)
-            {
+                // Match Python+TS Save breadth — narrowing to IOException only
+                // misses PathTooLongException, JSON-serialize bugs, etc.
                 var msg = $"Save failed: {ex.Message}";
                 SetState(state with
                 {

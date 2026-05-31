@@ -105,7 +105,7 @@ The M2 `OpenCmd`/`SaveCmd`/`NewCmd` are already wired in the VM. M3 connects the
 
 - **Python (NiceGUI)**: `ui.upload` for Open in web mode; in native mode use Python's `tkinter.filedialog` as a synchronous fallback. Save: `tkinter.filedialog.asksaveasfilename` in native; web mode uses `ui.download(json_bytes, filename)`.
 - **C# (Avalonia)**: `IStorageProvider.OpenFilePickerAsync` / `SaveFilePickerAsync`. JSON-only filter.
-- **TypeScript (Svelte + Tauri)**: `@tauri-apps/plugin-dialog` open/save in desktop; in browser-only mode use `<input type="file">` for open and `URL.createObjectURL` + anchor download for save.
+- **TypeScript (Svelte + Tauri)**: v1.0 ships a single browser-mode UX in both Tauri and pure-browser deployments — `<input type="file">` for Open, `URL.createObjectURL` + anchor download (with a `prompt()` for the filename in Save As) for Save. The `@tauri-apps/plugin-dialog` integration is on the v1.1 backlog and would route Tauri builds through the OS-native picker; until then both modes use the same code path. See `langs/typescript/src/routes/lib/Toolbar.svelte`.
 
 ## 4. Undo/redo
 
@@ -120,7 +120,7 @@ When mutations violate an invariant from `spec/domain/invariants.md`:
 
 ## 6. Tests
 
-Each impl ships tests under its `tests/unit/` (or `tests/integration/`):
+Each impl ships tests (TS and Python use `langs/<impl>/tests/unit/` and `tests/integration/`; C# uses `langs/csharp/tests/GuideArch.Models.Tests/` and `tests/GuideArch.ViewModels.Tests/` per .NET solution conventions):
 
 - **Round-trip test**: load `sas.json`, mutate a property weight via the VM, observe `candidates[0]` change, assert solve actually re-ran.
 - **Delete cascade test**: load `sas.json`, delete a decision; assert that the decision's alternatives, their coefficients, and any constraints referencing the deleted alternatives are also gone, AND the scenario validates against the JSON schema after the cascade.

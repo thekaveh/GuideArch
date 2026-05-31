@@ -338,7 +338,7 @@ class ScenarioVM:
             return
         try:
             self._write_scenario(self._scenario, self._file_path)
-        except OSError as exc:
+        except Exception as exc:  # noqa: BLE001 — match TS/C# breadth on Save
             msg = f"Save failed: {exc}"
             self._status = msg
             self._warnings = (*self._warnings, msg)
@@ -361,7 +361,7 @@ class ScenarioVM:
             return
         try:
             self._write_scenario(self._scenario, path)
-        except OSError as exc:
+        except Exception as exc:  # noqa: BLE001 — match TS/C# breadth on Save
             msg = f"Save failed: {exc}"
             self._status = msg
             self._warnings = (*self._warnings, msg)
