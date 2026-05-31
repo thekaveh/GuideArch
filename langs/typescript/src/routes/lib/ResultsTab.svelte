@@ -79,7 +79,7 @@
                     }
                   }}
                 >
-                  <td class="rank">{c.rank + 1}</td>
+                  <td class="rank">{c.rank}</td>
                   <td class="score">{c.score.toFixed(6)}</td>
                   <td class="alts">
                     {c.alternativeIds.map(altName).join(', ')}
@@ -103,7 +103,7 @@
         </div>
         <div class="chart-section">
           <div class="chart-title">
-            Fuzzy Profile{selectedCandidate !== null ? ` — Rank ${selectedCandidate.rank + 1}` : ''}
+            Fuzzy Profile{selectedCandidate !== null ? ` — Rank ${selectedCandidate.rank}` : ''}
           </div>
           <FuzzyTriangleChart series={triangleSeries} />
         </div>

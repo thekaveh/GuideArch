@@ -1,0 +1,5 @@
+# Bundled scenario.schema.json must remain byte-identical to the canonical
+# spec/domain/scenario.schema.json (CI .github/workflows/spec.yml gates this).
+# Letting prettier reformat it would always drift from the canonical
+# whitespace and break the CI diff gate. Owner: spec/domain only.
+src/samples/scenario.schema.json
