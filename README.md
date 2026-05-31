@@ -181,7 +181,6 @@ cd langs/typescript && pnpm test
 | `pnpm tauri dev` fails with cargo errors | Rust toolchain too old or missing Linux deps | Re-run rustup; on Ubuntu install `libwebkit2gtk-4.1-dev libsoup-3.0-dev` |
 | `dotnet run` says "must install .NET 8" | No .NET 8 runtime installed | Install .NET 8 runtime or rely on `RollForward=Major` (already set in `Directory.Build.props`) |
 | `uv run guidearch` fails on import | submodule not initialised | `git submodule update --init` |
-| "Add Decision" button does nothing | (Already fixed) — pull latest |
 | OS file picker never appears | macOS file permissions for the terminal app | System Settings → Privacy → Files & Folders |
 
 ## 6. License

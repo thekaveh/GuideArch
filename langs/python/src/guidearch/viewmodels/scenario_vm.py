@@ -113,11 +113,11 @@ class ScenarioVM:
 
     Re-solve trigger
     ----------------
-    ScenarioVM subscribes to its own MessageHub.  Any child VM that mutates a
-    solve-affecting field will emit a PropertyChangedMessage; ScenarioVM's
-    hub subscriber calls ``_mark_solve_needed()`` which flags the next
-    explicit ``solve_cmd.execute()`` call.  In the adapter layer a 100 ms
-    debounce fires ``solve_cmd.execute()`` automatically.
+    ScenarioVM subscribes to its own MessageHub. Any child VM that mutates a
+    solve-affecting field emits a PropertyChangedMessage; the hub subscriber
+    sets ``_solve_needed`` directly. v1.0 re-solves synchronously in
+    ``_apply_scenario_mutation``; debounced solve is deferred to v1.1
+    (see spec/editors.md §0).
     """
 
     def __init__(self) -> None:
@@ -375,10 +375,6 @@ class ScenarioVM:
             self._solve_needed = True
             self._is_dirty = True
             self._raise_property_changed("is_dirty")
-
-    def _mark_solve_needed(self) -> None:
-        """Explicitly flag that a solve is needed (called by adapters)."""
-        self._solve_needed = True
 
     # ── Internal helpers ─────────────────────────────────────────────────────
 
