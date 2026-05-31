@@ -208,16 +208,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GHCR (if token is available)
-        # NB: must use secrets context directly here — step-level `env:` is
-        # applied to the step's commands but the `if:` is evaluated before
-        # `env:` takes effect, so `env.GHCR_TOKEN` would always be empty.
-        if: ${{ secrets.GHCR_TOKEN != '' }}
+      - name: Log in to GHCR
+        # GITHUB_TOKEN already grants push to the *same-repo* GHCR namespace
+        # (ghcr.io/thekaveh/...). We use it as the primary login so the
+        # default-setup case works out-of-the-box. A custom GHCR_TOKEN secret
+        # is only needed to push under a different namespace.
+        #
+        # NB: must use secrets context directly in if: — step-level env: is
+        # applied AFTER if: evaluates, so env.GHCR_TOKEN would always be empty
+        # at the gate.
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Extract version from tag
         id: version
@@ -228,24 +232,26 @@ jobs:
             echo "version=dev" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build Docker image (push if GHCR_TOKEN set)
+      - name: Build Docker image (push on tags)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: langs/python/Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: ${{ secrets.GHCR_TOKEN != '' }}
+          # Push on tag pushes; build-only for workflow_dispatch smoke runs.
+          # GITHUB_TOKEN handled the login step above, so 'push' no longer
+          # requires a custom GHCR_TOKEN secret to be configured.
+          push: ${{ startsWith(github.ref, 'refs/tags/v') }}
           # Only tag :latest when this is a real tag push (refs/tags/v*).
-          # A workflow_dispatch run produces version='dev'; without this
-          # guard a manual smoke run would overwrite :latest with a dev
-          # build silently.
           tags: |
             ghcr.io/thekaveh/guidearch:${{ steps.version.outputs.version }}
             ${{ startsWith(github.ref, 'refs/tags/v') && 'ghcr.io/thekaveh/guidearch:latest' || '' }}
-          outputs: ${{ secrets.GHCR_TOKEN == '' && 'type=docker,dest=/tmp/guidearch-docker.tar' || '' }}
+          # On non-tag runs save the image tarball as a workflow artifact
+          # so the smoke run still produces a downloadable build.
+          outputs: ${{ !startsWith(github.ref, 'refs/tags/v') && 'type=docker,dest=/tmp/guidearch-docker.tar' || '' }}
 
       - name: Upload Docker image tar (when not pushing)
-        if: ${{ secrets.GHCR_TOKEN == '' }}
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/upload-artifact@v4
         with:
           name: python-docker-image

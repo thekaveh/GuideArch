@@ -28,13 +28,11 @@
 
   function handleOpenSample(index: number) {
     const sample = SAMPLES[index];
-    const browserHook = (vm as ScenarioVM & { _browserOpen?: (r: unknown, n: string) => void })
-      ._browserOpen;
-    if (browserHook) {
-      browserHook(sample.raw, sample.id + '.json');
-    } else {
-      onError('Sample loading requires _browserOpen hook on VM.');
-    }
+    // _browserOpen is part of the ScenarioVM interface (declared in
+    // scenario-vm.ts) and the factory always installs it, so the hook is
+    // unconditionally present. The earlier `if (browserHook) … else onError`
+    // fallback was dead code.
+    vm._browserOpen(sample.raw, sample.id + '.json');
   }
 
   function handleFileChange(e: Event) {
@@ -72,16 +70,10 @@
    * we display an informational error.
    */
   function _injectParsedScenario(raw: unknown, fileName: string) {
-    const browserHook = (vm as ScenarioVM & { _browserOpen?: (r: unknown, n: string) => void })
-      ._browserOpen;
-    if (browserHook) {
-      browserHook(raw, fileName);
-    } else {
-      onError(
-        `Browser-mode file open: "${fileName}" was parsed but cannot be loaded without a Tauri runtime or Node.js fs. ` +
-          'Run the app with Tauri to open local files.',
-      );
-    }
+    // _browserOpen is always defined on ScenarioVM — the previous
+    // 'requires Tauri / Node.js fs' fallback was unreachable. Browser-mode
+    // scenarios are loaded entirely client-side via the inlined schema.
+    vm._browserOpen(raw, fileName);
   }
 
   // The persisted JSON must not carry the runtime-only `warnings` field —
