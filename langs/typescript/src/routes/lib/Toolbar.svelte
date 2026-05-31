@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ScenarioVM } from '../../viewmodels/scenario-vm.js';
+  import type { ScenarioM } from '../../models/scenario.js';
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import { SAMPLES } from '../../samples/index.js';
@@ -83,6 +84,15 @@
     }
   }
 
+  // The persisted JSON must not carry the runtime-only `warnings` field —
+  // schema additionalProperties:false would reject it on re-open. The Tauri
+  // save path in scenario-vm.ts strips it; mirror that here so browser-mode
+  // Save/Save-As writes a re-openable file.
+  function _toPersistedJson(scenario: ScenarioM): string {
+    const { warnings: _w, ...persistable } = scenario as ScenarioM & { warnings?: unknown };
+    return JSON.stringify(persistable, null, 2) + '\n';
+  }
+
   function handleSave() {
     const isTauri = typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== 'undefined';
     if (isTauri) {
@@ -91,7 +101,7 @@
       // Browser: download as file
       const s = vm.model.scenario;
       if (!s) return;
-      const blob = new Blob([JSON.stringify(s, null, 2) + '\n'], { type: 'application/json' });
+      const blob = new Blob([_toPersistedJson(s)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -113,7 +123,7 @@
       if (!saveName) return;
       const s = vm.model.scenario;
       if (!s) return;
-      const blob = new Blob([JSON.stringify(s, null, 2) + '\n'], { type: 'application/json' });
+      const blob = new Blob([_toPersistedJson(s)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
