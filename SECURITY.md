@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-GuideArch is pre-1.0 during bootstrap. Once v1.0.0 is released, the most recent minor version on the `main` branch is supported.
+GuideArch is on the v1.x release line. Only the most recent minor version on the `main` branch receives security fixes. Pre-1.0 milestone tags (`v0.0.0-bootstrap` through the M1–M4 milestone tags) are historical and not patched.
 
 ## Reporting a Vulnerability
 

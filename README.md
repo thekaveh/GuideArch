@@ -37,12 +37,17 @@ Read most-to-least essential. Each link includes when to use it.
 
 ### 3.3 Specification & conformance
 
-- **[`spec/`](spec/README.md)** — the language-neutral source of truth that every implementation must satisfy. Populated at M1 with:
-  - **[`spec/algorithms/topsis.md`](spec/algorithms/topsis.md)** — the canonical TOPSIS pipeline with magic-number table and tie-break rule.
-  - **[`spec/algorithms/critical-decisions.md`](spec/algorithms/critical-decisions.md)**, **[`critical-constraints.md`](spec/algorithms/critical-constraints.md)** — reference cards.
-  - **[`spec/domain/scenario.schema.json`](spec/domain/scenario.schema.json)** — JSON Schema 2020-12 for the input format.
-  - **[`spec/domain/glossary.md`](spec/domain/glossary.md)**, **[`invariants.md`](spec/domain/invariants.md)** — vocabulary and load-time validation rules.
-  - **[`spec/conformance/`](spec/conformance/)** — the seed corpus: `scenarios/sas.json` (10 decisions, 25 alternatives, 7 properties), `scenarios/eds.json` (same shape), and the matching `expected/*.json` outputs the three impls must reproduce within `tolerances.json` (1e-9 absolute on scalars; ranking exact).
+- **[`spec/`](spec/README.md)** — the language-neutral source of truth that every implementation must satisfy. Contents:
+  - **[`spec/algorithms/topsis.md`](spec/algorithms/topsis.md)** — the canonical TOPSIS pipeline with magic-number table and tie-break rule. *(M1)*
+  - **[`spec/algorithms/critical-decisions.md`](spec/algorithms/critical-decisions.md)**, **[`critical-constraints.md`](spec/algorithms/critical-constraints.md)** — reference cards. *(M1)*
+  - **[`spec/domain/scenario.schema.json`](spec/domain/scenario.schema.json)** — JSON Schema 2020-12 for the input format. *(M1)*
+  - **[`spec/domain/glossary.md`](spec/domain/glossary.md)**, **[`invariants.md`](spec/domain/invariants.md)** — vocabulary and load-time validation rules. *(M1)*
+  - **[`spec/viewmodels.md`](spec/viewmodels.md)** — shared ViewModel tree shape: command names, observable property names, dirty-tracking, and re-solve trigger lists every impl mirrors. *(M2)*
+  - **[`spec/editors.md`](spec/editors.md)** — editor semantics: cascade rules for Delete (decision → alternatives → coefficients → constraints), add-with-defaults behavior, validation timing. *(M3)*
+  - **[`spec/charts.md`](spec/charts.md)** — chart contracts: fuzzy-decomposition triangle layout, axis/series conventions, color tokens. *(M4)*
+  - **[`spec/design-system.md`](spec/design-system.md)** — the visual language (color tokens, type scale, spacing, component specs) that all three impls render against. *(v1.0)*
+  - **[`spec/release.md`](spec/release.md)** — release process, versioning policy, monorepo tag scheme. *(v1.0)*
+  - **[`spec/conformance/`](spec/conformance/)** — the seed corpus: `scenarios/sas.json` (10 decisions, 25 alternatives, 7 properties), `scenarios/eds.json` (same shape), and the matching `expected/*.json` outputs the three impls must reproduce within `tolerances.json` (1e-9 absolute on scalars; ranking exact). *(M1, expanded M2-M4)*
 
 ### 3.4 Architecture decision records
 

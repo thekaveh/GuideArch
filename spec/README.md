@@ -4,19 +4,23 @@ This directory is the language-neutral source of truth for GuideArch. Every impl
 
 ## Layout
 
-- **`domain/`** — populated at M1.
+- **`domain/`** — domain model and load-time contract.
   - `scenario.schema.json` — JSON Schema 2020-12 for the input format.
   - `glossary.md` — vocabulary.
   - `invariants.md` — load-time validation rules.
-- **`algorithms/`** — populated at M1.
+- **`algorithms/`** — TOPSIS pipeline and reference cards.
   - `topsis.md` — the canonical TOPSIS pipeline with magic-number table and tie-break rule.
   - `critical-decisions.md`, `critical-constraints.md` — reference cards.
-- `viewmodels.md` — shared ViewModel tree shape (names, commands, observable properties). **Authored during M2.**
-- **`conformance/`** — populated at M1.
+- **`viewmodels.md`** — shared ViewModel tree shape: command names, observable property names, dirty-tracking, and the re-solve trigger lists every impl mirrors.
+- **`editors.md`** — editor semantics: cascade rules for Delete, add-with-defaults behavior, validation timing.
+- **`charts.md`** — chart contracts: fuzzy-decomposition triangle layout, axis/series conventions, color tokens.
+- **`design-system.md`** — the visual language all three impls render against (color tokens, type scale, spacing, component specs).
+- **`release.md`** — release process, versioning policy, and the monorepo tag scheme.
+- **`conformance/`** — cross-impl numeric conformance corpus.
   - `scenarios/sas.json`, `scenarios/eds.json` — seed scenarios imported from the legacy XML via `tools/import-legacy-xml.py`.
   - `expected/*.json` — reference outputs (candidates, critical decisions, critical constraints) produced by the Python reference implementation and matched by the C# and TypeScript impls within `tolerances.json`.
   - `tolerances.json` — `1e-9` absolute on scalar outputs; ranking exact under the spec tie-break rule (`alternativeIds` lexicographic).
-- `ADRs/` — architecture decision records.
+- **`ADRs/`** — architecture decision records.
 
 ## Conformance contract
 
