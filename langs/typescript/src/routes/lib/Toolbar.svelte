@@ -15,23 +15,30 @@
   $: scenarioStore = vmxToStore(vm, 'scenario');
   $: saveOff = $filePathStore === undefined || $scenarioStore === undefined;
 
+  // Single confirm-if-dirty gate shared by New, Open, and Open Sample —
+  // each replaces the current scenario, so each should ask the same
+  // question (the earlier code only gated New, which let an Open silently
+  // discard edits).
+  function _confirmDiscardIfDirty(action: string): boolean {
+    return !vm.model.isDirty || confirm(`You have unsaved changes. ${action} anyway?`);
+  }
+
   function handleNew() {
-    if (vm.model.isDirty && !confirm('You have unsaved changes. Create a new scenario anyway?')) {
-      return;
-    }
+    if (!_confirmDiscardIfDirty('Create a new scenario')) return;
     vm.newCmd.execute();
   }
 
   function handleOpenClick() {
+    if (!_confirmDiscardIfDirty('Open a scenario')) return;
     fileInputEl.click();
   }
 
   function handleOpenSample(index: number) {
+    if (!_confirmDiscardIfDirty('Load a sample scenario')) return;
     const sample = SAMPLES[index];
     // _browserOpen is part of the ScenarioVM interface (declared in
     // scenario-vm.ts) and the factory always installs it, so the hook is
-    // unconditionally present. The earlier `if (browserHook) … else onError`
-    // fallback was dead code.
+    // unconditionally present.
     vm._browserOpen(sample.raw, sample.id + '.json');
   }
 

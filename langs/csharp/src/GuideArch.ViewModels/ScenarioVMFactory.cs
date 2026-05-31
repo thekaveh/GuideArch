@@ -120,12 +120,19 @@ public static class ScenarioVMFactory
                 try
                 {
                     var scenario = ScenarioLoader.Load(path);
+                    // Reset SelectedCandidateIndex on Open so Solve()'s
+                    // preserve-if-in-range branch (commit 04c7d1e family)
+                    // starts from a clean slate. Otherwise a prior selection
+                    // could survive a scenario swap if the new scenario still
+                    // had >= prior+1 candidates. Python + TS reset
+                    // explicitly; C# was the odd one out.
                     SetState(state with
                     {
                         Scenario = scenario,
                         FilePath = path,
                         IsDirty = false,
                         Warnings = scenario.Warnings,
+                        SelectedCandidateIndex = null,
                     });
                     Solve();
                 }

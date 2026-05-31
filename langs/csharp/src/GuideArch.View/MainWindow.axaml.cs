@@ -355,7 +355,12 @@ public partial class MainWindow : Window
         // Build ScottPlot Bar objects — horizontal orientation.
         // Position = rank (0 = top), Value = score.
         var scottBars = new List<ScottPlot.Bar>(n);
-        int selectedIdx = state.SelectedCandidateIndex ?? 0;
+        // Use -1 (no highlight) when nothing is selected, instead of defaulting
+        // to 0 — otherwise an "unselected" state renders row 0 in the mauve
+        // 'selected' color and confuses the user. Solve()'s preserve-if-in-range
+        // policy seeds 0 when candidates first appear; null here means the
+        // user explicitly deselected.
+        int selectedIdx = state.SelectedCandidateIndex ?? -1;
 
         for (int i = 0; i < n; i++)
         {

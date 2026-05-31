@@ -775,13 +775,16 @@ class ScenarioVM:
         """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
+        scenario = self._scenario
+        # Validate identity before validating values — matches C# (commit
+        # 9f8266e family) so the same call against an unknown id yields
+        # 'Property X not found' rather than '... must be > 0' first.
+        if not any(p.id == property_id for p in scenario.properties):
+            raise ScenarioMutationError(f"Property '{property_id}' not found.")
         if weight is not None and weight <= 0:
             # Schema $defs/Property.weight is exclusiveMinimum 0 — match at the
             # mutation boundary instead of letting it surface at save-time only.
             raise ScenarioMutationError(f"Property weight must be > 0 (got {weight}).")
-        scenario = self._scenario
-        if not any(p.id == property_id for p in scenario.properties):
-            raise ScenarioMutationError(f"Property '{property_id}' not found.")
         triggers_solve = kind is not None or weight is not None
         new_props: list[PropertyM] = []
         for p in scenario.properties:
