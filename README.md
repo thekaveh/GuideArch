@@ -143,7 +143,7 @@ The recommended exploration flow:
 
 1. **Open Sample SAS** in the toolbar.
 2. **Results tab** — top candidate's score should be `0.031180695179944085`. The bar chart on the right shows the top 30; click any bar to jump to that candidate.
-3. **Properties tab** — change one property's weight (e.g., bump *Reliability* to 9). Watch the candidates table refresh within ~100 ms.
+3. **Properties tab** — change one property's weight (e.g., bump *Reliability* to 9). Watch the candidates table refresh instantly (v1.0 re-solves synchronously per `spec/editors.md` §0; at SAS/EDS scale a single solve is under 10 ms).
 4. **Critical decisions tab** — see which architectural choices drive the result most.
 5. **Critical constraints tab** — see which constraints eliminate the most candidates.
 6. **Save As…** to a temp file; **New**; then **Open…** the file you just saved — the edit should round-trip.

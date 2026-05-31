@@ -84,7 +84,7 @@ It MUST NOT re-solve when:
 - `scenario.name` or `description` change.
 - `filePath` changes (Save As without edits).
 
-Implementation guidance: debounce by 100 ms in the View adapter so a slider drag doesn't trigger 60 solves/sec. The debounce belongs in the adapter, not the VM.
+Implementation guidance for v1.0: re-solve **synchronously** on each mutation (see `spec/editors.md` §0). At SAS/EDS scale (≤ 25 alternatives × 7 properties) a single solve is < 10 ms and below human perception, so the adapter-level 100 ms debounce design from earlier drafts was not necessary at ship time. If a future scenario size makes synchronous resolve perceptible, debounce lands in the View adapter (not the VM) per the original guidance — the contract here is that the VM exposes a deterministic re-solve trigger; whether the adapter chooses to coalesce calls is the adapter's policy.
 
 ## 4. Per-child VMs (briefly)
 

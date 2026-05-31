@@ -17,7 +17,7 @@ A persistent app shell hosts:
    - `Save As…` — OS-native save dialog; `SaveAsCmd`.
    - A flexible spacer.
    - `Solve` — explicitly re-runs `SolveCmd` (useful after import).
-2. **Tab strip (left or top)** — five tabs: `Decisions`, `Alternatives`, `Properties`, `Coefficients`, `Constraints`. A sixth tab `Results` shows the M2 candidates table.
+2. **Tab strip (left or top)** — eight tabs in order: `Decisions`, `Alternatives`, `Properties`, `Coefficients`, `Constraints`, `Results`, `Critical Decisions`, `Critical Constraints`. The last two were added in M4 with the analysis surface and ship in v1.0.
 3. **Status bar (bottom)** — scenario name · `n candidates` · last error/warning (if any).
 
 ## 2. Per-tab editors
