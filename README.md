@@ -26,16 +26,7 @@ All three are built on the [VMx](https://github.com/thekaveh/VMx) MVVM framework
 
 Read most-to-least essential. Each link includes when to use it.
 
-### 3.1 Architecture & design
-
-- **[Design specification](docs/design/2026-05-29-guidearch-rewrite-design.md)** — the full architectural spec: domain model, TOPSIS algorithm, per-impl design, conformance strategy, GitHub plan, v1 scope, M0–M5 roadmap. *Read this first if you want to understand the project, contribute to design, or evaluate the architecture.*
-
-### 3.2 Milestone plans
-
-- **[M0 — Repo bootstrap](docs/plans/2026-05-30-m0-repo-bootstrap.md)** — the 27-task implementation plan that produced the bootstrap state. *Read this if you want to understand how the scaffolding was assembled.*
-- *Milestones M1 through M5 were executed directly from the spec without standalone plan documents — the algorithm and per-impl shapes were specified completely enough in `spec/` that intermediate plans would have duplicated content. Their commits are visible in `git log` under tags `v0.1.0-m1` through `v0.4.0-m4`, with M5 represented by the released `v1.0.0` tag.*
-
-### 3.3 Specification & conformance
+### 3.1 Specification & conformance
 
 - **[`spec/`](spec/README.md)** — the language-neutral source of truth that every implementation must satisfy. Contents:
   - **[`spec/algorithms/topsis.md`](spec/algorithms/topsis.md)** — the canonical TOPSIS pipeline with magic-number table and tie-break rule. *(M1)*
@@ -49,7 +40,7 @@ Read most-to-least essential. Each link includes when to use it.
   - **[`spec/release.md`](spec/release.md)** — release process, versioning policy, monorepo tag scheme. *(v1.0)*
   - **[`spec/conformance/`](spec/conformance/)** — the seed corpus: `scenarios/sas.json` (10 decisions, 25 alternatives, 7 properties), `scenarios/eds.json` (same shape), and the matching `expected/*.json` outputs the three impls must reproduce within `tolerances.json` (1e-9 absolute on scalars; ranking exact). *(M1, expanded M2-M4)*
 
-### 3.4 Architecture decision records
+### 3.2 Architecture decision records
 
 Numbered rationale for each non-obvious design choice. Read when questioning *why* something is the way it is.
 
@@ -60,7 +51,7 @@ Numbered rationale for each non-obvious design choice. Read when questioning *wh
 - [ADR-0005 — Single monorepo version; all three impls release together](spec/ADRs/0005-single-monorepo-version.md)
 - [ADR-0006 — NiceGUI 3.x as the Python view layer (not Shiny, not Streamlit)](spec/ADRs/0006-nicegui-over-shiny.md)
 
-### 3.5 Contributing & governance
+### 3.3 Contributing & governance
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — feature workflow (spec-first, all three impls in lockstep), local development, test layout, code style per language. *Read before opening a PR.*
 - **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1. Report violations to kaveh.razavi@gmail.com.

@@ -4,7 +4,7 @@ Thanks for your interest in contributing. GuideArch is a spec-driven monorepo wi
 
 ## Before you start
 
-- Read [docs/design/2026-05-29-guidearch-rewrite-design.md](docs/design/2026-05-29-guidearch-rewrite-design.md) for the architectural overview.
+- Read [spec/](spec/README.md) for the language-neutral source of truth (algorithms, domain model, ViewModel/editor/chart contracts).
 - Read [spec/ADRs/](spec/ADRs/) for the rationale behind specific decisions.
 - Open an issue to discuss substantial changes before opening a PR.
 
