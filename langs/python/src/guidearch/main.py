@@ -1415,15 +1415,33 @@ def index() -> None:
         ):
             ui.label("GuideArch").classes("text-xl font-bold text-[var(--accent)] mr-4")
 
-            ui.button("New", icon="add", on_click=lambda: _do_new(vm)).props("flat color=white")
+            def _do_new_guarded() -> None:
+                was_dirty = vm.is_dirty
+                _do_new(vm)
+                # _do_new always succeeds, so wasDirty deterministically
+                # implies a discard happened.
+                if was_dirty:
+                    _stamp_discard_warning("Create a new scenario")
+
+            ui.button("New", icon="add", on_click=_do_new_guarded).props("flat color=white")
 
             def _open_native_guarded() -> None:
-                if _confirm_discard_if_dirty(vm, "Open"):
-                    _do_open_native(vm)
+                was_dirty = vm.is_dirty
+                _do_open_native(vm)
+                # Only stamp if the open actually replaced the scenario.
+                # Loader failures and cancelled pickers both leave is_dirty
+                # at True.
+                if was_dirty and not vm.is_dirty:
+                    _stamp_discard_warning("Open")
 
             def _open_dialog_guarded() -> None:
-                if _confirm_discard_if_dirty(vm, "Open"):
-                    open_dialog.open()
+                # Web-mode Open opens a dialog where the user may either
+                # paste a path or upload a file. The stamp-warning happens
+                # in _do_open_by_path / _do_open_upload on success, not
+                # here — opening the dialog itself is not the discard
+                # event. (Mirrors the C# OnOpenClicked structure where
+                # the warning is stamped post-picker, not pre-picker.)
+                open_dialog.open()
 
             if _is_native:
                 ui.button("Open…", icon="folder_open", on_click=_open_native_guarded).props(
@@ -1441,8 +1459,12 @@ def index() -> None:
                 _sample_label = str(_sample["label"]).split(" — ")[0]  # "SAS" or "EDS"
 
                 def _open_sample_guarded(p: str = _sample_path) -> None:
-                    if _confirm_discard_if_dirty(vm, "Open Sample"):
-                        vm.open_cmd.execute(p)
+                    was_dirty = vm.is_dirty
+                    vm.open_cmd.execute(p)
+                    # Only stamp when the open actually succeeded — a load
+                    # failure leaves is_dirty at True (open_cmd's catch path).
+                    if was_dirty and not vm.is_dirty:
+                        _stamp_discard_warning("Open Sample")
 
                 ui.button(
                     f"Open Sample {_sample_label}",
@@ -1634,7 +1656,10 @@ def _do_open_native(vm: ScenarioVM) -> None:
 def _do_open_by_path(vm: ScenarioVM, path: str, dialog: Any) -> None:
     path = path.strip()
     if path:
+        was_dirty = vm.is_dirty
         vm.open_cmd.execute(path)
+        if was_dirty and not vm.is_dirty:
+            _stamp_discard_warning("Open")
     dialog.close()
 
 
@@ -1651,12 +1676,15 @@ def _do_open_upload(vm: ScenarioVM, event: Any, dialog: Any) -> None:
     import tempfile
 
     tmp_path: str | None = None
+    was_dirty = vm.is_dirty
     try:
         content = event.content.read()
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="wb") as tmp:
             tmp.write(content)
             tmp_path = tmp.name
         vm.open_cmd.execute(tmp_path)
+        if was_dirty and not vm.is_dirty:
+            _stamp_discard_warning("Open")
     except Exception as exc:
         ui.notify(f"Upload failed: {exc}", color="negative")
     finally:
@@ -1680,25 +1708,18 @@ def _do_save_browser(vm: ScenarioVM, file_path: str | None = None) -> None:
     ui.notify("Downloaded.", color="positive")
 
 
-def _confirm_discard_if_dirty(vm: ScenarioVM, action: str) -> bool:
-    """JS confirm equivalent for unsaved-changes prompts. Returns True if
-    the caller should proceed. Mirrors the TS Toolbar's _confirmDiscardIfDirty.
-    JavaScript window.confirm via ui.run_javascript would be async; for
-    parity with the JS prompt without going async we use a synchronous
-    notification + ``return True`` policy: if the scenario isn't dirty just
-    proceed silently.
-
-    Note: NiceGUI doesn't expose a synchronous modal-confirm primitive.
-    This currently always returns True when dirty AND surfaces a warning
-    notification so the user sees their edits are being replaced. A full
-    modal-confirm dialog matching TS UX is on the v1.1 backlog.
+def _stamp_discard_warning(action: str) -> None:
+    """Surface the 'discarded unsaved changes' warning after a successful
+    scenario-replacing action. Mirrors the TS Toolbar's confirm dialog and
+    the C# StampDiscardWarning helper. Callers gate this on the pre-action
+    is_dirty snapshot so a cancelled file picker or failed loader doesn't
+    leave a phantom warning. A real modal-confirm dialog matching the TS
+    UX is on the v1.1 backlog for all three impls.
     """
-    if vm.is_dirty:
-        ui.notify(
-            f"{action} replaced unsaved changes — last revision discarded.",
-            color="warning",
-        )
-    return True
+    ui.notify(
+        f"{action} replaced unsaved changes — last revision discarded.",
+        color="warning",
+    )
 
 
 def _do_save(vm: ScenarioVM) -> None:
