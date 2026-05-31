@@ -22,9 +22,14 @@ from guidearch.output.serialize import (
     critical_decisions_to_dict,
 )
 
-# Path to spec root:
-# runner.py → conformance(0) → guidearch(1) → src(2) → python(3) → langs(4) → root(5)
-_SPEC_DIR = Path(__file__).parents[5] / "spec" / "conformance"
+# Path to the conformance corpus. The dev / in-tree walk works the same way
+# scenario_loader._load_default_schema does (parents[5] is the repo root from
+# this module). Wheel-installed callers won't have spec/ alongside the package;
+# scenarios + expected files are not bundled into the wheel, so wheel users
+# must point GUIDEARCH_SPEC_DIR at a checkout. The env-var override keeps the
+# CLI usable from outside the repo without requiring an in-tree check-in.
+_DEFAULT_SPEC_DIR = Path(__file__).parents[5] / "spec" / "conformance"
+_SPEC_DIR = Path(__import__("os").environ.get("GUIDEARCH_SPEC_DIR", str(_DEFAULT_SPEC_DIR)))
 _ABS_TOL = 1e-9
 
 

@@ -21,8 +21,9 @@ The re-solve trigger list per spec §3.3:
 The excluded trigger list (spec §3.3):
   - name, description, file_path
 
-Debouncing (100 ms) belongs in the View adapter, not here.  Tests call
-solve_cmd.execute() directly.
+v1.0 re-solves synchronously in ``_apply_scenario_mutation`` (no debounce —
+deferred to v1.1 per spec/editors.md §0). Tests call solve_cmd.execute()
+directly.
 
 Cascade methods (M3)
 --------------------
@@ -376,9 +377,10 @@ class ScenarioVM:
     def _on_hub_message(self, message: Message) -> None:
         """React to property changes from child VMs.
 
-        Sets _solve_needed flag; actual re-solve is either done immediately
-        (when called from tests via solve_cmd.execute()) or debounced in the
-        adapter layer.
+        Sets _solve_needed flag. v1.0 re-solves synchronously via
+        ``_apply_scenario_mutation`` on direct mutation paths, so this flag
+        is effectively unused by the current adapters; it remains so the
+        debounce path can land in v1.1 without a VM API change.
         """
         if isinstance(message, PropertyChangedMessage) and message.property_name == "model":
             self._solve_needed = True

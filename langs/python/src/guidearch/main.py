@@ -12,11 +12,12 @@ File dialogs
 Web mode: ui.upload for Open; ui.download for Save.
 Native mode: tkinter.filedialog (synchronous) with graceful ImportError fallback.
 
-Re-solve debounce
------------------
-The VM's _solve_needed flag is polled via a 100 ms ui.timer.  Any mutation
-in a tab editor that changes solve-relevant data calls _schedule_solve() which
-sets a pending flag; the timer fires solve_cmd.execute() once.
+Re-solve
+--------
+v1.0 re-solves synchronously inside ScenarioVM._apply_scenario_mutation;
+there is no debounce timer (deferred to v1.1 per spec/editors.md §0). Editor
+event handlers therefore do not need to schedule a solve — the VM mutation
+call already performs it.
 
 M4 additions
 ------------
@@ -32,7 +33,6 @@ from __future__ import annotations
 import argparse
 import io
 import json
-import traceback
 from pathlib import Path
 from typing import Any
 
@@ -47,7 +47,6 @@ from guidearch.viewmodels.scenario_vm import ScenarioVM, make_scenario_vm
 
 _vm: ScenarioVM | None = None
 _is_native: bool = False
-_solve_pending: bool = False
 
 
 def _get_vm() -> ScenarioVM:
@@ -55,11 +54,6 @@ def _get_vm() -> ScenarioVM:
     if _vm is None:
         _vm = make_scenario_vm()
     return _vm
-
-
-def _schedule_solve() -> None:
-    global _solve_pending
-    _solve_pending = True
 
 
 # ---------------------------------------------------------------------------
@@ -196,7 +190,6 @@ def _do_add_decision(vm: ScenarioVM, refresh: Any) -> None:
         if vm.scenario is None:
             vm.new_cmd.execute()
         vm.add_decision()
-        _schedule_solve()
         refresh()
     except Exception as exc:
         ui.notify(str(exc), color="negative")
@@ -214,7 +207,6 @@ def _do_delete_decision(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
     async def _confirmed() -> None:
         try:
             vm.delete_decision(decision_id)
-            _schedule_solve()
             refresh()
         except Exception as exc:
             ui.notify(str(exc), color="negative")
@@ -302,7 +294,6 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
 def _do_add_alternative(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
     try:
         vm.add_alternative(decision_id)
-        _schedule_solve()
         refresh()
     except Exception as exc:
         ui.notify(str(exc), color="negative")
@@ -320,7 +311,6 @@ def _do_delete_alternative(vm: ScenarioVM, alt_id: str, refresh: Any) -> None:
     async def _confirmed() -> None:
         try:
             vm.delete_alternative(alt_id)
-            _schedule_solve()
             refresh()
         except Exception as exc:
             ui.notify(str(exc), color="negative")
@@ -436,7 +426,6 @@ def _do_add_property(vm: ScenarioVM, refresh: Any) -> None:
         if vm.scenario is None:
             vm.new_cmd.execute()
         vm.add_property()
-        _schedule_solve()
         refresh()
     except Exception as exc:
         ui.notify(str(exc), color="negative")
@@ -452,8 +441,6 @@ def _do_update_property(
 ) -> None:
     try:
         vm.update_property(prop_id, name=name, kind=kind, weight=weight)
-        if weight is not None or kind is not None:
-            _schedule_solve()
         if refresh:
             refresh()
     except Exception as exc:
@@ -464,7 +451,6 @@ def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
     async def _confirmed() -> None:
         try:
             vm.delete_property(prop_id)
-            _schedule_solve()
             refresh()
         except Exception as exc:
             ui.notify(str(exc), color="negative")
@@ -625,7 +611,6 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
                                         float(mi.value or 0),
                                         float(ui_.value or 0),
                                     )
-                                    _schedule_solve()
                                     rf()
                                 except Exception as exc:
                                     ui.notify(str(exc), color="negative")
@@ -775,7 +760,6 @@ def _render_threshold_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
 def _do_add_threshold(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
     try:
         vm.add_threshold_constraint(prop_id)
-        _schedule_solve()
         refresh()
     except Exception as exc:
         ui.notify(str(exc), color="negative")
@@ -798,7 +782,6 @@ def _do_update_threshold(
             min_val=min_val if min_val is not ... else _UNSET,
             max_val=max_val if max_val is not ... else _UNSET,
         )
-        _schedule_solve()
         if refresh:
             refresh()
     except Exception as exc:
@@ -882,7 +865,6 @@ def _render_dependency_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
 def _do_add_dependency(vm: ScenarioVM, src: str, tgt: str, refresh: Any) -> None:
     try:
         vm.add_dependency_constraint(src, tgt)
-        _schedule_solve()
         refresh()
     except Exception as exc:
         ui.notify(str(exc), color="negative")
@@ -897,7 +879,6 @@ def _do_update_dependency(
 ) -> None:
     try:
         vm.update_dependency_constraint(index, source_id=source_id, target_id=target_id)
-        _schedule_solve()
         if refresh:
             refresh()
     except Exception as exc:
@@ -981,7 +962,6 @@ def _render_conflict_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
 def _do_add_conflict(vm: ScenarioVM, a: str, b: str, refresh: Any) -> None:
     try:
         vm.add_conflict_constraint(a, b)
-        _schedule_solve()
         refresh()
     except Exception as exc:
         ui.notify(str(exc), color="negative")
@@ -996,7 +976,6 @@ def _do_update_conflict(
 ) -> None:
     try:
         vm.update_conflict_constraint(index, alt_a_id=alt_a_id, alt_b_id=alt_b_id)
-        _schedule_solve()
         if refresh:
             refresh()
     except Exception as exc:
@@ -1006,7 +985,6 @@ def _do_update_conflict(
 def _do_delete_constraint(vm: ScenarioVM, index: int, refresh: Any) -> None:
     try:
         vm.delete_constraint(index)
-        _schedule_solve()
         refresh()
     except Exception as exc:
         ui.notify(str(exc), color="negative")
@@ -1555,18 +1533,9 @@ def index() -> None:
 
     vm.property_changed.subscribe(on_next=_on_vm_change)
 
-    # ── 100 ms debounce timer for solve ──────────────────────────────────────
-    def _tick() -> None:
-        global _solve_pending
-        if _solve_pending:
-            _solve_pending = False
-            try:
-                vm.solve_cmd.execute()
-            except Exception as exc:
-                ui.notify(f"Solve error: {exc}", color="negative")
-                traceback.print_exc()
-
-    ui.timer(0.1, _tick)
+    # v1.0: no debounce timer — re-solve happens synchronously inside
+    # ScenarioVM._apply_scenario_mutation when an editor calls a mutator.
+    # See spec/editors.md §0 for why; debounce is deferred to v1.1.
 
 
 # ---------------------------------------------------------------------------
@@ -1576,7 +1545,6 @@ def index() -> None:
 
 def _do_new(vm: ScenarioVM) -> None:
     vm.new_cmd.execute()
-    _schedule_solve()
 
 
 def _do_open_native(vm: ScenarioVM) -> None:
