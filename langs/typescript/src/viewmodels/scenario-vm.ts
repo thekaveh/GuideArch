@@ -451,14 +451,22 @@ export function makeScenarioVm(): ScenarioVM {
     _triggerSolve();
   }
 
+  function _requireProperty(s: ScenarioM, id: string): void {
+    if (!s.properties.some((p) => p.id === id)) {
+      throw new ScenarioMutationError(`Property '${id}' not found.`);
+    }
+  }
+
   function updatePropertyName(id: string, name: string): void {
     const s = _requireScenario();
+    _requireProperty(s, id);
     const properties = s.properties.map((p) => (p.id === id ? { ...p, name } : p));
     _setState({ scenario: { ...s, properties }, isDirty: true });
   }
 
   function updatePropertyKind(id: string, kind: 'min' | 'max'): void {
     const s = _requireScenario();
+    _requireProperty(s, id);
     const properties = s.properties.map((p) => (p.id === id ? { ...p, kind } : p));
     _setState({ scenario: { ...s, properties }, isDirty: true });
     _triggerSolve();
@@ -466,7 +474,8 @@ export function makeScenarioVm(): ScenarioVM {
 
   function updatePropertyWeight(id: string, weight: number): void {
     const s = _requireScenario();
-    if (weight <= 0) throw new ScenarioMutationError('Property weight must be > 0');
+    if (weight <= 0) throw new ScenarioMutationError('Property weight must be > 0.');
+    _requireProperty(s, id);
     const properties = s.properties.map((p) => (p.id === id ? { ...p, weight } : p));
     _setState({ scenario: { ...s, properties }, isDirty: true });
     _triggerSolve();
@@ -480,6 +489,12 @@ export function makeScenarioVm(): ScenarioVM {
     upper: number,
   ): void {
     const s = _requireScenario();
+    if (!s.alternatives.some((a) => a.id === alternativeId)) {
+      throw new ScenarioMutationError(`Alternative '${alternativeId}' not found.`);
+    }
+    if (!s.properties.some((p) => p.id === propertyId)) {
+      throw new ScenarioMutationError(`Property '${propertyId}' not found.`);
+    }
     // Drop any prior ordering warning for this (alt, prop) pair before
     // deciding whether to emit one — without this, the warning persists
     // forever even after the user edits the cell back into shape.
