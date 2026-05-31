@@ -22,9 +22,9 @@ import { MessageHub } from 'vmx';
 // ---------------------------------------------------------------------------
 
 describe('ScenarioVM — VM name', () => {
-  it('has name "scenario"', () => {
+  it('has name "scenario-vm"', () => {
     const vm = makeScenarioVm();
-    expect(vm.name).toBe('scenario');
+    expect(vm.name).toBe('scenario-vm');
   });
 });
 

@@ -67,8 +67,8 @@ class TestScenarioVMShape:
             assert _has_property(vm, "file_path")
             assert _has_property(vm, "is_dirty")
             assert _has_property(vm, "candidates")
-            assert _has_property(vm, "critical_decisions_result")
-            assert _has_property(vm, "critical_constraints_result")
+            assert _has_property(vm, "critical_decisions")
+            assert _has_property(vm, "critical_constraints")
             assert _has_property(vm, "status")
             assert _has_property(vm, "warnings")
         finally:

@@ -650,7 +650,7 @@ export function makeScenarioVm(): ScenarioVM {
   // ── Build the ComponentVMOf ───────────────────────────────────────────────
 
   const vm = ComponentVMOf.builder<ScenarioState>()
-    .name('scenario')
+    .name('scenario-vm')
     .model(_emptyState())
     .services(hub, NullDispatcher.INSTANCE)
     .modeledHinter((m) => m.scenario?.name ?? '(no scenario)')

@@ -197,11 +197,11 @@ class ScenarioVM:
         return self._candidates
 
     @property
-    def critical_decisions_result(self) -> tuple[CriticalDecisionM, ...]:
+    def critical_decisions(self) -> tuple[CriticalDecisionM, ...]:
         return self._critical_decisions
 
     @property
-    def critical_constraints_result(self) -> tuple[CriticalConstraintM, ...]:
+    def critical_constraints(self) -> tuple[CriticalConstraintM, ...]:
         return self._critical_constraints
 
     @property
@@ -277,8 +277,8 @@ class ScenarioVM:
         self._raise_property_changed("is_dirty")
         self._raise_property_changed("candidates")
         self._raise_property_changed("selected_candidate_index")
-        self._raise_property_changed("critical_decisions_result")
-        self._raise_property_changed("critical_constraints_result")
+        self._raise_property_changed("critical_decisions")
+        self._raise_property_changed("critical_constraints")
         self._raise_property_changed("status")
         self._raise_property_changed("warnings")
 
@@ -318,8 +318,8 @@ class ScenarioVM:
         self._raise_property_changed("warnings")
         self._raise_property_changed("candidates")
         self._raise_property_changed("selected_candidate_index")
-        self._raise_property_changed("critical_decisions_result")
-        self._raise_property_changed("critical_constraints_result")
+        self._raise_property_changed("critical_decisions")
+        self._raise_property_changed("critical_constraints")
         self._raise_property_changed("status")
 
         # Auto-solve on open
@@ -338,7 +338,7 @@ class ScenarioVM:
             return
         try:
             self._write_scenario(self._scenario, self._file_path)
-        except Exception as exc:  # noqa: BLE001 — match TS/C# breadth on Save
+        except Exception as exc:
             msg = f"Save failed: {exc}"
             self._status = msg
             self._warnings = (*self._warnings, msg)
@@ -361,7 +361,7 @@ class ScenarioVM:
             return
         try:
             self._write_scenario(self._scenario, path)
-        except Exception as exc:  # noqa: BLE001 — match TS/C# breadth on Save
+        except Exception as exc:
             msg = f"Save failed: {exc}"
             self._status = msg
             self._warnings = (*self._warnings, msg)
@@ -397,8 +397,8 @@ class ScenarioVM:
         self._solve_needed = False
         self._raise_property_changed("candidates")
         self._raise_property_changed("selected_candidate_index")
-        self._raise_property_changed("critical_decisions_result")
-        self._raise_property_changed("critical_constraints_result")
+        self._raise_property_changed("critical_decisions")
+        self._raise_property_changed("critical_constraints")
         self._raise_property_changed("status")
 
     # ── Solve trigger via hub ────────────────────────────────────────────────

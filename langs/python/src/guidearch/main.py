@@ -23,8 +23,8 @@ M4 additions
 ------------
 - Results tab is a split layout: left (60%) ranked-candidates table,
   right (40%) two stacked ui.echart instances (Chart A: bar, Chart B: triangle).
-- Critical decisions tab: read-only table of criticalDecisionsResult.
-- Critical constraints tab: read-only table of criticalConstraintsResult with
+- Critical decisions tab: read-only table of criticalDecisions.
+- Critical constraints tab: read-only table of criticalConstraints with
   faded background for redundant rows.
 """
 
@@ -1187,7 +1187,7 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
             )
         return
 
-    crit = vm.critical_decisions_result
+    crit = vm.critical_decisions
     if not crit:
         with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
             ui.label("No critical decisions computed yet.").classes(
@@ -1253,7 +1253,7 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
             )
         return
 
-    crit = vm.critical_constraints_result
+    crit = vm.critical_constraints
     if not crit:
         with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
             ui.label("No constraints active — add constraints to see analysis.").classes(
@@ -1502,11 +1502,11 @@ def index() -> None:
             res_container.clear()
             with res_container:
                 _render_results_tab(vm, res_container)
-        if prop in ("candidates", "critical_decisions_result"):
+        if prop in ("candidates", "critical_decisions"):
             crit_dec_container.clear()
             with crit_dec_container:
                 _render_critical_decisions_tab(vm, crit_dec_container)
-        if prop in ("candidates", "critical_constraints_result"):
+        if prop in ("candidates", "critical_constraints"):
             crit_con_container.clear()
             with crit_con_container:
                 _render_critical_constraints_tab(vm, crit_con_container)

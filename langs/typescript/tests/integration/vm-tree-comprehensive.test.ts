@@ -133,7 +133,7 @@ describe('§2 Construction — VMx primitive (ComponentVMOf)', () => {
   it('ScenarioVM is ComponentVMOf (has .model, .name, .construct)', () => {
     const vm = makeScenarioVm();
     expect(vm).toBeInstanceOf(ComponentVMOf);
-    expect(vm.name).toBe('scenario');
+    expect(vm.name).toBe('scenario-vm');
     expect(typeof vm.model).toBe('object');
   });
 

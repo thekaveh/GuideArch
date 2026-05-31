@@ -35,8 +35,8 @@ def test_initial_state(vm: ScenarioVM) -> None:
     """VM starts with no scenario and empty candidates list."""
     assert vm.scenario is None
     assert vm.candidates == ()
-    assert vm.critical_decisions_result == ()
-    assert vm.critical_constraints_result == ()
+    assert vm.critical_decisions == ()
+    assert vm.critical_constraints == ()
     assert vm.file_path is None
     assert vm.is_dirty is False
 
