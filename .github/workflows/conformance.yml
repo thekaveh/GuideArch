@@ -7,7 +7,17 @@ name: conformance
 on:
   push:
     branches: [main]
+    paths:
+      - 'langs/**'
+      - 'vendor/vmx/**'
+      - 'spec/**'
+      - '.github/workflows/conformance.yml'
   pull_request:
+    paths:
+      - 'langs/**'
+      - 'vendor/vmx/**'
+      - 'spec/**'
+      - '.github/workflows/conformance.yml'
   workflow_dispatch:
 
 jobs:
