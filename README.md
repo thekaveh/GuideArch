@@ -137,7 +137,7 @@ uv run guidearch --native  # desktop mode — native pywebview window
 
 ### 5.5 Try the sample scenarios
 
-Each app ships **SAS** (Service-Oriented Architecture, 10 decisions / 25 alternatives / 7 properties) and **EDS** (Enterprise Decision Space, similar shape) as bundled samples. After launching any flavor, click the toolbar button **Open Sample SAS** (or **Open Sample EDS**) — the candidates table populates immediately. The legacy `*.xml` versions converted to JSON via [`tools/import-legacy-xml.py`](tools/import-legacy-xml.py) live under [`spec/conformance/scenarios/`](spec/conformance/scenarios/) if you want to inspect them.
+Each app ships **SAS** (Service-Oriented Architecture, 10 decisions / 25 alternatives / 7 properties) and **EDS** (Enterprise Decision Space, similar shape) as bundled samples. After launching any flavor, click the toolbar button **Open Sample SAS** (or **Open Sample EDS**) — the candidates table populates immediately. The JSON form of each scenario lives under [`spec/conformance/scenarios/`](spec/conformance/scenarios/); the original legacy XML files are not committed to this repository, but [`tools/import-legacy-xml.py`](tools/import-legacy-xml.py) is the converter that produced the bundled JSON from them.
 
 The recommended exploration flow:
 

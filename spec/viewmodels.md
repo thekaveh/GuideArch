@@ -127,11 +127,11 @@ Three flavors, each `ComponentVM<XxxConstraint>`. Edits trigger a solve.
 - `bind(vm: ComponentVMOf[M], property: str, ui_element)` — sets up a two-way binding using NiceGUI's `.bind_value()` and the VMx hub's `PropertyChangedMessage` stream.
 - `bind_command(cmd: RelayCommand, button: ui.button)` — invokes `cmd` on click; disables button when `cmd.can_execute` is false.
 
-Size: ~60 LOC. Tested with a hand-written demo VM in `tests/unit/test_nicegui_adapter.py`.
+Size: ~60 LOC. Tested with a hand-written demo VM in `tests/unit/test_vmx_to_nicegui_adapter.py`.
 
 ### 5.2 TypeScript (Svelte)
 
-`langs/typescript/src/view/adapters/vmxToSvelte.ts` exposes:
+`langs/typescript/src/view/adapters/vmx-to-svelte.ts` exposes:
 
 - `vmxToStore<T>(vm, propName): Readable<T>` — wraps a VMx property as a Svelte store; subscribes to `PropertyChangedMessage` from the hub.
 - `commandAction(cmd: RelayCommand): { onClick: () => void; disabled: Readable<boolean> }` — for use with Svelte's `use:` action or directly on buttons.
