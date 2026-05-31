@@ -35,6 +35,20 @@ build-backend = "hatchling.build"
 packages = ["src/guidearch"]
 # JSON sample files are automatically included as package data by hatchling.
 
+[tool.hatch.build.targets.wheel.force-include]
+# Ship spec/domain/scenario.schema.json *inside* the wheel as
+# guidearch/_data/scenario.schema.json so `pip install guidearch` works
+# stand-alone. The repo-root walk in scenario_loader._load_default_schema()
+# fails after a wheel install (site-packages/guidearch/.../parents[5] is /),
+# so the package-data path is the only one that resolves outside this repo.
+"../../spec/domain/scenario.schema.json" = "guidearch/_data/scenario.schema.json"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/guidearch/**",
+    "../../spec/domain/scenario.schema.json",
+]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"

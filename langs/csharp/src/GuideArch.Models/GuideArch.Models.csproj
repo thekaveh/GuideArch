@@ -8,4 +8,15 @@
     <PackageReference Include="JsonSchema.Net" Version="7.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!--
+      Embed the scenario JSON Schema as a manifest resource so single-file
+      self-contained binaries (release.yml avalonia-desktop job) still find it
+      after publish — without this, ScenarioLoader.FindSchemaPath() walks the
+      filesystem and never finds spec/domain/scenario.schema.json because the
+      binary's working directory is not the repo root.
+    -->
+    <EmbeddedResource Include="..\..\..\..\spec\domain\scenario.schema.json" LogicalName="scenario.schema.json" />
+  </ItemGroup>
+
 </Project>

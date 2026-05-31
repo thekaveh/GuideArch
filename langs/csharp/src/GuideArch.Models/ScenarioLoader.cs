@@ -19,9 +19,14 @@ public static class ScenarioLoader
     private static readonly Dictionary<string, JsonSchema> SchemaCache = new();
     private static readonly object SchemaCacheLock = new();
 
+    // Sentinel returned by FindSchemaPath when the filesystem walk finds nothing.
+    // GetSchema treats this as "load from embedded manifest resource".
+    private const string EmbeddedSchemaSentinel = "<embedded>";
+
     private static string FindSchemaPath()
     {
-        // Walk up from this assembly's location to find the repo root.
+        // Walk up from this assembly's location to find the repo root. Works in
+        // dev (binaries land under bin/Release/net8.0/) and in-repo tests.
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         for (int i = 0; i < 10; i++)
         {
@@ -31,12 +36,10 @@ public static class ScenarioLoader
             if (dir.Parent is null) break;
             dir = dir.Parent;
         }
-        // Assembly.Location is always empty in single-file apps; use AppContext.BaseDirectory instead.
-        return Path.Combine(
-            AppContext.BaseDirectory,
-            "..", "..", "..", "..", "..", "..", "..",
-            "spec", "domain", "scenario.schema.json"
-        );
+        // Not on disk — release.yml publishes a self-contained single-file
+        // binary where the spec/ directory does not travel with it. Fall back
+        // to the embedded manifest resource (see GuideArch.Models.csproj).
+        return EmbeddedSchemaSentinel;
     }
 
     private static JsonSchema GetSchema(string resolvedSchemaPath)
@@ -45,7 +48,21 @@ public static class ScenarioLoader
         {
             if (!SchemaCache.TryGetValue(resolvedSchemaPath, out var cached))
             {
-                var schemaText = File.ReadAllText(resolvedSchemaPath);
+                string schemaText;
+                if (resolvedSchemaPath == EmbeddedSchemaSentinel)
+                {
+                    var asm = typeof(ScenarioLoader).Assembly;
+                    using var stream = asm.GetManifestResourceStream("scenario.schema.json")
+                        ?? throw new InvalidOperationException(
+                            "scenario.schema.json was neither found on disk nor embedded as a manifest resource. "
+                            + "Rebuild GuideArch.Models; the csproj must embed spec/domain/scenario.schema.json.");
+                    using var reader = new StreamReader(stream);
+                    schemaText = reader.ReadToEnd();
+                }
+                else
+                {
+                    schemaText = File.ReadAllText(resolvedSchemaPath);
+                }
                 cached = JsonSchema.FromText(schemaText);
                 SchemaCache[resolvedSchemaPath] = cached;
             }

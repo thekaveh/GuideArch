@@ -1,12 +1,9 @@
-"""Load and validate a scenario JSON file → ScenarioM.
-
-Path depth (from scenario_loader.py to repo root):
-  scenario_loader.py → models(0) → guidearch(1) → src(2) → python(3) → langs(4) → root(5)
-"""
+"""Load and validate a scenario JSON file → ScenarioM."""
 
 from __future__ import annotations
 
 import json
+from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
@@ -26,8 +23,32 @@ from guidearch.models.property import PropertyM
 from guidearch.models.scenario import ConfigM, ScenarioM
 from guidearch.models.triangular_fuzzy import TriangularFuzzyM
 
-_REPO_ROOT = Path(__file__).parents[5]
-_DEFAULT_SCHEMA_PATH = _REPO_ROOT / "spec" / "domain" / "scenario.schema.json"
+
+def _load_default_schema() -> dict[str, Any]:
+    """Find and parse scenario.schema.json.
+
+    Two install layouts have to work:
+
+    1. Dev / in-tree:
+         scenario_loader.py → models(0) → guidearch(1) → src(2) → python(3)
+           → langs(4) → root(5)/spec/domain/scenario.schema.json
+       The repo-root walk only resolves here.
+
+    2. Wheel install (``pip install guidearch``):
+       site-packages/guidearch/models/... has no usable parent at depth 5.
+       The schema is shipped as package data at guidearch/_data/ via
+       hatchling's force-include rule (see pyproject.toml). Use
+       importlib.resources to read it portably from the wheel.
+    """
+    in_tree = Path(__file__).parents[5] / "spec" / "domain" / "scenario.schema.json"
+    if in_tree.exists():
+        schema_text = in_tree.read_text(encoding="utf-8")
+    else:
+        schema_text = (
+            files("guidearch._data").joinpath("scenario.schema.json").read_text(encoding="utf-8")
+        )
+    parsed: dict[str, Any] = json.loads(schema_text)
+    return parsed
 
 
 class ScenarioValidationError(ValueError):
@@ -42,7 +63,8 @@ def load_scenario(
 
     Args:
         path: Path to the scenario JSON.
-        schema_path: Override the JSON Schema path (optional).
+        schema_path: Override the JSON Schema path (optional). When None,
+            the default schema is resolved per ``_load_default_schema``.
 
     Returns:
         A validated ScenarioM with any warning messages in `.warnings`.
@@ -50,14 +72,15 @@ def load_scenario(
     Raises:
         ScenarioValidationError: on any fatal invariant violation.
     """
-    schema_path = schema_path or _DEFAULT_SCHEMA_PATH
-
     raw = json.loads(path.read_text(encoding="utf-8"))
 
     # ------------------------------------------------------------------ #
     # JSON Schema structural validation
     # ------------------------------------------------------------------ #
-    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    if schema_path is not None:
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    else:
+        schema = _load_default_schema()
     validator = jsonschema.Draft202012Validator(schema)
     errors = list(validator.iter_errors(raw))
     if errors:
