@@ -73,6 +73,13 @@ ignore_missing_imports = true
 module = "jsonschema"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+# playwright lives in [dependency-groups].visual and is only installed for
+# the manual visual-snapshot workflow. CI runs `uv sync --all-extras` which
+# does not install it, so mypy must tolerate the missing import.
+module = "playwright.sync_api"
+ignore_missing_imports = true
+
 [tool.uv.sources]
 # Use the vendored VMx by default. Toggle to released via tools/use-vmx-released.sh.
 vmx = { path = "../../vendor/vmx/langs/python", editable = true }

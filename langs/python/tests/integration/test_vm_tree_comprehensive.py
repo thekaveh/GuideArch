@@ -546,8 +546,8 @@ class TestMutationPropagation:
         # Scenario updated
         updated_prop = next(
             p
-            for p in vm_sas.scenario.properties
-            if p.id == first_prop.id  # type: ignore[attr-defined]
+            for p in vm_sas.scenario.properties  # type: ignore[attr-defined]
+            if p.id == first_prop.id
         )
         assert updated_prop.weight == pytest.approx(old_weight * 10.0)
 
