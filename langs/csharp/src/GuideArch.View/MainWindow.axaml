@@ -120,50 +120,13 @@
     </Border>
 
     <!-- ================================================================
-         EMPTY STATE — §8 empty state: shown when no scenario is loaded
+         MAIN CONTENT — tab strip always visible (§8 empty state inside tabs)
          ================================================================ -->
-    <Grid IsVisible="{ReflectionBinding !Model.HasScenario}">
-      <StackPanel HorizontalAlignment="Center"
-                  VerticalAlignment="Center"
-                  Spacing="16">
-        <TextBlock Text="No scenario loaded."
-                   FontSize="14"
-                   FontWeight="Medium"
-                   Foreground="{StaticResource TextSecondaryBrush}"
-                   HorizontalAlignment="Center" />
-        <TextBlock FontSize="13"
-                   Foreground="{StaticResource TextMutedBrush}"
-                   HorizontalAlignment="Center"
-                   TextAlignment="Center"
-                   TextWrapping="Wrap"
-                   MaxWidth="480"
-                   Text="Click Open Sample SAS in the toolbar to try the example, or New to start blank." />
-        <StackPanel Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    Spacing="8">
-          <Button Content="Open Sample SAS"
-                  Classes="action-btn"
-                  Click="OnOpenSampleSasClicked" />
-          <Button Content="Open Sample EDS"
-                  Classes="action-btn"
-                  Click="OnOpenSampleEdsClicked" />
-          <Button Content="New"
-                  Classes="secondary"
-                  Click="OnNewClicked" />
-          <Button Content="Open…"
-                  Classes="secondary"
-                  Click="OnOpenClicked" />
-        </StackPanel>
-      </StackPanel>
-    </Grid>
+    <Panel>
 
-    <!-- ================================================================
-         MAIN TAB STRIP — §5.4 tabs, §6 layout
-         Visible only when a scenario is loaded.
-         ================================================================ -->
-    <TabControl Name="MainTabs"
-                IsVisible="{ReflectionBinding Model.HasScenario}"
-                Background="{StaticResource BgPageBrush}">
+      <!-- ── Tab strip — always visible ──────────────────────────────── -->
+      <TabControl Name="MainTabs"
+                  Background="{StaticResource BgPageBrush}">
 
       <!-- ── Tab 1: Decisions ────────────────────────────────────────── -->
       <TabItem Header="Decisions">
@@ -306,51 +269,19 @@
         <Grid RowDefinitions="Auto,*">
 
           <TextBlock Grid.Row="0"
-                     Text="Fuzzy coefficient matrix (alternative × property). Edit values in code."
+                     Text="Fuzzy coefficient matrix: rows = alternatives (grouped by decision), columns = properties."
                      Margin="24,12,24,8"
                      FontSize="12"
                      Foreground="{StaticResource TextSecondaryBrush}" />
 
-          <!-- Coefficients flat table
-               ReflectionBinding: open generic DataContext (see file header) -->
-          <DataGrid Grid.Row="1"
-                    Name="CoefficientsGrid"
-                    ItemsSource="{ReflectionBinding Model.CoefficientsView}"
-                    AutoGenerateColumns="False"
-                    CanUserResizeColumns="True"
-                    CanUserSortColumns="False"
-                    IsReadOnly="False"
-                    Margin="24,0,24,24">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="Alternative ID"
-                                  Binding="{ReflectionBinding AlternativeId}"
-                                  Width="220"
-                                  IsReadOnly="True"
-                                  FontFamily="Cascadia Code,Consolas,monospace"
-                                  FontSize="13" />
-              <DataGridTextColumn Header="Property ID"
-                                  Binding="{ReflectionBinding PropertyId}"
-                                  Width="220"
-                                  IsReadOnly="True"
-                                  FontFamily="Cascadia Code,Consolas,monospace"
-                                  FontSize="13" />
-              <DataGridTextColumn Header="Lower"
-                                  Binding="{ReflectionBinding Value.Lower, StringFormat={}{0:F4}}"
-                                  Width="90"
-                                  IsReadOnly="True"
-                                  FontFamily="Cascadia Code,Consolas,monospace" />
-              <DataGridTextColumn Header="Modal"
-                                  Binding="{ReflectionBinding Value.Modal, StringFormat={}{0:F4}}"
-                                  Width="90"
-                                  IsReadOnly="True"
-                                  FontFamily="Cascadia Code,Consolas,monospace" />
-              <DataGridTextColumn Header="Upper"
-                                  Binding="{ReflectionBinding Value.Upper, StringFormat={}{0:F4}}"
-                                  Width="90"
-                                  IsReadOnly="True"
-                                  FontFamily="Cascadia Code,Consolas,monospace" />
-            </DataGrid.Columns>
-          </DataGrid>
+          <!-- 2-D matrix: built in code-behind, hosted here -->
+          <ScrollViewer Grid.Row="1"
+                        Name="CoefficientsScroll"
+                        HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Auto"
+                        Margin="24,0,24,24">
+            <ContentControl Name="CoefficientsContent" />
+          </ScrollViewer>
 
         </Grid>
       </TabItem>
@@ -640,7 +571,46 @@
         </Grid>
       </TabItem>
 
-    </TabControl>
+      </TabControl>
+
+      <!-- ── Empty state overlay — §8: centered CTA when no scenario loaded ─ -->
+      <Grid IsVisible="{ReflectionBinding !Model.HasScenario}"
+            IsHitTestVisible="{ReflectionBinding !Model.HasScenario}">
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="16">
+          <TextBlock Text="No scenario loaded."
+                     FontSize="14"
+                     FontWeight="Medium"
+                     Foreground="{StaticResource TextSecondaryBrush}"
+                     HorizontalAlignment="Center" />
+          <TextBlock FontSize="13"
+                     Foreground="{StaticResource TextMutedBrush}"
+                     HorizontalAlignment="Center"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     MaxWidth="480"
+                     Text="Click Open Sample SAS in the toolbar to try the example, or New to start blank." />
+          <StackPanel Orientation="Horizontal"
+                      HorizontalAlignment="Center"
+                      Spacing="8">
+            <Button Content="Open Sample SAS"
+                    Classes="action-btn"
+                    Click="OnOpenSampleSasClicked" />
+            <Button Content="Open Sample EDS"
+                    Classes="action-btn"
+                    Click="OnOpenSampleEdsClicked" />
+            <Button Content="New"
+                    Classes="secondary"
+                    Click="OnNewClicked" />
+            <Button Content="Open…"
+                    Classes="secondary"
+                    Click="OnOpenClicked" />
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+
+    </Panel>
 
   </DockPanel>
 

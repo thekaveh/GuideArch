@@ -105,6 +105,10 @@ void CaptureEmptyState(string[] tabNames, string dir)
 
     var tabs = window.FindControl<TabControl>("MainTabs");
 
+    // ScottPlot charts render black in headless mode — hide them for Results tab.
+    var chartA = window.FindControl<Control>("ChartA");
+    var chartB = window.FindControl<Control>("ChartB");
+
     for (int i = 0; i < tabNames.Length; i++)
     {
         if (tabs is not null && i < tabs.ItemCount)
@@ -113,8 +117,25 @@ void CaptureEmptyState(string[] tabNames, string dir)
             Dispatcher.UIThread.RunJobs();
             Tick(4);
         }
+
+        // Results tab (index 5): hide charts so tab body renders correctly.
+        bool hideCharts = (i == 5 && chartA is not null && chartB is not null);
+        if (hideCharts)
+        {
+            chartA!.IsVisible = false;
+            chartB!.IsVisible = false;
+            Dispatcher.UIThread.RunJobs();
+            Tick(4);
+        }
+
         var frame = window.CaptureRenderedFrame();
         SaveOrWarn(frame, Path.Combine(dir, $"empty-{ToSafe(tabNames[i])}.png"));
+
+        if (hideCharts)
+        {
+            chartA!.IsVisible = true;
+            chartB!.IsVisible = true;
+        }
     }
     window.Close();
 }

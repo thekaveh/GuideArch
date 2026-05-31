@@ -6,6 +6,15 @@ using GuideArch.Models;
 using GuideArch.ViewModels;
 using ScottPlot;
 using VMx.Components;
+using AvaColor = Avalonia.Media.Color;
+using AvaBrush = Avalonia.Media.IBrush;
+using AvaSolidBrush = Avalonia.Media.SolidColorBrush;
+using AvaFontFamily = Avalonia.Media.FontFamily;
+using AvaFontWeight = Avalonia.Media.FontWeight;
+using AvaTextWrapping = Avalonia.Media.TextWrapping;
+using AvaTextTrimming = Avalonia.Media.TextTrimming;
+using AvaOrientation = Avalonia.Layout.Orientation;
+using AvaVertAlign = Avalonia.Layout.VerticalAlignment;
 
 namespace GuideArch.View;
 
@@ -78,6 +87,9 @@ public partial class MainWindow : Window
         bool candidatesChanged = state.Candidates.Length != _lastCandidateCount;
         bool selectionChanged = state.SelectedCandidateIndex != _lastSelectedIndex;
 
+        // Always rebuild the coefficients matrix when state changes (scenario may have changed).
+        RebuildCoefficientsMatrix(state);
+
         if (!candidatesChanged && !selectionChanged) return;
 
         _lastCandidateCount = state.Candidates.Length;
@@ -88,6 +100,224 @@ public partial class MainWindow : Window
 
         // Sync the candidates DataGrid selection row.
         SyncResultsGridSelection(state);
+    }
+
+    // -----------------------------------------------------------------------
+    // Coefficients 2-D matrix builder (spec editors.md §2.4)
+    // -----------------------------------------------------------------------
+
+    // Column widths (px).
+    private const double AltNameColWidth = 160.0;
+    private const double PropColWidth = 190.0;   // L / M / U compact
+    private const double RowHeight = 28.0;
+    private const double GroupHeaderHeight = 26.0;
+
+    private void RebuildCoefficientsMatrix(ScenarioState state)
+    {
+        var matrix = state.CoefficientsMatrix;
+
+        if (matrix.Groups.IsEmpty)
+        {
+            CoefficientsContent.Content = null;
+            return;
+        }
+
+        // Lookup brushes from app resources.
+        var bgSurface    = TryGetBrush("BgSurfaceBrush")    ?? new AvaSolidBrush(AvaColor.Parse("#13161d"));
+        var borderSubtle = TryGetBrush("BorderSubtleBrush")  ?? new AvaSolidBrush(AvaColor.Parse("#262b36"));
+        var textPrimary  = TryGetBrush("TextPrimaryBrush")   ?? new AvaSolidBrush(AvaColor.Parse("#e6e7ed"));
+        var textSecondary= TryGetBrush("TextSecondaryBrush") ?? new AvaSolidBrush(AvaColor.Parse("#9298a8"));
+        var textMuted    = TryGetBrush("TextMutedBrush")     ?? new AvaSolidBrush(AvaColor.Parse("#5e6478"));
+        var accentMuted  = TryGetBrush("AccentMutedBrush")   ?? new AvaSolidBrush(AvaColor.Parse("#3d2a6b"));
+        var accentBrush  = TryGetBrush("AccentBrush")        ?? new AvaSolidBrush(AvaColor.Parse("#8b5cf6"));
+        var monoFont     = new AvaFontFamily("Cascadia Code,Consolas,monospace");
+
+        int propCount = matrix.Properties.Length;
+        double totalWidth = AltNameColWidth + propCount * PropColWidth;
+
+        // ── Build the root StackPanel ──────────────────────────────────
+        var root = new StackPanel { Orientation = AvaOrientation.Vertical };
+        root.MinWidth = totalWidth;
+
+        // ── Property column header row ─────────────────────────────────
+        var headerRow = new Grid { Height = GroupHeaderHeight + 4 };
+        headerRow.Background = bgSurface;
+        var headerCols = new ColumnDefinitions();
+        headerCols.Add(new ColumnDefinition(AltNameColWidth, GridUnitType.Pixel));
+        for (int p = 0; p < propCount; p++)
+            headerCols.Add(new ColumnDefinition(PropColWidth, GridUnitType.Pixel));
+        headerRow.ColumnDefinitions = headerCols;
+
+        // "Alternative" label in the first col
+        var altHeader = new TextBlock
+        {
+            Text = "Alternative",
+            FontSize = 11,
+            FontWeight = AvaFontWeight.SemiBold,
+            Foreground = textSecondary,
+            VerticalAlignment = AvaVertAlign.Center,
+            Margin = new Avalonia.Thickness(8, 0, 4, 0)
+        };
+        Grid.SetColumn(altHeader, 0);
+        headerRow.Children.Add(altHeader);
+
+        // Property column headers
+        for (int p = 0; p < propCount; p++)
+        {
+            var prop = matrix.Properties[p];
+            var kindText = prop.Kind == PropertyKind.Min ? "↓" : "↑";
+            var headerCell = new Border
+            {
+                BorderBrush = borderSubtle,
+                BorderThickness = new Avalonia.Thickness(1, 0, 0, 1),
+                Padding = new Avalonia.Thickness(4, 2, 4, 2)
+            };
+            var headerContent = new StackPanel { Orientation = AvaOrientation.Vertical, Spacing = 1 };
+            headerContent.Children.Add(new TextBlock
+            {
+                Text = prop.Name,
+                FontSize = 11,
+                FontWeight = AvaFontWeight.Medium,
+                Foreground = textPrimary,
+                TextWrapping = AvaTextWrapping.NoWrap,
+                TextTrimming = AvaTextTrimming.CharacterEllipsis
+            });
+            // Kind + weight badge
+            var badge = new StackPanel { Orientation = AvaOrientation.Horizontal, Spacing = 4 };
+            badge.Children.Add(new TextBlock
+            {
+                Text = kindText,
+                FontSize = 10,
+                Foreground = accentBrush,
+                VerticalAlignment = AvaVertAlign.Center
+            });
+            badge.Children.Add(new TextBlock
+            {
+                Text = $"{prop.Weight:G4}",
+                FontSize = 10,
+                FontFamily = monoFont,
+                Foreground = textMuted,
+                VerticalAlignment = AvaVertAlign.Center
+            });
+            headerContent.Children.Add(badge);
+            headerCell.Child = headerContent;
+            Grid.SetColumn(headerCell, p + 1);
+            headerRow.Children.Add(headerCell);
+        }
+        root.Children.Add(headerRow);
+
+        // ── Decision groups ────────────────────────────────────────────
+        foreach (var group in matrix.Groups)
+        {
+            // Group header
+            var groupHeader = new Border
+            {
+                Background = accentMuted,
+                Padding = new Avalonia.Thickness(8, 4, 8, 4),
+                MinWidth = totalWidth
+            };
+            groupHeader.Child = new TextBlock
+            {
+                Text = group.DecisionName,
+                FontSize = 12,
+                FontWeight = AvaFontWeight.SemiBold,
+                Foreground = textPrimary
+            };
+            root.Children.Add(groupHeader);
+
+            // Alternative rows
+            foreach (var row in group.Rows)
+            {
+                var rowGrid = new Grid { Height = RowHeight };
+
+                var rowCols = new ColumnDefinitions();
+                rowCols.Add(new ColumnDefinition(AltNameColWidth, GridUnitType.Pixel));
+                for (int p = 0; p < propCount; p++)
+                    rowCols.Add(new ColumnDefinition(PropColWidth, GridUnitType.Pixel));
+                rowGrid.ColumnDefinitions = rowCols;
+                rowGrid.Background = bgSurface;
+
+                // Alternative name cell
+                var nameCell = new Border
+                {
+                    BorderBrush = borderSubtle,
+                    BorderThickness = new Avalonia.Thickness(0, 0, 1, 1),
+                    Padding = new Avalonia.Thickness(8, 0, 4, 0)
+                };
+                nameCell.Child = new TextBlock
+                {
+                    Text = row.AlternativeName,
+                    FontSize = 12,
+                    Foreground = textPrimary,
+                    VerticalAlignment = AvaVertAlign.Center,
+                    TextTrimming = AvaTextTrimming.CharacterEllipsis
+                };
+                Grid.SetColumn(nameCell, 0);
+                rowGrid.Children.Add(nameCell);
+
+                // Coefficient cells
+                for (int p = 0; p < row.Cells.Length; p++)
+                {
+                    var cell = row.Cells[p];
+                    var cellBorder = new Border
+                    {
+                        BorderBrush = borderSubtle,
+                        BorderThickness = new Avalonia.Thickness(1, 0, 0, 1),
+                        Padding = new Avalonia.Thickness(4, 0, 4, 0)
+                    };
+
+                    // L · M · U compact display
+                    var cellContent = new StackPanel
+                    {
+                        Orientation = AvaOrientation.Horizontal,
+                        Spacing = 3,
+                        VerticalAlignment = AvaVertAlign.Center
+                    };
+
+                    cellContent.Children.Add(MakeFuzzyLabel(cell.Lower, textMuted, monoFont));
+                    cellContent.Children.Add(new TextBlock
+                    {
+                        Text = "·", FontSize = 10,
+                        Foreground = textMuted,
+                        VerticalAlignment = AvaVertAlign.Center
+                    });
+                    cellContent.Children.Add(MakeFuzzyLabel(cell.Modal, textPrimary, monoFont));
+                    cellContent.Children.Add(new TextBlock
+                    {
+                        Text = "·", FontSize = 10,
+                        Foreground = textMuted,
+                        VerticalAlignment = AvaVertAlign.Center
+                    });
+                    cellContent.Children.Add(MakeFuzzyLabel(cell.Upper, textMuted, monoFont));
+
+                    cellBorder.Child = cellContent;
+                    Grid.SetColumn(cellBorder, p + 1);
+                    rowGrid.Children.Add(cellBorder);
+                }
+
+                root.Children.Add(rowGrid);
+            }
+        }
+
+        CoefficientsContent.Content = root;
+    }
+
+    private static TextBlock MakeFuzzyLabel(double value, AvaBrush fg, AvaFontFamily ff) =>
+        new TextBlock
+        {
+            Text = $"{value:F3}",
+            FontSize = 11,
+            FontFamily = ff,
+            Foreground = fg,
+            VerticalAlignment = AvaVertAlign.Center
+        };
+
+    private AvaBrush? TryGetBrush(string key)
+    {
+        if (Avalonia.Application.Current?.Resources.TryGetResource(key, null, out var res) == true
+            && res is AvaBrush brush)
+            return brush;
+        return null;
     }
 
     // -----------------------------------------------------------------------
