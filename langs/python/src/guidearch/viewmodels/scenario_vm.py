@@ -864,6 +864,8 @@ class ScenarioVM:
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
+        if index < 0 or index >= len(scenario.constraints):
+            raise ScenarioMutationError(f"Constraint index {index} out of range.")
         c = scenario.constraints[index]
         if not isinstance(c, ThresholdConstraint):
             raise ScenarioMutationError(
@@ -900,15 +902,30 @@ class ScenarioVM:
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
+        if index < 0 or index >= len(scenario.constraints):
+            raise ScenarioMutationError(f"Constraint index {index} out of range.")
         c = scenario.constraints[index]
         if not isinstance(c, DependencyConstraint):
             raise ScenarioMutationError(
                 f"Constraint at index {index} is not a DependencyConstraint."
             )
+        new_source = source_id if source_id is not None else c.source_alternative_id
+        new_target = target_id if target_id is not None else c.target_alternative_id
+        # Enforce invariant 2.5 (alternative IDs must exist) and 7.1
+        # (self-edges fatal) at the mutation boundary — matches the Add path.
+        alt_ids = {a.id for a in scenario.alternatives}
+        if new_source not in alt_ids:
+            raise ScenarioMutationError(f"Alternative '{new_source}' not found.")
+        if new_target not in alt_ids:
+            raise ScenarioMutationError(f"Alternative '{new_target}' not found.")
+        if new_source == new_target:
+            raise ScenarioMutationError(
+                "Self-edge on dependency constraint (source must differ from target)."
+            )
         new_c = DependencyConstraint(
             kind="dependency",
-            source_alternative_id=(source_id if source_id is not None else c.source_alternative_id),
-            target_alternative_id=(target_id if target_id is not None else c.target_alternative_id),
+            source_alternative_id=new_source,
+            target_alternative_id=new_target,
         )
         new_constraints = tuple(
             new_c if i == index else old_c for i, old_c in enumerate(scenario.constraints)
@@ -925,13 +942,27 @@ class ScenarioVM:
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
+        if index < 0 or index >= len(scenario.constraints):
+            raise ScenarioMutationError(f"Constraint index {index} out of range.")
         c = scenario.constraints[index]
         if not isinstance(c, ConflictConstraint):
             raise ScenarioMutationError(f"Constraint at index {index} is not a ConflictConstraint.")
+        new_a = alt_a_id if alt_a_id is not None else c.alternative_a_id
+        new_b = alt_b_id if alt_b_id is not None else c.alternative_b_id
+        # Same invariant 2.5 / 7.1 guards as update_dependency_constraint.
+        alt_ids = {a.id for a in scenario.alternatives}
+        if new_a not in alt_ids:
+            raise ScenarioMutationError(f"Alternative '{new_a}' not found.")
+        if new_b not in alt_ids:
+            raise ScenarioMutationError(f"Alternative '{new_b}' not found.")
+        if new_a == new_b:
+            raise ScenarioMutationError(
+                "Self-edge on conflict constraint (alternativeA must differ from alternativeB)."
+            )
         new_c = ConflictConstraint(
             kind="conflict",
-            alternative_a_id=(alt_a_id if alt_a_id is not None else c.alternative_a_id),
-            alternative_b_id=(alt_b_id if alt_b_id is not None else c.alternative_b_id),
+            alternative_a_id=new_a,
+            alternative_b_id=new_b,
         )
         new_constraints = tuple(
             new_c if i == index else old_c for i, old_c in enumerate(scenario.constraints)

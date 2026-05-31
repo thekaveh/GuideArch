@@ -1539,7 +1539,10 @@ def index() -> None:
                 cont.clear()
                 with cont:
                     fn(vm, cont)
-            # Update Save button enabled state
+        # Save-button enabled state must also refresh on file_path change
+        # (Save As sets file_path without emitting 'scenario'). Track on
+        # the three properties that determine SaveCmd's predicate.
+        if prop in ("scenario", "file_path", "is_dirty"):
             if vm.scenario and vm.file_path:
                 save_btn.props(remove="disabled")
             else:
@@ -1580,6 +1583,7 @@ def _do_open_upload(vm: ScenarioVM, event: Any, dialog: Any) -> None:
     file immediately afterwards so a long-running web session doesn't
     accumulate /tmp/tmp*.json leaks across repeated Opens.
     """
+    import contextlib
     import os
     import tempfile
 
@@ -1594,10 +1598,8 @@ def _do_open_upload(vm: ScenarioVM, event: Any, dialog: Any) -> None:
         ui.notify(f"Upload failed: {exc}", color="negative")
     finally:
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(tmp_path)
-            except OSError:
-                pass
         dialog.close()
 
 
