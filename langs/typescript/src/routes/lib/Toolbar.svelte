@@ -13,7 +13,12 @@
   // Re-derive stores each time vm changes (for reactivity)
   $: filePathStore = vmxToStore(vm, 'filePath');
   $: scenarioStore = vmxToStore(vm, 'scenario');
-  $: saveOff = $filePathStore === undefined || $scenarioStore === undefined;
+  // Save needs both a scenario and a filePath (matches saveCmd's predicate
+  // and C#'s CanSave). Save As only needs a scenario — it prompts for the
+  // path. Earlier both buttons shared one gate, so a user couldn't Save As
+  // after New until they had already saved once.
+  $: canSaveAs = $scenarioStore !== undefined;
+  $: canSave = canSaveAs && $filePathStore !== undefined;
 
   // Single confirm-if-dirty gate shared by New, Open, and Open Sample —
   // each replaces the current scenario, so each should ask the same
@@ -160,8 +165,8 @@
     />
     <button class="btn btn-sample" on:click={() => handleOpenSample(0)}>Open Sample SAS</button>
     <button class="btn btn-sample" on:click={() => handleOpenSample(1)}>Open Sample EDS</button>
-    <button class="btn" disabled={saveOff} on:click={handleSave}>Save</button>
-    <button class="btn" disabled={saveOff} on:click={handleSaveAs}>Save As…</button>
+    <button class="btn" disabled={!canSave} on:click={handleSave}>Save</button>
+    <button class="btn" disabled={!canSaveAs} on:click={handleSaveAs}>Save As…</button>
   </div>
   <span class="spacer"></span>
   <button class="btn btn-solve" disabled={$scenarioStore === undefined} on:click={handleSolve}>

@@ -278,11 +278,22 @@ export function runConformance(): { passed: number; failed: number; divergences:
 
     const divs: Divergence[] = [];
 
-    // Compare candidates
+    // Compare candidates — treat missing expected file as a divergence
+    // (matches Python + C# runners). Silently skipping would let an
+    // accidentally-deleted expected/*.json hide a real conformance regression.
     const expectedCandidatesPath = path.join(EXPECTED_DIR, `${name}.candidates.json`);
     if (fs.existsSync(expectedCandidatesPath)) {
       const expectedCandidates = JSON.parse(fs.readFileSync(expectedCandidatesPath, 'utf-8'));
       divs.push(...compareCandidates(candidates, expectedCandidates, `${name}.candidates`));
+    } else {
+      divs.push({
+        scenario: name,
+        kind: 'candidates',
+        index: -1,
+        field: 'expected-file',
+        expected: expectedCandidatesPath,
+        actual: '(missing)',
+      });
     }
 
     // Compare critical decisions
@@ -292,6 +303,15 @@ export function runConformance(): { passed: number; failed: number; divergences:
       divs.push(
         ...compareCriticalDecisions(critDecs, expectedCritDecs, `${name}.critical-decisions`),
       );
+    } else {
+      divs.push({
+        scenario: name,
+        kind: 'critical-decisions',
+        index: -1,
+        field: 'expected-file',
+        expected: expectedCritDecsPath,
+        actual: '(missing)',
+      });
     }
 
     // Compare critical constraints
@@ -305,6 +325,15 @@ export function runConformance(): { passed: number; failed: number; divergences:
           `${name}.critical-constraints`,
         ),
       );
+    } else {
+      divs.push({
+        scenario: name,
+        kind: 'critical-constraints',
+        index: -1,
+        field: 'expected-file',
+        expected: expectedCritConstsPath,
+        actual: '(missing)',
+      });
     }
 
     if (divs.length === 0) {

@@ -1573,12 +1573,19 @@ def _do_open_by_path(vm: ScenarioVM, path: str, dialog: Any) -> None:
 
 
 def _do_open_upload(vm: ScenarioVM, event: Any, dialog: Any) -> None:
-    """Handle uploaded file content (web mode)."""
+    """Handle uploaded file content (web mode).
+
+    We need a real filesystem path so open_cmd can use load_scenario, but
+    the file is only ever read once during open_cmd. Clean up the temp
+    file immediately afterwards so a long-running web session doesn't
+    accumulate /tmp/tmp*.json leaks across repeated Opens.
+    """
+    import os
+    import tempfile
+
+    tmp_path: str | None = None
     try:
         content = event.content.read()
-        # Write to a temp file so open_cmd can read it
-        import tempfile
-
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="wb") as tmp:
             tmp.write(content)
             tmp_path = tmp.name
@@ -1586,6 +1593,11 @@ def _do_open_upload(vm: ScenarioVM, event: Any, dialog: Any) -> None:
     except Exception as exc:
         ui.notify(f"Upload failed: {exc}", color="negative")
     finally:
+        if tmp_path is not None:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
         dialog.close()
 
 
