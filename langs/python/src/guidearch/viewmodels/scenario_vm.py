@@ -605,13 +605,24 @@ class ScenarioVM:
         min_val: float | None = None,
         max_val: float | None = None,
     ) -> int:
-        """Add a threshold constraint; returns its index."""
+        """Add a threshold constraint; returns its index.
+
+        Enforces three things the schema and invariants require at load time
+        but the previous implementation silently violated at mutation time:
+          - property_id must reference an existing Property (invariant 2.5
+            counterpart for thresholds).
+          - At least one of min/max must be set (schema $defs/Constraint:
+            anyOf [{required:[min]}, {required:[max]}]).
+        """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
-        if min_val is None and max_val is None:
-            # Default: no restriction at all — use None for both but tolerate
-            pass
         scenario = self._scenario
+        if not any(p.id == property_id for p in scenario.properties):
+            raise ScenarioMutationError(f"Property '{property_id}' not found.")
+        if min_val is None and max_val is None:
+            raise ScenarioMutationError(
+                "ThresholdConstraint requires at least one of min or max."
+            )
         new_c: Constraint = ThresholdConstraint(
             kind="threshold", property_id=property_id, min=min_val, max=max_val
         )
@@ -620,10 +631,23 @@ class ScenarioVM:
         return len(new_constraints) - 1
 
     def add_dependency_constraint(self, source_id: str, target_id: str) -> int:
-        """Add a dependency constraint; returns its index."""
+        """Add a dependency constraint; returns its index.
+
+        Enforces invariants 2.5 (referenced alternatives must exist) and
+        7.1 (self-edges are fatal).
+        """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
+        alt_ids = {a.id for a in scenario.alternatives}
+        if source_id not in alt_ids:
+            raise ScenarioMutationError(f"Alternative '{source_id}' not found.")
+        if target_id not in alt_ids:
+            raise ScenarioMutationError(f"Alternative '{target_id}' not found.")
+        if source_id == target_id:
+            raise ScenarioMutationError(
+                "Self-edge on dependency constraint (source must differ from target)."
+            )
         new_c: Constraint = DependencyConstraint(
             kind="dependency",
             source_alternative_id=source_id,
@@ -634,10 +658,22 @@ class ScenarioVM:
         return len(new_constraints) - 1
 
     def add_conflict_constraint(self, alt_a_id: str, alt_b_id: str) -> int:
-        """Add a conflict constraint; returns its index."""
+        """Add a conflict constraint; returns its index.
+
+        Enforces invariants 2.5 and 7.1 (see add_dependency_constraint).
+        """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
+        alt_ids = {a.id for a in scenario.alternatives}
+        if alt_a_id not in alt_ids:
+            raise ScenarioMutationError(f"Alternative '{alt_a_id}' not found.")
+        if alt_b_id not in alt_ids:
+            raise ScenarioMutationError(f"Alternative '{alt_b_id}' not found.")
+        if alt_a_id == alt_b_id:
+            raise ScenarioMutationError(
+                "Self-edge on conflict constraint (alternativeA must differ from alternativeB)."
+            )
         new_c: Constraint = ConflictConstraint(
             kind="conflict",
             alternative_a_id=alt_a_id,
@@ -690,7 +726,15 @@ class ScenarioVM:
         """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
+        if weight is not None and weight <= 0:
+            # Schema $defs/Property.weight is exclusiveMinimum 0 — match at the
+            # mutation boundary instead of letting it surface at save-time only.
+            raise ScenarioMutationError(
+                f"Property weight must be > 0 (got {weight})."
+            )
         scenario = self._scenario
+        if not any(p.id == property_id for p in scenario.properties):
+            raise ScenarioMutationError(f"Property '{property_id}' not found.")
         triggers_solve = kind is not None or weight is not None
         new_props: list[PropertyM] = []
         for p in scenario.properties:
