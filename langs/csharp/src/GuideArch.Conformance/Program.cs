@@ -10,7 +10,10 @@ using System.Text.Json;
 /// </summary>
 class Program
 {
-    private const double AbsTol = 1e-9;
+    // Populated at startup from spec/conformance/tolerances.json (canonical
+    // source — matches Python + TypeScript runners). Defaults to 1e-9 when
+    // the corpus is missing so the runner is still usable out-of-tree.
+    private static double AbsTol = 1e-9;
 
     static int Main(string[] args)
     {
@@ -18,6 +21,17 @@ class Program
         string specDir = FindSpecDir();
         string scenariosDir = Path.Combine(specDir, "scenarios");
         string expectedDir = Path.Combine(specDir, "expected");
+
+        var tolPath = Path.Combine(specDir, "tolerances.json");
+        if (File.Exists(tolPath))
+        {
+            using var tolDoc = JsonDocument.Parse(File.ReadAllText(tolPath));
+            AbsTol = tolDoc.RootElement
+                .GetProperty("candidates")
+                .GetProperty("score")
+                .GetProperty("absolute")
+                .GetDouble();
+        }
 
         if (!Directory.Exists(scenariosDir))
         {

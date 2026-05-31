@@ -23,8 +23,8 @@ M4 additions
 ------------
 - Results tab is a split layout: left (60%) ranked-candidates table,
   right (40%) two stacked ui.echart instances (Chart A: bar, Chart B: triangle).
-- Critical decisions tab: read-only table of criticalDecisions.
-- Critical constraints tab: read-only table of criticalConstraints with
+- Critical Decisions tab: read-only table of criticalDecisions.
+- Critical Constraints tab: read-only table of criticalConstraints with
   faded background for redundant rows.
 """
 

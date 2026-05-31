@@ -30,7 +30,24 @@ from guidearch.output.serialize import (
 # CLI usable from outside the repo without requiring an in-tree check-in.
 _DEFAULT_SPEC_DIR = Path(__file__).parents[5] / "spec" / "conformance"
 _SPEC_DIR = Path(__import__("os").environ.get("GUIDEARCH_SPEC_DIR", str(_DEFAULT_SPEC_DIR)))
-_ABS_TOL = 1e-9
+
+
+def _load_abs_tol(spec_dir: Path) -> float:
+    """Read the scalar absolute tolerance from spec/conformance/tolerances.json.
+
+    All scalar fields in the corpus share the same absolute tolerance at
+    v1.0; tolerances.json was the single source of truth for TS already.
+    Falling back to 1e-9 keeps the runner usable when the corpus is missing
+    (e.g. wheel install without GUIDEARCH_SPEC_DIR).
+    """
+    tol_path = spec_dir / "tolerances.json"
+    if not tol_path.exists():
+        return 1e-9
+    data = json.loads(tol_path.read_text(encoding="utf-8"))
+    return float(data["candidates"]["score"]["absolute"])
+
+
+_ABS_TOL = _load_abs_tol(_SPEC_DIR)
 
 
 @dataclass

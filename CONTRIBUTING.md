@@ -22,7 +22,7 @@ Thanks for your interest in contributing. GuideArch is a spec-driven monorepo wi
 
 ## Tests
 
-- Per-impl unit tests live under `langs/<impl>/tests/unit/` for TypeScript and Python, with integration tests in `tests/integration/`. C# uses .NET solution conventions: `langs/csharp/tests/GuideArch.Models.Tests/` and `langs/csharp/tests/GuideArch.ViewModels.Tests/`.
+- Per-impl unit tests live under `langs/<impl>/tests/unit/` for TypeScript and Python, with integration tests in `langs/<impl>/tests/integration/`. C# uses .NET solution conventions: `langs/csharp/tests/GuideArch.Models.Tests/` and `langs/csharp/tests/GuideArch.ViewModels.Tests/`.
 - Conformance:
   - TypeScript: `langs/typescript/src/conformance/` (CLI: `pnpm conformance`).
   - C#: `langs/csharp/src/GuideArch.Conformance/` (CLI: `dotnet run --project src/GuideArch.Conformance`).
