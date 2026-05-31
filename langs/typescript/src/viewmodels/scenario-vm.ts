@@ -486,8 +486,52 @@ export function makeScenarioVm(): ScenarioVM {
     _triggerSolve();
   }
 
+  // Enforces the same load-time invariants the schema and spec/domain/invariants.md
+  // require, but at mutation time — so an Add/Update path can't produce a
+  // scenario that loads with a schema violation on the very next round-trip.
+  // Mirrors the Python ScenarioVM checks added in the same commit family.
+  function _validateConstraint(s: ScenarioM, c: ConstraintM): void {
+    if (c.kind === 'threshold') {
+      if (!s.properties.some((p) => p.id === c.propertyId)) {
+        throw new ScenarioMutationError(`Property '${c.propertyId}' not found.`);
+      }
+      if (c.min === undefined && c.max === undefined) {
+        throw new ScenarioMutationError('ThresholdConstraint requires at least one of min or max.');
+      }
+      return;
+    }
+    const altIds = new Set(s.alternatives.map((a) => a.id));
+    if (c.kind === 'dependency') {
+      if (!altIds.has(c.sourceAlternativeId)) {
+        throw new ScenarioMutationError(`Alternative '${c.sourceAlternativeId}' not found.`);
+      }
+      if (!altIds.has(c.targetAlternativeId)) {
+        throw new ScenarioMutationError(`Alternative '${c.targetAlternativeId}' not found.`);
+      }
+      if (c.sourceAlternativeId === c.targetAlternativeId) {
+        throw new ScenarioMutationError(
+          'Self-edge on dependency constraint (source must differ from target).',
+        );
+      }
+      return;
+    }
+    // conflict
+    if (!altIds.has(c.alternativeAId)) {
+      throw new ScenarioMutationError(`Alternative '${c.alternativeAId}' not found.`);
+    }
+    if (!altIds.has(c.alternativeBId)) {
+      throw new ScenarioMutationError(`Alternative '${c.alternativeBId}' not found.`);
+    }
+    if (c.alternativeAId === c.alternativeBId) {
+      throw new ScenarioMutationError(
+        'Self-edge on conflict constraint (alternativeA must differ from alternativeB).',
+      );
+    }
+  }
+
   function addConstraint(c: ConstraintM): void {
     const s = _requireScenario();
+    _validateConstraint(s, c);
     _setState({
       scenario: { ...s, constraints: [...s.constraints, c] },
       isDirty: true,
@@ -510,6 +554,7 @@ export function makeScenarioVm(): ScenarioVM {
     if (index < 0 || index >= s.constraints.length) {
       throw new ScenarioMutationError(`Constraint index ${index} out of range`);
     }
+    _validateConstraint(s, c);
     const constraints = s.constraints.map((existing, i) => (i === index ? c : existing));
     _setState({ scenario: { ...s, constraints }, isDirty: true });
     _triggerSolve();
