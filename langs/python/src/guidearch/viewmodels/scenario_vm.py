@@ -91,6 +91,17 @@ class _UNSET:
     """Sentinel for 'argument not provided' (distinguishes None from missing)."""
 
 
+class ScenarioMutationError(ValueError):
+    """Raised when a ScenarioVM mutation call is invalid: no scenario loaded,
+    referenced entity ID not found, constraint index out of range, or the
+    constraint at the given index is not of the expected kind.
+
+    Subclasses ValueError so existing `except ValueError` callers keep working;
+    new callers can catch ScenarioMutationError specifically to distinguish
+    VM-misuse errors from other ValueErrors raised by the surrounding code.
+    """
+
+
 class ScenarioVM:
     """Root ViewModel owning the loaded scenario and coordinating re-solve.
 
@@ -408,11 +419,11 @@ class ScenarioVM:
         Raises ValueError if no scenario is loaded or decision_id not found.
         """
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         # Verify decision exists
         if not any(d.id == decision_id for d in scenario.decisions):
-            raise ValueError(f"Decision '{decision_id}' not found.")
+            raise ScenarioMutationError(f"Decision '{decision_id}' not found.")
 
         # Collect affected alternative ids
         affected_alt_ids = {a.id for a in scenario.alternatives if a.decision_id == decision_id}
@@ -447,10 +458,10 @@ class ScenarioVM:
         Raises ValueError if no scenario is loaded or alternative_id not found.
         """
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         if not any(a.id == alternative_id for a in scenario.alternatives):
-            raise ValueError(f"Alternative '{alternative_id}' not found.")
+            raise ScenarioMutationError(f"Alternative '{alternative_id}' not found.")
 
         affected_ids = {alternative_id}
         new_alternatives = tuple(a for a in scenario.alternatives if a.id != alternative_id)
@@ -477,10 +488,10 @@ class ScenarioVM:
         Raises ValueError if no scenario is loaded or property_id not found.
         """
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         if not any(p.id == property_id for p in scenario.properties):
-            raise ValueError(f"Property '{property_id}' not found.")
+            raise ScenarioMutationError(f"Property '{property_id}' not found.")
 
         new_properties = tuple(p for p in scenario.properties if p.id != property_id)
         new_coefficients = tuple(
@@ -507,10 +518,10 @@ class ScenarioVM:
         Raises ValueError if index is out of range.
         """
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         if index < 0 or index >= len(scenario.constraints):
-            raise ValueError(f"Constraint index {index} out of range.")
+            raise ScenarioMutationError(f"Constraint index {index} out of range.")
 
         new_constraints = tuple(c for i, c in enumerate(scenario.constraints) if i != index)
         self._apply_scenario_mutation(replace(scenario, constraints=new_constraints))
@@ -520,7 +531,7 @@ class ScenarioVM:
     def add_decision(self, name: str = "New Decision") -> str:
         """Append a new decision; returns its new id."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         new_id = f"d-{uuid.uuid4()}"
         new_decision = DecisionM(id=new_id, name=name)
@@ -534,10 +545,10 @@ class ScenarioVM:
         for every existing property.  Returns new alternative id.
         """
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         if not any(d.id == decision_id for d in scenario.decisions):
-            raise ValueError(f"Decision '{decision_id}' not found.")
+            raise ScenarioMutationError(f"Decision '{decision_id}' not found.")
         new_id = f"a-{uuid.uuid4()}"
         new_alt = AlternativeM(id=new_id, decision_id=decision_id, name=name)
         new_coefficients = tuple(
@@ -567,7 +578,7 @@ class ScenarioVM:
         existing alternative.  Returns new property id.
         """
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         new_id = f"p-{uuid.uuid4()}"
         new_prop = PropertyM(id=new_id, name=name, kind=kind, weight=weight)
@@ -596,7 +607,7 @@ class ScenarioVM:
     ) -> int:
         """Add a threshold constraint; returns its index."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         if min_val is None and max_val is None:
             # Default: no restriction at all — use None for both but tolerate
             pass
@@ -611,7 +622,7 @@ class ScenarioVM:
     def add_dependency_constraint(self, source_id: str, target_id: str) -> int:
         """Add a dependency constraint; returns its index."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         new_c: Constraint = DependencyConstraint(
             kind="dependency",
@@ -625,7 +636,7 @@ class ScenarioVM:
     def add_conflict_constraint(self, alt_a_id: str, alt_b_id: str) -> int:
         """Add a conflict constraint; returns its index."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         new_c: Constraint = ConflictConstraint(
             kind="conflict",
@@ -641,7 +652,7 @@ class ScenarioVM:
     def update_decision_name(self, decision_id: str, name: str) -> None:
         """Rename a decision (does not trigger a solve)."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         new_decisions = tuple(
             replace(d, name=name) if d.id == decision_id else d
@@ -656,7 +667,7 @@ class ScenarioVM:
     def update_alternative_name(self, alternative_id: str, name: str) -> None:
         """Rename an alternative (does not trigger a solve)."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         new_alts = tuple(
             replace(a, name=name) if a.id == alternative_id else a
@@ -678,7 +689,7 @@ class ScenarioVM:
         a re-solve; name-only change does not.
         """
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         triggers_solve = kind is not None or weight is not None
         new_props: list[PropertyM] = []
@@ -713,7 +724,7 @@ class ScenarioVM:
     ) -> None:
         """Update a coefficient value; triggers a re-solve."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         new_value = TriangularFuzzyM(lower=lower, modal=modal, upper=upper)
         new_coefficients = tuple(
@@ -733,11 +744,13 @@ class ScenarioVM:
     ) -> None:
         """Update a threshold constraint at the given index."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         c = scenario.constraints[index]
         if not isinstance(c, ThresholdConstraint):
-            raise ValueError(f"Constraint at index {index} is not a ThresholdConstraint.")
+            raise ScenarioMutationError(
+                f"Constraint at index {index} is not a ThresholdConstraint."
+            )
         new_c = ThresholdConstraint(
             kind="threshold",
             property_id=property_id if property_id is not None else c.property_id,
@@ -758,15 +771,21 @@ class ScenarioVM:
     ) -> None:
         """Update a dependency constraint at the given index."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         c = scenario.constraints[index]
         if not isinstance(c, DependencyConstraint):
-            raise ValueError(f"Constraint at index {index} is not a DependencyConstraint.")
+            raise ScenarioMutationError(
+                f"Constraint at index {index} is not a DependencyConstraint."
+            )
         new_c = DependencyConstraint(
             kind="dependency",
-            source_alternative_id=source_id or c.source_alternative_id,
-            target_alternative_id=target_id or c.target_alternative_id,
+            source_alternative_id=(
+                source_id if source_id is not None else c.source_alternative_id
+            ),
+            target_alternative_id=(
+                target_id if target_id is not None else c.target_alternative_id
+            ),
         )
         new_constraints = tuple(
             new_c if i == index else old_c
@@ -782,15 +801,19 @@ class ScenarioVM:
     ) -> None:
         """Update a conflict constraint at the given index."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
         c = scenario.constraints[index]
         if not isinstance(c, ConflictConstraint):
-            raise ValueError(f"Constraint at index {index} is not a ConflictConstraint.")
+            raise ScenarioMutationError(f"Constraint at index {index} is not a ConflictConstraint.")
         new_c = ConflictConstraint(
             kind="conflict",
-            alternative_a_id=alt_a_id or c.alternative_a_id,
-            alternative_b_id=alt_b_id or c.alternative_b_id,
+            alternative_a_id=(
+                alt_a_id if alt_a_id is not None else c.alternative_a_id
+            ),
+            alternative_b_id=(
+                alt_b_id if alt_b_id is not None else c.alternative_b_id
+            ),
         )
         new_constraints = tuple(
             new_c if i == index else old_c
@@ -801,7 +824,7 @@ class ScenarioVM:
     def update_scenario_name(self, name: str) -> None:
         """Update scenario name (does not trigger re-solve)."""
         if self._scenario is None:
-            raise ValueError("No scenario loaded.")
+            raise ScenarioMutationError("No scenario loaded.")
         self._scenario = replace(self._scenario, name=name)
         self._is_dirty = True
         self._raise_property_changed("scenario")
