@@ -62,7 +62,7 @@ The root VM owns the loaded scenario and brokers re-solve when its children chan
 |---|---|---|
 | `NewCmd` | `() -> void` | Replace `scenario` with a fresh empty `ScenarioM`. Clear `filePath`. Set `isDirty = false`. Re-solve (will be empty). |
 | `OpenCmd` | `(path: string) -> void` | Call `loadScenario(path)`. On success: set `scenario`, `filePath`, clear `isDirty`, re-solve. On failure: do not mutate state; emit warning. |
-| `SaveCmd` | `() -> void` | Write current `scenario` to `filePath` as JSON via the same serializer used for `expected/*.json` (deterministic, sorted keys, `JSON.stringify`-compatible). Clear `isDirty`. Disabled (`canExecute = false`) if `filePath` undefined. |
+| `SaveCmd` | `() -> void` | Write current `scenario` to `filePath` as JSON via the impl's scenario serializer. Output must be `JSON.stringify`-compatible (any compliant JSON reader can round-trip it). Clear `isDirty`. Disabled (`canExecute = false`) if `filePath` undefined. **Note:** key ordering inside objects is not currently normalized across impls — Python emits alphabetical (`json.dumps(sort_keys=True)`), TypeScript and C# preserve schema insertion order. Cross-impl byte-equality is not a v1.0 guarantee; load-then-resolve equality is. |
 | `SaveAsCmd` | `(path: string) -> void` | Set `filePath = path`, then `SaveCmd()`. |
 | `SolveCmd` | `() -> void` | Re-run `solve` + the two analyses; update `candidates`, `criticalDecisions`, `criticalConstraints`, `status`. Always enabled when `scenario` is defined. |
 
