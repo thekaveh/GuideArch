@@ -17,15 +17,12 @@ dotnet run --project src/GuideArch.View   # opens a native Avalonia window
 
 After the window opens, click **Open Sample SAS** or **Open Sample EDS** in the toolbar to try a bundled scenario; the OS-native file picker is used for **Open…**.
 
-## WebAssembly (Avalonia.Browser)
+## WebAssembly (Avalonia.Browser) — deferred to v1.1
 
-```bash
-dotnet publish src/GuideArch.View -c Release -r browser-wasm
-# Output at: bin/Release/net8.0/browser-wasm/AppBundle/
-# Serve with any static host, e.g.:
-cd bin/Release/net8.0/browser-wasm/AppBundle && python3 -m http.server 8000
-# Then open http://localhost:8000/
-```
+The C# View project does not yet reference `Avalonia.Browser`, so
+`dotnet publish -r browser-wasm` will fail at runtime. v1.0 ships C# as
+desktop-only, matching `spec/release.md` §1.2. When the wasm target lands,
+this section will document the publish command and the static-host setup.
 
 ## Test
 

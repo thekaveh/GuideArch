@@ -17,7 +17,7 @@ Three implementations of the same application, kept in conformance by a shared s
 | # | Language | UI framework | Desktop | Web |
 |---|---|---|---|---|
 | 2.1 | TypeScript | Svelte 5 + [Tauri 2](https://tauri.app) | ✓ | ✓ |
-| 2.2 | C# | [Avalonia 12](https://avaloniaui.net) | ✓ | ✓ (WebAssembly) |
+| 2.2 | C# | [Avalonia 12](https://avaloniaui.net) | ✓ | deferred to v1.1 (see `spec/release.md` §1.2) |
 | 2.3 | Python | [NiceGUI 3.x](https://nicegui.io) | ✓ (pywebview) | ✓ |
 
 All three are built on the [VMx](https://github.com/thekaveh/VMx) MVVM framework, included as a git submodule at `vendor/vmx/`.
