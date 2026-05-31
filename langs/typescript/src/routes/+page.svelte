@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { makeScenarioVm } from '$lib/../viewmodels/scenario-vm.js';
+  import { makeScenarioVm } from '../viewmodels/scenario-vm.js';
   import Toolbar from './lib/Toolbar.svelte';
   import TabStrip from './lib/TabStrip.svelte';
   import StatusBar from './lib/StatusBar.svelte';
