@@ -549,10 +549,10 @@ public class VMTreeComprehensiveTests
     // =====================================================================
 
     [Fact]
-    public void Mutator_SetScenarioName_UpdatesScenarioName()
+    public void Mutator_UpdateScenarioName_UpdatesScenarioName()
     {
         var (vm, cmds) = CreateWithMinimalScenario();
-        cmds.Mutator.SetScenarioName("RenamedScenario");
+        cmds.Mutator.UpdateScenarioName("RenamedScenario");
         Assert.Equal("RenamedScenario", vm.Model.Scenario!.Name);
         Assert.True(vm.Model.IsDirty);
     }
@@ -882,11 +882,11 @@ public class VMTreeComprehensiveTests
     // ── Cases that MUST NOT trigger solve ─────────────────────────────────
 
     [Fact]
-    public void SolveTrigger_SetScenarioName_DoesNotTriggerResolve()
+    public void SolveTrigger_UpdateScenarioName_DoesNotTriggerResolve()
     {
         var (vm, cmds) = CreateWithMinimalScenario();
-        bool solved = DidSolveRun(vm, () => cmds.Mutator.SetScenarioName("Renamed"));
-        Assert.False(solved, "SetScenarioName must NOT trigger a solve.");
+        bool solved = DidSolveRun(vm, () => cmds.Mutator.UpdateScenarioName("Renamed"));
+        Assert.False(solved, "UpdateScenarioName must NOT trigger a solve.");
     }
 
     [Fact]

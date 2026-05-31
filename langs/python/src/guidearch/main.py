@@ -759,7 +759,11 @@ def _render_threshold_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
 
 def _do_add_threshold(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
     try:
-        vm.add_threshold_constraint(prop_id)
+        # Provide a default min bound so the call satisfies the
+        # 'at least one of min/max' invariant. The user edits the value
+        # in-place after the row appears. C#'s Add path also seeds a
+        # default; calling with both bounds None throws.
+        vm.add_threshold_constraint(prop_id, min_val=0.0)
         refresh()
     except Exception as exc:
         ui.notify(str(exc), color="negative")
@@ -1297,11 +1301,11 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
             "w-full bg-[var(--bg-surface)] rounded px-2 py-1 mb-1 "
             "font-semibold text-[var(--text-secondary)] text-xs gap-0"
         ):
-            ui.label("Idx").classes("w-12 text-right pr-2")
+            ui.label("Index").classes("w-12 text-right pr-2")
             ui.label("Kind").classes("w-28 pr-2")
             ui.label("Eliminated").classes("w-24 text-right pr-2")
             ui.label("Total").classes("w-20 text-right pr-2")
-            ui.label("Elim %").classes("w-20 text-right pr-2")
+            ui.label("Eliminated %").classes("w-20 text-right pr-2")
             ui.label("Redundant").classes("w-20 text-center")
 
         for row in rows:

@@ -73,7 +73,7 @@ jobs:
         # Pin to match typescript.yml — see commit 3b83bb9 for the
         # determinism rationale (was 'version: latest').
         with:
-          version: '9'
+          version: '11'
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

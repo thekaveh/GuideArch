@@ -341,7 +341,7 @@ public sealed class ScenarioMutator
     // Scenario name / description
     // ------------------------------------------------------------------
 
-    public void SetScenarioName(string name)
+    public void UpdateScenarioName(string name)
     {
         var s = RequireScenario();
         _setState(State with

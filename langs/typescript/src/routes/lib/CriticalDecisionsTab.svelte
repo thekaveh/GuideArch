@@ -53,7 +53,7 @@
             <th>Rank</th>
             <th>Decision</th>
             <th>Score</th>
-            <th>Triangular Value</th>
+            <th>Triangular value</th>
             <th>Normalized</th>
           </tr>
         </thead>

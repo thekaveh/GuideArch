@@ -39,7 +39,7 @@ jobs:
         # Pinned to a specific minor so a pnpm release can't silently change
         # builds (previously `version: latest` made runs non-deterministic).
         with:
-          version: '9'
+          version: '11'
 
       - uses: actions/setup-node@v4
         with:

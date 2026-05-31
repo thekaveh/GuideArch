@@ -184,7 +184,7 @@ public class VMMvvmIntegrationTests
         var scoresBefore = vm.Model.Candidates.Select(c => c.Score).ToArray();
 
         // Change the name — should NOT re-solve (spec viewmodels.md §3.3).
-        cmds.Mutator.SetScenarioName("Renamed scenario");
+        cmds.Mutator.UpdateScenarioName("Renamed scenario");
 
         Assert.Equal("Renamed scenario", vm.Model.Scenario!.Name);
 
