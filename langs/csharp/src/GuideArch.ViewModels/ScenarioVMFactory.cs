@@ -120,28 +120,32 @@ public static class ScenarioVMFactory
             .Build();
 
         // -----------------------------------------------------------------------
-        // SaveCmd — spec §3.2
+        // SaveCmd / SaveAsCmd — spec §3.2
+        //
+        // Spec says: SaveAsCmd "sets FilePath = path then SaveCmd()". A previous
+        // implementation duplicated the write-and-clear-dirty logic in SaveAs,
+        // bypassing the SaveCmd predicate (so a SaveAs would happen even when
+        // SaveCmd was disabled). Now both share a single DoSave helper that
+        // performs the write and clears the dirty flag.
         // -----------------------------------------------------------------------
+        void DoSave(string path)
+        {
+            if (state.Scenario is null) return;
+            WriteScenario(state.Scenario, path);
+            SetState(state with { FilePath = path, IsDirty = false });
+        }
+
         ICommand saveCmd = RelayCommand.Builder()
             .Predicate(() => state.FilePath is not null && state.Scenario is not null)
             .Task(() =>
             {
-                if (state.FilePath is null || state.Scenario is null) return;
-                WriteScenario(state.Scenario, state.FilePath);
-                SetState(state with { IsDirty = false });
+                if (state.FilePath is null) return;
+                DoSave(state.FilePath);
             })
             .Build();
 
-        // -----------------------------------------------------------------------
-        // SaveAsCmd — spec §3.2
-        // -----------------------------------------------------------------------
         ICommand saveAsCmd = RelayCommand<string>.Builder()
-            .Task(path =>
-            {
-                if (state.Scenario is null) return;
-                WriteScenario(state.Scenario, path);
-                SetState(state with { FilePath = path, IsDirty = false });
-            })
+            .Task(DoSave)
             .Build();
 
         // -----------------------------------------------------------------------

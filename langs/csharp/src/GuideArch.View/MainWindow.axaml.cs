@@ -123,14 +123,14 @@ public partial class MainWindow : Window
         }
 
         // Lookup brushes from app resources.
-        var bgSurface    = TryGetBrush("BgSurfaceBrush")    ?? new AvaSolidBrush(AvaColor.Parse("#13161d"));
-        var borderSubtle = TryGetBrush("BorderSubtleBrush")  ?? new AvaSolidBrush(AvaColor.Parse("#262b36"));
-        var textPrimary  = TryGetBrush("TextPrimaryBrush")   ?? new AvaSolidBrush(AvaColor.Parse("#e6e7ed"));
-        var textSecondary= TryGetBrush("TextSecondaryBrush") ?? new AvaSolidBrush(AvaColor.Parse("#9298a8"));
-        var textMuted    = TryGetBrush("TextMutedBrush")     ?? new AvaSolidBrush(AvaColor.Parse("#5e6478"));
-        var accentMuted  = TryGetBrush("AccentMutedBrush")   ?? new AvaSolidBrush(AvaColor.Parse("#3d2a6b"));
-        var accentBrush  = TryGetBrush("AccentBrush")        ?? new AvaSolidBrush(AvaColor.Parse("#8b5cf6"));
-        var monoFont     = new AvaFontFamily("Cascadia Code,Consolas,monospace");
+        var bgSurface = TryGetBrush("BgSurfaceBrush") ?? new AvaSolidBrush(AvaColor.Parse("#13161d"));
+        var borderSubtle = TryGetBrush("BorderSubtleBrush") ?? new AvaSolidBrush(AvaColor.Parse("#262b36"));
+        var textPrimary = TryGetBrush("TextPrimaryBrush") ?? new AvaSolidBrush(AvaColor.Parse("#e6e7ed"));
+        var textSecondary = TryGetBrush("TextSecondaryBrush") ?? new AvaSolidBrush(AvaColor.Parse("#9298a8"));
+        var textMuted = TryGetBrush("TextMutedBrush") ?? new AvaSolidBrush(AvaColor.Parse("#5e6478"));
+        var accentMuted = TryGetBrush("AccentMutedBrush") ?? new AvaSolidBrush(AvaColor.Parse("#3d2a6b"));
+        var accentBrush = TryGetBrush("AccentBrush") ?? new AvaSolidBrush(AvaColor.Parse("#8b5cf6"));
+        var monoFont = new AvaFontFamily("Cascadia Code,Consolas,monospace");
 
         int propCount = matrix.Properties.Length;
         double totalWidth = AltNameColWidth + propCount * PropColWidth;
@@ -277,14 +277,16 @@ public partial class MainWindow : Window
                     cellContent.Children.Add(MakeFuzzyLabel(cell.Lower, textMuted, monoFont));
                     cellContent.Children.Add(new TextBlock
                     {
-                        Text = "·", FontSize = 10,
+                        Text = "·",
+                        FontSize = 10,
                         Foreground = textMuted,
                         VerticalAlignment = AvaVertAlign.Center
                     });
                     cellContent.Children.Add(MakeFuzzyLabel(cell.Modal, textPrimary, monoFont));
                     cellContent.Children.Add(new TextBlock
                     {
-                        Text = "·", FontSize = 10,
+                        Text = "·",
+                        FontSize = 10,
                         Foreground = textMuted,
                         VerticalAlignment = AvaVertAlign.Center
                     });
