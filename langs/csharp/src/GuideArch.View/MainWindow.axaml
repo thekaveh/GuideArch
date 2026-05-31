@@ -136,7 +136,8 @@
           <StackPanel Grid.Row="0"
                       Orientation="Horizontal"
                       Spacing="8"
-                      Margin="24,12,24,8">
+                      Margin="24,12,24,8"
+                      IsVisible="{ReflectionBinding Model.HasScenario}">
             <Button Content="Add Decision"
                     Click="OnAddDecisionClicked"
                     Classes="action-btn" />
@@ -151,7 +152,8 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="False"
-                    Margin="24,0,24,24">
+                    Margin="24,0,24,24"
+                    IsVisible="{ReflectionBinding Model.HasScenario}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
@@ -176,7 +178,8 @@
           <StackPanel Grid.Row="0"
                       Orientation="Horizontal"
                       Spacing="8"
-                      Margin="24,12,24,8">
+                      Margin="24,12,24,8"
+                      IsVisible="{ReflectionBinding Model.HasScenario}">
             <TextBlock Text="Select a decision then:"
                        VerticalAlignment="Center"
                        Foreground="{StaticResource TextSecondaryBrush}"
@@ -195,7 +198,8 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="False"
-                    Margin="24,0,24,24">
+                    Margin="24,0,24,24"
+                    IsVisible="{ReflectionBinding Model.HasScenario}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
@@ -225,7 +229,8 @@
           <StackPanel Grid.Row="0"
                       Orientation="Horizontal"
                       Spacing="8"
-                      Margin="24,12,24,8">
+                      Margin="24,12,24,8"
+                      IsVisible="{ReflectionBinding Model.HasScenario}">
             <Button Content="Add Property"
                     Click="OnAddPropertyClicked"
                     Classes="action-btn" />
@@ -240,7 +245,8 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="False"
-                    Margin="24,0,24,24">
+                    Margin="24,0,24,24"
+                    IsVisible="{ReflectionBinding Model.HasScenario}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
@@ -272,14 +278,16 @@
                      Text="Fuzzy coefficient matrix: rows = alternatives (grouped by decision), columns = properties."
                      Margin="24,12,24,8"
                      FontSize="12"
-                     Foreground="{StaticResource TextSecondaryBrush}" />
+                     Foreground="{StaticResource TextSecondaryBrush}"
+                     IsVisible="{ReflectionBinding Model.HasScenario}" />
 
           <!-- 2-D matrix: built in code-behind, hosted here -->
           <ScrollViewer Grid.Row="1"
                         Name="CoefficientsScroll"
                         HorizontalScrollBarVisibility="Auto"
                         VerticalScrollBarVisibility="Auto"
-                        Margin="24,0,24,24">
+                        Margin="24,0,24,24"
+                        IsVisible="{ReflectionBinding Model.HasScenario}">
             <ContentControl Name="CoefficientsContent" />
           </ScrollViewer>
 
@@ -288,7 +296,8 @@
 
       <!-- ── Tab 5: Constraints ─────────────────────────────────────── -->
       <TabItem Header="Constraints">
-        <TabControl Background="{StaticResource BgPageBrush}">
+        <TabControl Background="{StaticResource BgPageBrush}"
+                    IsVisible="{ReflectionBinding Model.HasScenario}">
 
           <!-- Sub-tab: Threshold -->
           <TabItem Header="Threshold">
@@ -417,16 +426,10 @@
       <TabItem Header="Results">
         <Grid RowDefinitions="Auto,*">
 
-          <!-- ReflectionBinding: open generic DataContext (see file header) -->
-          <TextBlock Grid.Row="0"
-                     Text="{ReflectionBinding Model.Status}"
-                     Margin="24,12,24,8"
-                     FontSize="13"
-                     Foreground="{StaticResource TextSecondaryBrush}" />
-
           <!-- Split: left 60% candidates table, right 40% charts -->
           <Grid Grid.Row="1"
-                ColumnDefinitions="3*,2*">
+                ColumnDefinitions="3*,2*"
+                IsVisible="{ReflectionBinding Model.HasScenario}">
 
             <!-- Left: ranked candidates DataGrid -->
             <DataGrid Grid.Column="0"
@@ -484,7 +487,8 @@
                      Text="Critical decisions — sorted ascending by rank (lower score = more critical)."
                      Margin="24,12,24,8"
                      FontSize="12"
-                     Foreground="{StaticResource TextSecondaryBrush}" />
+                     Foreground="{StaticResource TextSecondaryBrush}"
+                     IsVisible="{ReflectionBinding Model.HasScenario}" />
 
           <!-- ReflectionBinding: open generic DataContext -->
           <DataGrid Grid.Row="1"
@@ -494,7 +498,8 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="True"
-                    Margin="24,0,24,24">
+                    Margin="24,0,24,24"
+                    IsVisible="{ReflectionBinding Model.HasScenario}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="Rank"
                                   Binding="{ReflectionBinding Rank}"
@@ -531,7 +536,8 @@
                      Text="Critical constraints — sorted descending by eliminated (most-binding first). Redundant rows are faded."
                      Margin="24,12,24,8"
                      FontSize="12"
-                     Foreground="{StaticResource TextSecondaryBrush}" />
+                     Foreground="{StaticResource TextSecondaryBrush}"
+                     IsVisible="{ReflectionBinding Model.HasScenario}" />
 
           <!-- ReflectionBinding: open generic DataContext -->
           <DataGrid Grid.Row="1"
@@ -541,7 +547,8 @@
                     CanUserResizeColumns="True"
                     CanUserSortColumns="False"
                     IsReadOnly="True"
-                    Margin="24,0,24,24">
+                    Margin="24,0,24,24"
+                    IsVisible="{ReflectionBinding Model.HasScenario}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="Index"
                                   Binding="{ReflectionBinding Index}"
