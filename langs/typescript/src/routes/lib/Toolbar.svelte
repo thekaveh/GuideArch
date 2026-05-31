@@ -39,27 +39,24 @@
     const input = e.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    const isTauri = typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== 'undefined';
-    if (isTauri) {
-      // In Tauri the File object has a non-standard .path property
-      const fsPath = (file as typeof file & { path?: string }).path ?? file.name;
-      vm.openCmd.execute(fsPath);
-    } else {
-      // Browser mode: read via FileReader, then parse and inject
-      const reader = new FileReader();
-      const fileName = file.name;
-      reader.onload = (ev) => {
-        const text = ev.target?.result as string;
-        try {
-          const raw = JSON.parse(text);
-          _injectParsedScenario(raw, fileName);
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          onError(`Failed to parse ${fileName}: ${msg}`);
-        }
-      };
-      reader.readAsText(file);
-    }
+    // v1.0 unified UX: read via FileReader in both browser and Tauri runs
+    // (the Tauri-1 `file.path` shortcut doesn't exist in Tauri 2 and falling
+    // back to file.name fed openCmd a bare basename that always failed).
+    // Tauri-native dialog support lands with @tauri-apps/plugin-dialog in
+    // v1.1; see spec/editors.md §3.
+    const reader = new FileReader();
+    const fileName = file.name;
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      try {
+        const raw = JSON.parse(text);
+        _injectParsedScenario(raw, fileName);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        onError(`Failed to parse ${fileName}: ${msg}`);
+      }
+    };
+    reader.readAsText(file);
     input.value = '';
   }
 
@@ -86,48 +83,45 @@
   }
 
   function handleSave() {
-    const isTauri = typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== 'undefined';
-    if (isTauri) {
-      vm.saveCmd.execute();
-    } else {
-      // Browser: download as file
-      const s = vm.model.scenario;
-      if (!s) return;
-      const blob = new Blob([_toPersistedJson(s)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = (vm.model.filePath ?? 'scenario.json') + '';
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    // v1.0 unified UX: anchor-download in both browser and Tauri runs.
+    // Calling vm.saveCmd.execute() on the Tauri side hits fs.writeFileSync
+    // which the Vite browser-shim throws on, so the previous Tauri branch
+    // produced a spurious 'Save failed: …' toast. See spec/editors.md §3.
+    const s = vm.model.scenario;
+    if (!s) return;
+    const blob = new Blob([_toPersistedJson(s)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (vm.model.filePath ?? 'scenario.json') + '';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function handleSaveAs() {
-    const isTauri = typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== 'undefined';
-    if (isTauri) {
-      // Tauri dialog would go here; for now fall through to browser behavior
-      handleSave();
-    } else {
-      // Browser: prompt for file name, then download.
-      // NB: we deliberately do NOT call vm.saveAsCmd.execute() afterwards —
-      // the VM's saveAs path goes through fs.writeFileSync which the Vite
-      // browser-shim throws on, producing a spurious "Save failed: …" toast
-      // after a successful download. The download itself is the save in
-      // browser mode; the file_path/isDirty bookkeeping isn't meaningful here.
-      const suggested = vm.model.filePath ?? 'scenario.json';
-      const saveName = prompt('Save as…', suggested);
-      if (!saveName) return;
-      const s = vm.model.scenario;
-      if (!s) return;
-      const blob = new Blob([_toPersistedJson(s)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = saveName;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    // v1.0 unified UX: prompt + anchor-download in both modes. The Tauri-
+    // native Save dialog lands with @tauri-apps/plugin-dialog in v1.1
+    // (spec/editors.md §3). Until then, an explicit Save-As that just
+    // re-saved to the existing filePath was silently misleading; the
+    // prompt-and-download path at least lets the user pick a new name.
+    //
+    // We deliberately do NOT call vm.saveAsCmd.execute() afterwards — the
+    // VM's saveAs path goes through fs.writeFileSync which the Vite
+    // browser-shim throws on, producing a spurious "Save failed: …" toast
+    // after a successful download. The download itself is the save here;
+    // the file_path/isDirty bookkeeping isn't meaningful.
+    const suggested = vm.model.filePath ?? 'scenario.json';
+    const saveName = prompt('Save as…', suggested);
+    if (!saveName) return;
+    const s = vm.model.scenario;
+    if (!s) return;
+    const blob = new Blob([_toPersistedJson(s)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = saveName;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function handleSolve() {

@@ -19,7 +19,6 @@ dependencies = [
 # or, in this repo's workflow, automatically by `uv sync --all-extras`.
 dev = [
     "pytest>=8",
-    "pytest-cov>=5",
     "mypy>=1.10",
     "ruff>=0.6",
 ]

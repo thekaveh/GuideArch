@@ -8,8 +8,8 @@ M3 gave editors. M4 gives the architect the *insight* views: ranked-candidates s
 
 Extend the M3 tab strip with two more tabs after `Results`:
 
-- **Critical decisions** — table view of `criticalDecisions` (see `spec/viewmodels.md` §3.1)
-- **Critical constraints** — table view of `criticalConstraints` (see `spec/viewmodels.md` §3.1)
+- **Critical Decisions** — table view of `criticalDecisions` (see `spec/viewmodels.md` §3.1)
+- **Critical Constraints** — table view of `criticalConstraints` (see `spec/viewmodels.md` §3.1)
 
 And **upgrade the `Results` tab** to a split pane:
 
@@ -38,7 +38,7 @@ For the currently-selected candidate (defaults to rank 0 when scenario first sol
 
 This visualizes the `triangularValue` decomposition — what each property contributed to the candidate's score.
 
-## 4. Critical decisions tab
+## 4. Critical Decisions tab
 
 A read-only table:
 
@@ -52,7 +52,7 @@ A read-only table:
 
 Sort ascending by `rank` (lower score = more critical).
 
-## 5. Critical constraints tab
+## 5. Critical Constraints tab
 
 A read-only table:
 

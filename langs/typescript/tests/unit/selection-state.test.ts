@@ -85,12 +85,14 @@ describe('selectedCandidateIndex — setSelectedCandidateIndex', () => {
     expect(observed).toContain(null);
   });
 
-  it('resets to 0 after solveCmd re-runs', () => {
+  it('preserves selection across solveCmd re-run when still in range', () => {
     const vm = makeScenarioVm();
     vm.openCmd.execute(SAS_JSON);
     vm.setSelectedCandidateIndex(3);
     vm.solveCmd.execute();
-    // After solve, selectedCandidateIndex resets to 0
-    expect(vm.model.selectedCandidateIndex).toBe(0);
+    // Matches C# preserve-if-in-range and the Python ScenarioVM after
+    // commit 9f8266e — the prior selection wins as long as it's still
+    // valid against the recomputed candidates array.
+    expect(vm.model.selectedCandidateIndex).toBe(3);
   });
 });

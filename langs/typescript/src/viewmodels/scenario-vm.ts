@@ -187,7 +187,17 @@ export function makeScenarioVm(): ScenarioVM {
       return;
     }
     const result = _runSolve(scenario);
-    const selectedCandidateIndex = result.candidates.length > 0 ? 0 : null;
+    // Match C# preserve-if-in-range semantics so the three impls behave
+    // identically across a re-solve: if the user had row k selected and
+    // candidates is still long enough to contain k, keep it; otherwise
+    // default to rank 0 (or null when there are no candidates).
+    const prev = _getModel().selectedCandidateIndex;
+    const selectedCandidateIndex =
+      result.candidates.length === 0
+        ? null
+        : prev !== null && prev >= 0 && prev < result.candidates.length
+          ? prev
+          : 0;
     _setState({ ...result, selectedCandidateIndex });
   }
 

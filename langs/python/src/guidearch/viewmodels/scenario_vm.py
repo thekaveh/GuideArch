@@ -388,12 +388,17 @@ class ScenarioVM:
             self._candidates = ()
             self._critical_decisions = ()
             self._critical_constraints = ()
-        # Default selection to rank-0 when candidates become non-empty
-        if self._candidates:
-            if self._selected_candidate_index is None:
-                self._selected_candidate_index = 0
-        else:
+        # Match C# preserve-if-in-range semantics: keep the prior selection
+        # if still within bounds, otherwise default to rank 0 (or None when
+        # candidates is empty). Earlier Python kept the prior index even when
+        # it was out-of-range, which left the View dereferencing a stale
+        # selection.
+        n = len(self._candidates)
+        prev = self._selected_candidate_index
+        if n == 0:
             self._selected_candidate_index = None
+        elif prev is None or prev < 0 or prev >= n:
+            self._selected_candidate_index = 0
         self._solve_needed = False
         self._raise_property_changed("candidates")
         self._raise_property_changed("selected_candidate_index")
