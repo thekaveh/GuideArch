@@ -6,11 +6,13 @@ on:
     paths:
       - 'langs/typescript/**'
       - 'vendor/vmx/**'
+      - 'spec/**'
       - '.github/workflows/typescript.yml'
   pull_request:
     paths:
       - 'langs/typescript/**'
       - 'vendor/vmx/**'
+      - 'spec/**'
       - '.github/workflows/typescript.yml'
   workflow_dispatch:
 
