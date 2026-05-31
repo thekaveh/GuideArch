@@ -56,5 +56,8 @@ jobs:
       - name: Format check
         run: pnpm format:check
 
+      - name: Test (vitest)
+        run: pnpm test
+
       - name: Build (web)
         run: pnpm build

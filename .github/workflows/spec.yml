@@ -14,15 +14,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install jsonschema (for schema validation step)
+        run: pip install --quiet jsonschema
+
       - name: Validate JSON files parse
         run: |
           set -e
-          if find spec -name '*.json' | read; then
+          # The `find ... | read` idiom used previously was a no-op: `read` in a
+          # pipeline never sees the data and always exits non-zero, so the
+          # validation block was dead code. Use `grep -q .` instead.
+          if find spec -name '*.json' | grep -q .; then
             find spec -name '*.json' -exec sh -c 'python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$1"' _ {} \;
             echo "All spec/*.json files parse."
           else
-            echo "No JSON files in spec/ yet (M1+ will populate)."
+            echo "No JSON files in spec/."
           fi
+
+      - name: Validate conformance scenarios against scenario schema
+        run: |
+          set -e
+          python3 << 'PY'
+          import json, glob, jsonschema, sys
+          schema = json.load(open('spec/domain/scenario.schema.json'))
+          for f in sorted(glob.glob('spec/conformance/scenarios/*.json')):
+              try:
+                  jsonschema.validate(json.load(open(f)), schema)
+                  print(f'{f}: VALID')
+              except jsonschema.ValidationError as e:
+                  print(f'{f}: INVALID — {e.message}', file=sys.stderr)
+                  sys.exit(1)
+          PY
 
       - name: Check ADR filenames are well-formed
         run: |

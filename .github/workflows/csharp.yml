@@ -39,5 +39,8 @@ jobs:
       - name: Build
         run: dotnet build GuideArch.sln --configuration Release --no-restore
 
+      - name: Test (xUnit)
+        run: dotnet test GuideArch.sln --configuration Release --no-build --nologo --verbosity normal
+
       - name: Format check
         run: dotnet format GuideArch.sln --verify-no-changes --no-restore
