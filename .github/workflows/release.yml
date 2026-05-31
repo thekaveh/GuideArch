@@ -165,7 +165,9 @@ jobs:
         with:
           python-version: '3.12'
 
-      - uses: astral-sh/setup-uv@v3
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
 
       - name: Build wheel and sdist
         run: uv build
