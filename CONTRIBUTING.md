@@ -22,9 +22,12 @@ Thanks for your interest in contributing. GuideArch is a spec-driven monorepo wi
 
 ## Tests
 
-- Per-impl unit tests live under `langs/<impl>/tests/unit/`.
-- Conformance tests live under `langs/<impl>/tests/conformance/` and consume `spec/conformance/`.
-- CI runs both on every PR.
+- Per-impl unit tests live under `langs/<impl>/tests/unit/`. Integration tests sit alongside in `langs/<impl>/tests/integration/`.
+- Conformance:
+  - TypeScript: `langs/typescript/src/conformance/` (CLI: `pnpm conformance`).
+  - C#: `langs/csharp/src/GuideArch.Conformance/` (CLI: `dotnet run --project src/GuideArch.Conformance`).
+  - Python: `langs/python/src/guidearch/conformance/` (CLI: `uv run python -m guidearch.conformance.runner`).
+- CI runs both on every PR — per-impl workflows for unit, and `.github/workflows/conformance.yml` for cross-impl numerical conformance.
 
 ## Code style
 
@@ -38,8 +41,8 @@ Each command below comes in two flavors: **apply** (writes fixes) and **verify**
   - Verify (CI): `dotnet build && dotnet format --verify-no-changes`
   - Warnings are errors (set in `Directory.Build.props`).
 - Python:
-  - Apply: `uv run ruff check src --fix && uv run ruff format src`
-  - Verify (CI): `uv run ruff check src && uv run mypy src`
+  - Apply: `uv run ruff check src tests --fix && uv run ruff format src tests`
+  - Verify (CI): `uv run ruff check src tests && uv run ruff format --check src tests && uv run mypy src tests`
 
 ## Code of Conduct
 

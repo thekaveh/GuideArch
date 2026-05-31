@@ -22,7 +22,7 @@ A persistent app shell hosts:
 
 ## 2. Per-tab editors
 
-All editors operate **on the live `ScenarioM`** via the M2 VM tree. Mutations propagate through the VMx hub; `ScenarioVM` sees property-change messages and re-runs `SolveCmd` synchronously (per the v1.0 status note in §0 above). The candidates table on the `Results` tab updates automatically.
+All editors operate **on the live `ScenarioM`** via the M2 VM tree. Mutations propagate through the VMx hub; `ScenarioVM` sees property-change messages and re-runs `SolveCmd` synchronously (per the v1.0 status note above). The candidates table on the `Results` tab updates automatically.
 
 ### 2.1 Decisions tab
 
@@ -64,7 +64,7 @@ A 2-D editable grid:
 - **Rows**: alternatives, grouped by decision (sticky group headers).
 - **Columns**: properties, each shown with its kind and weight badge.
 - **Cell contents**: three numeric inputs `(lower, modal, upper)` — render compactly as `[L · M · U]`. Soft warning (yellow border) if `lower > modal` or `modal > upper`.
-- **Edit semantics**: typing in any input updates the corresponding `CoefficientM` immediately; solve fires synchronously (v1.0 status — see §0).
+- **Edit semantics**: typing in any input updates the corresponding `CoefficientM` immediately; solve fires synchronously (per the v1.0 status note at the top of this doc).
 
 ### 2.5 Constraints tab
 
