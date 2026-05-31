@@ -219,7 +219,7 @@ For each constraint `k` in the scenario:
 2. Generate `C_unconstrained = ∏ᵢ alternatives(dᵢ)`.
 3. Apply only `k` and count eliminated candidates: `eliminated(k) = |C_unconstrained| − |applied_k(C_unconstrained)|`.
 
-Output: constraints sorted by `eliminated` **descending** — most-binding first. Constraints with `eliminated == 0` are flagged "redundant" by the UI (spec/charts.md §4).
+Output: constraints sorted by `eliminated` **descending** — most-binding first. Constraints with `eliminated == 0` are flagged "redundant" by the UI (spec/charts.md §5).
 
 ## 7. Conformance gates
 

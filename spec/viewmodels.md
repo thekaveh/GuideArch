@@ -84,7 +84,7 @@ It MUST NOT re-solve when:
 - `scenario.name` or `description` change.
 - `filePath` changes (Save As without edits).
 
-Implementation guidance for v1.0: re-solve **synchronously** on each mutation (see `spec/editors.md` §0). At SAS/EDS scale (≤ 25 alternatives × 7 properties) a single solve is < 10 ms and below human perception, so the adapter-level 100 ms debounce design from earlier drafts was not necessary at ship time. If a future scenario size makes synchronous resolve perceptible, debounce lands in the View adapter (not the VM) per the original guidance — the contract here is that the VM exposes a deterministic re-solve trigger; whether the adapter chooses to coalesce calls is the adapter's policy.
+Implementation guidance for v1.0: re-solve **synchronously** on each mutation (see the v1.0 status note at the top of `spec/editors.md`). At SAS/EDS scale (≤ 25 alternatives × 7 properties) a single solve is < 10 ms and below human perception, so the adapter-level 100 ms debounce design from earlier drafts was not necessary at ship time. If a future scenario size makes synchronous resolve perceptible, debounce lands in the View adapter (not the VM) per the original guidance — the contract here is that the VM exposes a deterministic re-solve trigger; whether the adapter chooses to coalesce calls is the adapter's policy.
 
 ## 4. Per-child VMs (briefly)
 
@@ -127,7 +127,7 @@ Three flavors, each `ComponentVM<XxxConstraint>`. Edits trigger a solve.
 - `bind(vm: ComponentVMOf[M], property: str, ui_element)` — sets up a two-way binding using NiceGUI's `.bind_value()` and the VMx hub's `PropertyChangedMessage` stream.
 - `bind_command(cmd: RelayCommand, button: ui.button)` — invokes `cmd` on click; disables button when `cmd.can_execute` is false.
 
-Size: ~60 LOC. Tested with a hand-written demo VM in `tests/unit/test_vmx_to_nicegui_adapter.py`.
+Size: ~140 LOC including type hints and docstrings (count grew through M3-M4 as cascade and command bindings landed). Tested with a hand-written demo VM in `tests/unit/test_vmx_to_nicegui_adapter.py`.
 
 ### 5.2 TypeScript (Svelte)
 
@@ -136,7 +136,7 @@ Size: ~60 LOC. Tested with a hand-written demo VM in `tests/unit/test_vmx_to_nic
 - `vmxToStore<T>(vm, propName): Readable<T>` — wraps a VMx property as a Svelte store; subscribes to `PropertyChangedMessage` from the hub.
 - `commandAction(cmd: RelayCommand): { onClick: () => void; disabled: Readable<boolean> }` — for use with Svelte's `use:` action or directly on buttons.
 
-Size: ~80 LOC. Tested in `tests/unit/vmx-to-svelte.test.ts`.
+Size: ~165 LOC including types and JSDoc (count grew through M3-M4). Tested in `tests/unit/vmx-to-svelte.test.ts`.
 
 ### 5.3 C# (Avalonia)
 
