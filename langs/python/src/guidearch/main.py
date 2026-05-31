@@ -81,7 +81,11 @@ def _open_file_native(vm: ScenarioVM) -> None:
 
 
 def _save_as_native(vm: ScenarioVM) -> None:
-    """Save As using tkinter dialog (native mode)."""
+    """Save As using tkinter dialog (native mode).
+
+    Toasts success/failure in the same shape as _do_save (which the web-mode
+    path uses) so the user gets consistent feedback regardless of mode.
+    """
     try:
         import tkinter as tk
         from tkinter import filedialog
@@ -94,8 +98,14 @@ def _save_as_native(vm: ScenarioVM) -> None:
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
         )
         root.destroy()
-        if path:
-            vm.save_as_cmd.execute(path)
+        if not path:
+            return
+        was_dirty = vm.is_dirty
+        vm.save_as_cmd.execute(path)
+        if vm.is_dirty and was_dirty and vm.status.startswith("Save failed:"):
+            ui.notify(vm.status, color="negative")
+        else:
+            ui.notify("Saved.", color="positive")
     except ImportError:
         ui.notify("tkinter unavailable; use Save (web mode).", color="warning")
 
@@ -1583,13 +1593,14 @@ def _do_save(vm: ScenarioVM) -> None:
     if not vm.file_path:
         ui.notify("No file path — use Save As.", color="warning")
         return
-    # Snapshot status before execute so we can detect the VM's catch-and-warn
-    # surface (commit b85dec5 widened _do_save to catch any Exception and set
-    # status to 'Save failed: …'). Without this we'd cheerfully toast 'Saved.'
-    # over a quiet IO failure.
-    prev_status = vm.status
+    # Snapshot is_dirty before execute. A successful save clears is_dirty;
+    # the VM's catch-and-warn path (commit b85dec5) leaves is_dirty true
+    # AND sets status to 'Save failed: …'. Comparing the dirty bit avoids
+    # the prior status-string trick which misfired on repeat-failures
+    # where the failure message text was identical.
+    was_dirty = vm.is_dirty
     vm.save_cmd.execute()
-    if vm.status.startswith("Save failed:") and vm.status != prev_status:
+    if vm.is_dirty and was_dirty and vm.status.startswith("Save failed:"):
         ui.notify(vm.status, color="negative")
     else:
         ui.notify("Saved.", color="positive")
