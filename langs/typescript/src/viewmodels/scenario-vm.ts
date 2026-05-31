@@ -471,11 +471,15 @@ export function makeScenarioVm(): ScenarioVM {
     upper: number,
   ): void {
     const s = _requireScenario();
-    const warnings: string[] = [..._getModel().warnings];
+    // Drop any prior ordering warning for this (alt, prop) pair before
+    // deciding whether to emit one — without this, the warning persists
+    // forever even after the user edits the cell back into shape.
+    const stalePrefix = `Coefficient (${alternativeId}, ${propertyId}): ordering`;
+    const warnings: string[] = _getModel().warnings.filter((w) => !w.startsWith(stalePrefix));
     if (lower > modal || modal > upper) {
-      const warnMsg = `Coefficient (${alternativeId}, ${propertyId}): ordering violated lower=${lower} modal=${modal} upper=${upper}`;
-      // Only add if not already present
-      if (!warnings.includes(warnMsg)) warnings.push(warnMsg);
+      warnings.push(
+        `Coefficient (${alternativeId}, ${propertyId}): ordering violated lower=${lower} modal=${modal} upper=${upper}`,
+      );
     }
     const coefficients = s.coefficients.map((c) =>
       c.alternativeId === alternativeId && c.propertyId === propertyId

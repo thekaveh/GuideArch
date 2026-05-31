@@ -1203,25 +1203,36 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
 
 
 def _on_candidate_row_click(vm: ScenarioVM, event: Any) -> None:
-    """Handle row-click in the candidates table: set selected_candidate_index."""
+    """Handle row-click in the candidates table: set selected_candidate_index.
+
+    NiceGUI passes a click event whose `args.row` is a dict; the dict may or
+    may not contain a 'rank' key depending on the table-column projection.
+    We only swallow KeyError / TypeError / ValueError — anything else is a
+    real bug (e.g. an AttributeError on `event.args`) and should surface in
+    the NiceGUI log instead of being silently lost.
+    """
     try:
         rank = int(event.args["row"]["rank"])
-        vm.selected_candidate_index = rank
-    except Exception:
-        pass
+    except (KeyError, TypeError, ValueError):
+        return
+    vm.selected_candidate_index = rank
 
 
 def _on_chart_a_click(
     vm: ScenarioVM, top_candidates: tuple[Any, ...], event: Any
 ) -> None:
-    """Handle ECharts click on Chart A bar: set selected_candidate_index."""
+    """Handle ECharts click on Chart A bar: set selected_candidate_index.
+
+    ECharts passes back `event.args` whose `dataIndex` is the bar index
+    within the series. Catch KeyError / TypeError / ValueError only —
+    anything else propagates so we don't mask real wiring bugs.
+    """
     try:
-        # ECharts click event: dataIndex is the bar index within the series
         data_index = int(event.args.get("dataIndex", 0))
-        if data_index < len(top_candidates):
-            vm.selected_candidate_index = top_candidates[data_index].rank
-    except Exception:
-        pass
+    except (KeyError, TypeError, ValueError):
+        return
+    if 0 <= data_index < len(top_candidates):
+        vm.selected_candidate_index = top_candidates[data_index].rank
 
 
 # ---------------------------------------------------------------------------

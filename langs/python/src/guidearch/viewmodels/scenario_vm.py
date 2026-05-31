@@ -319,10 +319,25 @@ class ScenarioVM:
         self._do_solve()
 
     def _do_save(self) -> None:
-        """Write current scenario to file_path as JSON."""
+        """Write current scenario to file_path as JSON.
+
+        On IO failure (disk full, permission denied, removable media gone)
+        catch and surface to the status line + warnings list instead of
+        letting the exception bubble to the NiceGUI handler (which would
+        leave the UI in an inconsistent state with no user-visible message).
+        Matches the TS/C# defensive Save behavior.
+        """
         if self._scenario is None or self._file_path is None:
             return
-        self._write_scenario(self._scenario, self._file_path)
+        try:
+            self._write_scenario(self._scenario, self._file_path)
+        except OSError as exc:
+            msg = f"Save failed: {exc}"
+            self._status = msg
+            self._warnings = (*self._warnings, msg)
+            self._raise_property_changed("status")
+            self._raise_property_changed("warnings")
+            return
         self._is_dirty = False
         self._raise_property_changed("is_dirty")
 
@@ -760,7 +775,14 @@ class ScenarioVM:
         modal: float,
         upper: float,
     ) -> None:
-        """Update a coefficient value; triggers a re-solve."""
+        """Update a coefficient value; triggers a re-solve.
+
+        Emits a warning (not a fatal error) if triangular ordering
+        (lower <= modal <= upper) is violated — matches C# and TS behavior
+        and is consistent with invariant 4.1 which the loader also warns on.
+        Stale ordering warnings are dropped when the cell is edited back
+        into shape so the warning chip clears.
+        """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
@@ -771,6 +793,19 @@ class ScenarioVM:
             else c
             for c in scenario.coefficients
         )
+        warn_msg = (
+            f"Coefficient ({alternative_id}, {property_id}): "
+            f"ordering violated lower={lower} modal={modal} upper={upper}"
+        )
+        # Always drop the previous ordering warning for this (alt, prop) pair —
+        # we re-add it below only if the new value still violates.
+        stale_prefix = f"Coefficient ({alternative_id}, {property_id}): ordering"
+        new_warnings = tuple(w for w in self._warnings if not w.startswith(stale_prefix))
+        if lower > modal or modal > upper:
+            new_warnings = (*new_warnings, warn_msg)
+        if new_warnings != self._warnings:
+            self._warnings = new_warnings
+            self._raise_property_changed("warnings")
         self._apply_scenario_mutation(replace(scenario, coefficients=new_coefficients))
 
     def update_threshold_constraint(
