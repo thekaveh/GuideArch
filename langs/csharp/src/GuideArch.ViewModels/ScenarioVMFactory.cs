@@ -85,7 +85,7 @@ public static class ScenarioVMFactory
             {
                 SetState(ScenarioState.Empty with
                 {
-                    Status = "New scenario (empty)."
+                    Status = "New scenario — nothing to solve."
                 });
             })
             .Build();
@@ -270,7 +270,7 @@ public sealed class ScenarioMutator
         {
             Scenario = EmptyScenario,
             IsDirty = true,
-            Status = "New scenario (empty)."
+            Status = "New scenario — nothing to solve."
         });
         return _getState().Scenario!;
     }
@@ -652,9 +652,23 @@ public sealed class ScenarioMutator
         var (existing, globalIdx) = thresholds[index];
         var tc = (ThresholdConstraintM)existing;
 
+        // null in this API has a meaning that ?? cannot express: the caller may
+        // pass null *to clear* a bound. Distinguishing "leave unchanged" from
+        // "clear" requires a 4-arg-flag approach; we model "clear" via an
+        // explicit Set<...>Bound API in callers, but for the common
+        // leave-unchanged path the existing API uses propertyId/min/max nullable
+        // with null = "leave unchanged" — the caller is expected to read the
+        // existing constraint first and pass the desired final value.
         var newPropId = propertyId ?? tc.PropertyId;
         var newMin = min ?? tc.Min;
         var newMax = max ?? tc.Max;
+
+        // After applying the patch, the schema $defs/Constraint anyOf still
+        // requires at least one of min/max to be present — guard so we don't
+        // silently produce an invalid threshold by clearing both.
+        if (newMin is null && newMax is null)
+            throw new ScenarioMutationException(
+                "ThresholdConstraint requires at least one of min or max.");
 
         if (newMin.HasValue && newMax.HasValue && newMin.Value > newMax.Value)
         {
@@ -714,12 +728,14 @@ public sealed class ScenarioMutator
         if (!s.Alternatives.Any(a => a.Id == targetAltId))
             throw new ScenarioMutationException($"Alternative '{targetAltId}' not found.");
 
-        var warnings = State.Warnings;
+        // Invariant 7.1 (spec/domain/invariants.md) flags self-edges as FATAL,
+        // and ScenarioLoader already throws on them at load time. The earlier
+        // warn-and-accept behavior here would let a self-edge enter the
+        // scenario via the editor, then fail the very next file round-trip.
+        // Match the loader + Python + TypeScript: throw on self-edge.
         if (sourceAltId == targetAltId)
-        {
-            var w = "Dependency constraint: self-edge detected. Flagged but accepted.";
-            if (!warnings.Contains(w)) warnings = warnings.Add(w);
-        }
+            throw new ScenarioMutationException(
+                "Self-edge on dependency constraint (source must differ from target).");
 
         _setState(State with
         {
@@ -727,8 +743,7 @@ public sealed class ScenarioMutator
             {
                 Constraints = s.Constraints.Add(new DependencyConstraintM(sourceAltId, targetAltId))
             },
-            IsDirty = true,
-            Warnings = warnings
+            IsDirty = true
         });
         _solve();
     }
@@ -761,12 +776,10 @@ public sealed class ScenarioMutator
         if (!s.Alternatives.Any(a => a.Id == altBId))
             throw new ScenarioMutationException($"Alternative '{altBId}' not found.");
 
-        var warnings = State.Warnings;
+        // Invariant 7.1: fatal, matching the loader and the Python/TS mutators.
         if (altAId == altBId)
-        {
-            var w = "Conflict constraint: self-conflict detected. Flagged but accepted.";
-            if (!warnings.Contains(w)) warnings = warnings.Add(w);
-        }
+            throw new ScenarioMutationException(
+                "Self-edge on conflict constraint (alternativeA must differ from alternativeB).");
 
         _setState(State with
         {
@@ -774,8 +787,7 @@ public sealed class ScenarioMutator
             {
                 Constraints = s.Constraints.Add(new ConflictConstraintM(altAId, altBId))
             },
-            IsDirty = true,
-            Warnings = warnings
+            IsDirty = true
         });
         _solve();
     }

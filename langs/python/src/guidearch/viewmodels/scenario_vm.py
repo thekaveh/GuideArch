@@ -270,7 +270,7 @@ class ScenarioVM:
         self._candidates = ()
         self._critical_decisions = ()
         self._critical_constraints = ()
-        self._status = "New scenario created."
+        self._status = "New scenario — nothing to solve."
         self._warnings = ()
         self._selected_candidate_index = None
         self._raise_property_changed("scenario")
