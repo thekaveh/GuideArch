@@ -81,8 +81,10 @@ public class ScenarioVMTests
 
         cmds.NewCmd.Execute(null);
 
-        // After New: scenario is null, candidates empty.
-        Assert.Null(vm.Model.Scenario);
+        // After New: scenario replaced with fresh empty per spec
+        // viewmodels.md §3.2; candidates empty, file path cleared.
+        Assert.NotNull(vm.Model.Scenario);
+        Assert.Empty(vm.Model.Scenario!.Decisions);
         Assert.Empty(vm.Model.Candidates);
         Assert.Null(vm.Model.FilePath);
     }

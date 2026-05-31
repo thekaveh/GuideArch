@@ -17,6 +17,24 @@ namespace GuideArch.ViewModels;
 public static class ScenarioVMFactory
 {
     /// <summary>
+    /// A fresh empty scenario used by NewCmd (immediately) and by
+    /// ScenarioMutator.EnsureScenario (lazily on first Add when no scenario
+    /// is loaded). Defined here so both call sites share one definition.
+    /// </summary>
+    internal static readonly ScenarioM EmptyScenario = new(
+        SchemaVersion: "1.0.0",
+        Name: "New scenario",
+        Description: "",
+        Decisions: System.Collections.Immutable.ImmutableArray<DecisionM>.Empty,
+        Alternatives: System.Collections.Immutable.ImmutableArray<AlternativeM>.Empty,
+        Properties: System.Collections.Immutable.ImmutableArray<PropertyM>.Empty,
+        Coefficients: System.Collections.Immutable.ImmutableArray<CoefficientM>.Empty,
+        Constraints: System.Collections.Immutable.ImmutableArray<ConstraintM>.Empty,
+        Config: new ConfigM(Aggregation.Max, new NormalizedFuzzyM(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0)),
+        Warnings: System.Collections.Immutable.ImmutableArray<string>.Empty
+    );
+
+    /// <summary>
     /// Creates and constructs the root ScenarioVM.
     /// </summary>
     public static ComponentVM<ScenarioState> Create()
@@ -100,12 +118,21 @@ public static class ScenarioVMFactory
 
         // -----------------------------------------------------------------------
         // NewCmd — spec §3.2
+        //
+        // spec/viewmodels.md §3.2 says NewCmd 'Replaces scenario with a fresh
+        // empty ScenarioM'. Earlier versions used ScenarioState.Empty which
+        // sets Scenario = null and required EnsureScenario to lazily hydrate
+        // it on the first Add — UI state was inconsistent in the meantime
+        // (HasScenario = false, all tabs showed 'no scenario loaded'). Now
+        // NewCmd creates the empty scenario directly so the UI immediately
+        // reflects the fresh-empty state, matching Python+TS New.
         // -----------------------------------------------------------------------
         ICommand newCmd = RelayCommand.Builder()
             .Task(() =>
             {
                 SetState(ScenarioState.Empty with
                 {
+                    Scenario = EmptyScenario,
                     Status = "New scenario — nothing to solve."
                 });
             })
@@ -287,32 +314,18 @@ public sealed class ScenarioMutator
     private ScenarioState State => _getState();
 
     /// <summary>
-    /// Default empty scenario used when auto-creating on first add-X.
-    /// </summary>
-    private static readonly ScenarioM EmptyScenario = new(
-        SchemaVersion: "1.0.0",
-        Name: "New scenario",
-        Description: "",
-        Decisions: System.Collections.Immutable.ImmutableArray<DecisionM>.Empty,
-        Alternatives: System.Collections.Immutable.ImmutableArray<AlternativeM>.Empty,
-        Properties: System.Collections.Immutable.ImmutableArray<PropertyM>.Empty,
-        Coefficients: System.Collections.Immutable.ImmutableArray<CoefficientM>.Empty,
-        Constraints: System.Collections.Immutable.ImmutableArray<ConstraintM>.Empty,
-        Config: new ConfigM(Aggregation.Max, new NormalizedFuzzyM(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0)),
-        Warnings: System.Collections.Immutable.ImmutableArray<string>.Empty
-    );
-
-    /// <summary>
     /// Returns the current scenario, auto-creating an empty one if null.
-    /// Mirrors the Python fix: clicking Add Decision/Property before opening
-    /// a scenario runs New automatically instead of throwing.
+    /// Uses ScenarioVMFactory.EmptyScenario as the single source of truth
+    /// for the empty-scenario shape. Mirrors the Python fix: clicking Add
+    /// Decision/Property before opening a scenario runs New automatically
+    /// instead of throwing.
     /// </summary>
     private ScenarioM EnsureScenario()
     {
         if (State.Scenario is not null) return State.Scenario;
         _setState(State with
         {
-            Scenario = EmptyScenario,
+            Scenario = ScenarioVMFactory.EmptyScenario,
             IsDirty = true,
             Status = "New scenario — nothing to solve."
         });

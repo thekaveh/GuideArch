@@ -421,9 +421,10 @@ public class VMTreeComprehensiveTests
         Assert.NotNull(cmds.Mutator);
     }
 
-    // NewCmd: replaces scenario with empty, clears file path, sets isDirty = false
+    // NewCmd: replaces scenario with fresh empty ScenarioM (per spec
+    // viewmodels.md §3.2), clears file path, sets isDirty = false.
     [Fact]
-    public void NewCmd_Execute_ClearsScenarioAndFilePath()
+    public void NewCmd_Execute_ReplacesScenarioWithEmpty()
     {
         var (vm, cmds) = LoadSas();
         Assert.NotNull(vm.Model.Scenario);
@@ -431,7 +432,11 @@ public class VMTreeComprehensiveTests
 
         cmds.NewCmd.Execute(null);
 
-        Assert.Null(vm.Model.Scenario);
+        Assert.NotNull(vm.Model.Scenario);
+        Assert.Equal("New scenario", vm.Model.Scenario!.Name);
+        Assert.Empty(vm.Model.Scenario.Decisions);
+        Assert.Empty(vm.Model.Scenario.Alternatives);
+        Assert.Empty(vm.Model.Scenario.Properties);
         Assert.Null(vm.Model.FilePath);
         Assert.False(vm.Model.IsDirty);
     }
