@@ -216,9 +216,13 @@ jobs:
           file: langs/python/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: ${{ secrets.GHCR_TOKEN != '' }}
+          # Only tag :latest when this is a real tag push (refs/tags/v*).
+          # A workflow_dispatch run produces version='dev'; without this
+          # guard a manual smoke run would overwrite :latest with a dev
+          # build silently.
           tags: |
             ghcr.io/thekaveh/guidearch:${{ steps.version.outputs.version }}
-            ghcr.io/thekaveh/guidearch:latest
+            ${{ startsWith(github.ref, 'refs/tags/v') && 'ghcr.io/thekaveh/guidearch:latest' || '' }}
           outputs: ${{ secrets.GHCR_TOKEN == '' && 'type=docker,dest=/tmp/guidearch-docker.tar' || '' }}
 
       - name: Upload Docker image tar (when not pushing)
@@ -277,6 +281,11 @@ jobs:
 
   # ─── 6. Create GitHub Release ─────────────────────────────────────────────────
   release:
+    # Only create a GitHub Release when triggered by a real tag push. On
+    # workflow_dispatch the artifacts are still built (and uploadable as
+    # workflow artifacts) but we don't want to publish a Release entry
+    # for a version='dev' smoke run.
+    if: startsWith(github.ref, 'refs/tags/v')
     needs:
       - tauri-build
       - avalonia-desktop

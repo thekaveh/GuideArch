@@ -55,6 +55,7 @@ The root VM owns the loaded scenario and brokers re-solve when its children chan
 | `criticalConstraints` | `readonly CriticalConstraintM[]` | Latest `criticalConstraints(scenario)` output. |
 | `status` | `string` | Human-readable status line for the View (e.g. `"Solved: 1336 candidates"`). |
 | `warnings` | `readonly string[]` | Non-fatal warnings from scenario load. |
+| `selectedCandidateIndex` | `int \| null` | Index into `candidates` of the currently selected candidate, or `null` when nothing is selected. The candidates table, Chart A, and Chart B all read it; editing it from any of the three updates the other two. Defined formally in `spec/charts.md` §6 — added here for completeness. |
 
 ### 3.2 Commands
 

@@ -22,8 +22,8 @@ The excluded trigger list (spec §3.3):
   - name, description, file_path
 
 v1.0 re-solves synchronously in ``_apply_scenario_mutation`` (no debounce —
-deferred to v1.1 per spec/editors.md §0). Tests call solve_cmd.execute()
-directly.
+deferred to v1.1 per the v1.0 status note at the top of spec/editors.md).
+Tests call solve_cmd.execute() directly.
 
 Cascade methods (M3)
 --------------------
@@ -117,7 +117,7 @@ class ScenarioVM:
     solve-affecting field emits a PropertyChangedMessage; the hub subscriber
     sets ``_solve_needed`` directly. v1.0 re-solves synchronously in
     ``_apply_scenario_mutation``; debounced solve is deferred to v1.1
-    (see spec/editors.md §0).
+    (see the v1.0 status note at the top of spec/editors.md).
     """
 
     def __init__(self) -> None:

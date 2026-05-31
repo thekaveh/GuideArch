@@ -15,9 +15,9 @@ Native mode: tkinter.filedialog (synchronous) with graceful ImportError fallback
 Re-solve
 --------
 v1.0 re-solves synchronously inside ScenarioVM._apply_scenario_mutation;
-there is no debounce timer (deferred to v1.1 per spec/editors.md §0). Editor
-event handlers therefore do not need to schedule a solve — the VM mutation
-call already performs it.
+there is no debounce timer (deferred to v1.1 per the v1.0 status note at the
+top of spec/editors.md). Editor event handlers therefore do not need to
+schedule a solve — the VM mutation call already performs it.
 
 M4 additions
 ------------
@@ -1535,7 +1535,7 @@ def index() -> None:
 
     # v1.0: no debounce timer — re-solve happens synchronously inside
     # ScenarioVM._apply_scenario_mutation when an editor calls a mutator.
-    # See spec/editors.md §0 for why; debounce is deferred to v1.1.
+    # See the v1.0 status note at the top of spec/editors.md for why; debounce is deferred to v1.1.
 
 
 # ---------------------------------------------------------------------------
