@@ -49,6 +49,6 @@ The integration suite at `tests/GuideArch.ViewModels.Tests/VMMvvmIntegrationTest
 
 ## Architecture notes
 
-- VMx-C# `ComponentVM<M>` is `sealed`, so VMs are realised as **static-factory functions** returning configured `ComponentVM<M>`. See ADR-0006 and the project memory at `docs/vmx-findings.md` (planned) for the upstream-fix backlog.
+- VMx-C# `ComponentVM<M>` is `sealed`, so VMs are realised as **static-factory functions** returning configured `ComponentVM<M>`. See ADR-0001 §"VMx improvements flow back upstream" for the rationale: upstream-VMx changes (e.g. unsealing the class) happen via PR against the `vendor/vmx` submodule, not by patching the build here.
 - Sample scenarios ship as **embedded resources** under `src/GuideArch.View/Assets/Samples/`; `SampleScenarios.Open(sample)` returns a `Stream` that `MainWindow.axaml.cs` writes to a temp file and feeds to `ScenarioLoader.Load(path)`.
 - The one binding in `MainWindow.axaml` that uses `{ReflectionBinding}` does so because the DataContext type (`ComponentVM<ScenarioState>`) is generic and cannot be expressed as a XAML `x:DataType`. M2+ will revisit when a wrapper VM type exists.

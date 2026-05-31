@@ -33,7 +33,7 @@ Read most-to-least essential. Each link includes when to use it.
 ### 3.2 Milestone plans
 
 - **[M0 — Repo bootstrap](docs/plans/2026-05-30-m0-repo-bootstrap.md)** — the 27-task implementation plan that produced the bootstrap state. *Read this if you want to understand how the scaffolding was assembled.*
-- *M2–M5 plans land in [`docs/plans/`](docs/plans/) as each milestone begins. M1 was executed directly from the spec without a separate plan document because the algorithm was already fully specified in `spec/algorithms/topsis.md`.*
+- *Milestones M1 through M5 were executed directly from the spec without standalone plan documents — the algorithm and per-impl shapes were specified completely enough in `spec/` that intermediate plans would have duplicated content. Their commits are visible in `git log` under tags `v0.1.0-m1` through `v0.4.0-m4`, with M5 represented by the released `v1.0.0` tag.*
 
 ### 3.3 Specification & conformance
 
