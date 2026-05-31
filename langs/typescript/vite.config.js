@@ -20,11 +20,18 @@ const transitionValidatorShim = path.resolve(
   "src/shims/vmx-transition-validator.ts"
 );
 
-/** Vite plugin: redirect imports of transitionValidator to our browser shim. */
+/**
+ * Vite plugin: redirect imports of transitionValidator to our browser shim.
+ * @returns {import('vite').Plugin}
+ */
 function vmxBrowserShimPlugin() {
   return {
     name: "vmx-browser-shim",
     enforce: "pre",
+    /**
+     * @param {string} id
+     * @param {string | undefined} importer
+     */
     resolveId(id, importer) {
       // Match both the .js (ESM import style) and .ts (actual file) paths
       if (
@@ -42,6 +49,7 @@ function vmxBrowserShimPlugin() {
       // Also catch if the resolved file itself is the transitionValidator
       return null;
     },
+    /** @param {string} id */
     load(id) {
       if (id === transitionValidatorSrc) {
         // Redirect loads of the actual transitionValidator.ts to our shim
@@ -52,7 +60,6 @@ function vmxBrowserShimPlugin() {
   };
 }
 
-// @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/

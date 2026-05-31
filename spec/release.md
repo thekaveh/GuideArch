@@ -16,7 +16,7 @@ Signing / notarization are stretch goals; v1.0.0 ships unsigned with an "unsigne
 ### 1.2 C# + Avalonia
 
 - **Desktop binaries** — `dotnet publish -c Release -r <rid> --self-contained -p:PublishSingleFile=true` for `win-x64`, `osx-x64`, `osx-arm64`, `linux-x64`. Each emits a single-file executable, zipped and attached.
-- **WebAssembly** — `dotnet publish -c Release -r browser-wasm` (Avalonia.Browser) emits a static bundle, zipped and attached. (If Avalonia.Browser isn't set up at M5, defer to v1.1 and ship desktop only.)
+- **WebAssembly** — deferred to v1.1. The C# View project does not reference `Avalonia.Browser` at v1.0; when it does, `dotnet publish -c Release -r browser-wasm` will emit a static bundle that this workflow can zip and attach. See README §2 and `CHANGELOG.md` for the user-visible status.
 
 ### 1.3 Python + NiceGUI
 
@@ -66,13 +66,13 @@ All five must agree at release time.
 
 ## 5. Release notes
 
-The workflow auto-generates notes from `git log v0.4.0-m4..v1.0.0` grouped by Conventional Commits prefix. The release body includes:
+The workflow uses GitHub's `generate_release_notes: true` on `softprops/action-gh-release`, which categorizes notes by GitHub's PR-label scheme (Features / Bug fixes / Other), not by Conventional Commits prefix. v1.0.0 prose was authored manually in the workflow's `body:` block; future tags inherit the same structure (`body:` template + auto-categorized PR list). The release body includes:
 
-- Summary one-liner
-- Highlights (top 3-5 commits by impact)
-- "What's in v1.0.0" — pointing at the README §1 description of feature scope
-- Asset table (mirrors §3 above)
+- Summary one-liner derived from the tag version
+- The "What's in this release" feature-scope block (see `release.yml`)
+- Asset table (mirrors §3 above; filenames derived from `${{ github.ref_name }}`)
 - Known issues / unsigned binary note
+- Auto-generated PR list under standard GitHub categories
 
 ## 6. Out of scope for v1.0.0
 

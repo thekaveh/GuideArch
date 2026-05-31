@@ -36,8 +36,10 @@ jobs:
           submodules: recursive
 
       - uses: pnpm/action-setup@v4
+        # Pinned to a specific minor so a pnpm release can't silently change
+        # builds (previously `version: latest` made runs non-deterministic).
         with:
-          version: latest
+          version: '9'
 
       - uses: actions/setup-node@v4
         with:
@@ -61,6 +63,12 @@ jobs:
 
       - name: Format check
         run: pnpm format:check
+
+      - name: Type-check (.svelte + .ts)
+        # svelte-check catches type errors inside .svelte component scripts
+        # that eslint and vitest don't see — without this step, a bad type
+        # in a +page.svelte block can land on main.
+        run: pnpm check
 
       - name: Test (vitest)
         run: pnpm test
