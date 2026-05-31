@@ -74,8 +74,12 @@ public static class ScenarioLoader
     {
         schemaPath ??= DefaultSchemaPath;
 
-        // Resolve the absolute path to schema if relative
-        if (!Path.IsPathRooted(schemaPath))
+        // The embedded-resource sentinel is intentionally not a real path —
+        // don't normalize it (Path.IsPathRooted("<embedded>") is false, so
+        // GetFullPath would turn the sentinel into <cwd>/<embedded> and
+        // GetSchema's `== EmbeddedSchemaSentinel` comparison would miss).
+        // Only normalize when the caller passed a genuine relative path.
+        if (schemaPath != EmbeddedSchemaSentinel && !Path.IsPathRooted(schemaPath))
             schemaPath = Path.GetFullPath(schemaPath);
 
         string jsonText = File.ReadAllText(path);

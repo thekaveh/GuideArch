@@ -68,6 +68,29 @@ public class ScenarioLoaderTests
     }
 
     [Fact]
+    public void EmbeddedSchemaSentinel_LoadsFromManifestResource()
+    {
+        // Regression: a prior implementation normalized non-rooted paths via
+        // Path.GetFullPath, which silently corrupted the "<embedded>" sentinel
+        // into "<cwd>/<embedded>" and made the manifest-resource fallback
+        // unreachable. Single-file release binaries would then throw
+        // FileNotFoundException on first Open. This test pins the sentinel
+        // path so a future refactor can't reintroduce that bug.
+        var tmp = Path.GetTempFileName() + ".json";
+        File.WriteAllText(tmp, MinimalValidJson());
+        try
+        {
+            var scenario = ScenarioLoader.Load(tmp, "<embedded>");
+            Assert.NotNull(scenario);
+            Assert.Equal("test", scenario.Name);
+        }
+        finally
+        {
+            File.Delete(tmp);
+        }
+    }
+
+    [Fact]
     public void ValidMinimalScenario_Loads()
     {
         var scenario = LoadFromString(MinimalValidJson());
