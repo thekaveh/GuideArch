@@ -15,6 +15,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Unit-test, lint, and type-check tooling. Installed via `pip install -e .[dev]`
+# or, in this repo's workflow, automatically by `uv sync --all-extras`.
 dev = [
     "pytest>=8",
     "pytest-cov>=5",
@@ -62,7 +64,11 @@ ignore_missing_imports = true
 vmx = { path = "../../vendor/vmx/langs/python", editable = true }
 
 [dependency-groups]
-dev = [
+# Browser-automation tooling for visual snapshot tests (tests/visual/). Distinct
+# from [project.optional-dependencies].dev: that one installs by default with
+# uv sync --all-extras; this one only installs on uv sync --group visual,
+# avoiding the multi-hundred-MB chromium download on most workflows.
+visual = [
     "playwright>=1.60.0",
     "pytest-playwright>=0.8.0",
 ]

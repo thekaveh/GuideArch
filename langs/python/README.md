@@ -12,7 +12,8 @@ Python + NiceGUI 3.x implementation of GuideArch.
 
 ```bash
 cd langs/python
-uv sync --all-extras   # includes pytest, ruff, mypy
+uv sync --all-extras                # unit-test, lint, type-check tooling
+uv sync --all-extras --group visual # also install playwright for visual snapshots
 ```
 
 ## Run
