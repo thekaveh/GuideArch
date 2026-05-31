@@ -3,9 +3,15 @@ name: spec
 on:
   push:
     branches: [main]
-    paths: ['spec/**', '.github/workflows/spec.yml']
+    paths:
+      - 'spec/**'
+      - 'langs/typescript/src/samples/scenario.schema.json'
+      - '.github/workflows/spec.yml'
   pull_request:
-    paths: ['spec/**', '.github/workflows/spec.yml']
+    paths:
+      - 'spec/**'
+      - 'langs/typescript/src/samples/scenario.schema.json'
+      - '.github/workflows/spec.yml'
   workflow_dispatch:
 
 concurrency:
@@ -60,3 +66,20 @@ jobs:
             fi
           done
           echo "All ADR filenames are well-formed."
+
+      - name: Check TS bundled schema matches canonical spec schema
+        run: |
+          # langs/typescript/src/samples/scenario.schema.json is a hand-
+          # maintained duplicate used by browser-mode Open (scenario-vm.ts
+          # inlines it via import to avoid an fs read at runtime). Without a
+          # gate the two silently drift apart on any spec/ edit. Until the
+          # build is reworked to read the canonical file directly, this diff
+          # is the cheapest way to keep them in lock-step.
+          if ! diff -q spec/domain/scenario.schema.json \
+                       langs/typescript/src/samples/scenario.schema.json >/dev/null; then
+            echo "TS bundled schema has drifted from spec/domain/scenario.schema.json." >&2
+            diff -u spec/domain/scenario.schema.json langs/typescript/src/samples/scenario.schema.json || true
+            echo "Sync by copying spec/domain/scenario.schema.json over the langs/typescript/ copy." >&2
+            exit 1
+          fi
+          echo "TS bundled schema matches canonical."

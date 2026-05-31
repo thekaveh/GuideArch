@@ -64,7 +64,7 @@
       "additionalProperties": false,
       "required": ["id", "name"],
       "properties": {
-        "id": { "$ref": "#/$defs/Id" },
+        "id":   { "$ref": "#/$defs/Id" },
         "name": { "type": "string", "minLength": 1 }
       }
     },
@@ -73,9 +73,9 @@
       "additionalProperties": false,
       "required": ["id", "decisionId", "name"],
       "properties": {
-        "id": { "$ref": "#/$defs/Id" },
+        "id":         { "$ref": "#/$defs/Id" },
         "decisionId": { "$ref": "#/$defs/Id" },
-        "name": { "type": "string", "minLength": 1 }
+        "name":       { "type": "string", "minLength": 1 }
       }
     },
     "Property": {
@@ -83,9 +83,9 @@
       "additionalProperties": false,
       "required": ["id", "name", "kind", "weight"],
       "properties": {
-        "id": { "$ref": "#/$defs/Id" },
-        "name": { "type": "string", "minLength": 1 },
-        "kind": { "type": "string", "enum": ["min", "max"] },
+        "id":     { "$ref": "#/$defs/Id" },
+        "name":   { "type": "string", "minLength": 1 },
+        "kind":   { "type": "string", "enum": ["min", "max"] },
         "weight": { "type": "number", "exclusiveMinimum": 0 }
       }
     },
@@ -106,8 +106,8 @@
       "required": ["alternativeId", "propertyId", "value"],
       "properties": {
         "alternativeId": { "$ref": "#/$defs/Id" },
-        "propertyId": { "$ref": "#/$defs/Id" },
-        "value": { "$ref": "#/$defs/TriangularFuzzy" }
+        "propertyId":    { "$ref": "#/$defs/Id" },
+        "value":         { "$ref": "#/$defs/TriangularFuzzy" }
       }
     },
     "Constraint": {
@@ -117,19 +117,22 @@
           "additionalProperties": false,
           "required": ["kind", "propertyId"],
           "properties": {
-            "kind": { "const": "threshold" },
+            "kind":       { "const": "threshold" },
             "propertyId": { "$ref": "#/$defs/Id" },
-            "min": { "type": "number" },
-            "max": { "type": "number" }
+            "min":        { "type": "number" },
+            "max":        { "type": "number" }
           },
-          "anyOf": [{ "required": ["min"] }, { "required": ["max"] }]
+          "anyOf": [
+            { "required": ["min"] },
+            { "required": ["max"] }
+          ]
         },
         {
           "type": "object",
           "additionalProperties": false,
           "required": ["kind", "sourceAlternativeId", "targetAlternativeId"],
           "properties": {
-            "kind": { "const": "dependency" },
+            "kind":                { "const": "dependency" },
             "sourceAlternativeId": { "$ref": "#/$defs/Id" },
             "targetAlternativeId": { "$ref": "#/$defs/Id" }
           }
@@ -139,7 +142,7 @@
           "additionalProperties": false,
           "required": ["kind", "alternativeAId", "alternativeBId"],
           "properties": {
-            "kind": { "const": "conflict" },
+            "kind":           { "const": "conflict" },
             "alternativeAId": { "$ref": "#/$defs/Id" },
             "alternativeBId": { "$ref": "#/$defs/Id" }
           }
@@ -152,7 +155,7 @@
       "required": ["positive", "average", "negative"],
       "properties": {
         "positive": { "type": "number", "minimum": 0, "maximum": 1 },
-        "average": { "type": "number", "minimum": 0, "maximum": 1 },
+        "average":  { "type": "number", "minimum": 0, "maximum": 1 },
         "negative": { "type": "number", "minimum": 0, "maximum": 1 }
       },
       "description": "Must sum to 1; the load-time validator MUST enforce."
@@ -163,7 +166,7 @@
       "required": ["aggregation", "weights"],
       "properties": {
         "aggregation": { "type": "string", "enum": ["sum", "max"] },
-        "weights": { "$ref": "#/$defs/Weights" }
+        "weights":     { "$ref": "#/$defs/Weights" }
       }
     }
   }
