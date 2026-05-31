@@ -12,6 +12,7 @@ dependencies = [
     "pywebview>=5.0",
     "vmx>=2.1.0",
     "jsonschema>=4.23",
+    "platformdirs>=4.0",
 ]
 
 [project.optional-dependencies]

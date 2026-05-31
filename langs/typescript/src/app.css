@@ -38,6 +38,26 @@
   --font-mono: 'Cascadia Code', 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 }
 
+/* Light theme override — applied when <html data-theme="light">. AppVM owns
+   the theme observable; the View sets the attribute to drive these tokens. */
+[data-theme='light'] {
+  --bg-page: #f7f8fb;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #f1f3f7;
+  --bg-surface-3: #e6e9f0;
+  --border-subtle: #d9dde6;
+  --border-strong: #b9c0cf;
+
+  --text-primary: #1a1e27;
+  --text-secondary: #4a5163;
+  --text-muted: #7c8499;
+  --text-inverse: #ffffff;
+
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-muted: #ede9fe;
+}
+
 /* ── Base Reset / Body ───────────────────────────────────────────── */
 *,
 *::before,

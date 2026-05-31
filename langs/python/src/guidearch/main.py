@@ -38,21 +38,27 @@ from typing import Any
 from nicegui import ui
 
 from guidearch.view.theme import inject_css
-from guidearch.viewmodels.scenario_vm import ScenarioVM, make_scenario_vm
+from guidearch.viewmodels.app_vm import AppVM, Mode, make_app_vm
+from guidearch.viewmodels.scenario_vm import ScenarioVM
 
 # ---------------------------------------------------------------------------
 # Globals
 # ---------------------------------------------------------------------------
 
-_vm: ScenarioVM | None = None
+_app_vm: AppVM | None = None
 _is_native: bool = False
 
 
+def _get_app_vm() -> AppVM:
+    global _app_vm
+    if _app_vm is None:
+        mode: Mode = "native" if _is_native else "web"
+        _app_vm = make_app_vm(mode=mode)
+    return _app_vm
+
+
 def _get_vm() -> ScenarioVM:
-    global _vm
-    if _vm is None:
-        _vm = make_scenario_vm()
-    return _vm
+    return _get_app_vm().scenario
 
 
 # ---------------------------------------------------------------------------
@@ -1374,9 +1380,26 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
 
 def index() -> None:
     """Render the full M3 app shell."""
-    vm = _get_vm()
+    app_vm = _get_app_vm()
+    vm = app_vm.scenario
 
-    ui.dark_mode().enable()
+    # Theme observable → NiceGUI Quasar dark mode. AppVM owns the source
+    # of truth; we apply it here so a future theme picker can flip
+    # ui.dark_mode() from one place.
+    dark_mode = ui.dark_mode()
+
+    def _apply_theme() -> None:
+        if app_vm.theme == "light":
+            dark_mode.disable()
+        else:
+            dark_mode.enable()
+
+    def _on_property_changed(name: str) -> None:
+        if name == "theme":
+            _apply_theme()
+
+    _apply_theme()
+    app_vm.property_changed.subscribe(on_next=_on_property_changed)
     inject_css()
     ui.add_head_html("<style>.sticky-top { position: sticky; top: 0; z-index: 10; }</style>")
 

@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { makeScenarioVm } from '../viewmodels/scenario-vm.js';
+  import { onMount } from 'svelte';
+  import { makeAppVm } from '../viewmodels/app-vm.js';
+  import { vmxToStore } from '../view/adapters/vmx-to-svelte.js';
   import Toolbar from './lib/Toolbar.svelte';
   import TabStrip from './lib/TabStrip.svelte';
   import StatusBar from './lib/StatusBar.svelte';
@@ -12,7 +14,28 @@
   import CriticalDecisionsTab from './lib/CriticalDecisionsTab.svelte';
   import CriticalConstraintsTab from './lib/CriticalConstraintsTab.svelte';
 
-  const vm = makeScenarioVm();
+  // AppVM is the root VM. Tabs and the toolbar continue to bind to
+  // ScenarioVM (reached via app.scenario) — only app-shell concerns live
+  // on AppVM itself.
+  const app = makeAppVm();
+  const vm = app.scenario;
+
+  // Theme observable → <html data-theme="…"> attribute. Subscribed once
+  // on mount; the readable store re-emits whenever AppVM's model swaps.
+  const themeStore = vmxToStore(app, 'theme');
+  onMount(() => {
+    const unsub = themeStore.subscribe((theme) => {
+      document.documentElement.dataset.theme = theme;
+    });
+    return unsub;
+  });
+
+  // Dev escape hatch: expose AppVM on window in dev builds so the theme
+  // observable is exercisable from devtools (e.g. `__app.setTheme('light')`)
+  // until a proper picker lands with the upcoming UI redesign.
+  if (typeof window !== 'undefined' && import.meta.env.DEV) {
+    (window as unknown as Record<string, unknown>).__app = app;
+  }
 
   const TABS = [
     'Decisions',

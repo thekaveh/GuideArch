@@ -27,6 +27,12 @@ namespace GuideArch.View;
 /// </summary>
 public partial class MainWindow : Window
 {
+    // Root VM owns the theme observable + the child ScenarioVM. AXAML
+    // bindings continue to target the inner ScenarioVM via DataContext so
+    // every existing `{ReflectionBinding Model.X}` stays valid — the
+    // reference graph is still rooted at AppVM, navigating down to scenario.
+    private readonly ComponentVM<AppState> _appVm;
+    private readonly AppCommands _appCmds;
     private readonly ComponentVM<ScenarioState> _vm;
     private readonly ScenarioCommands _cmds;
     private ScenarioMutator Mutator => _cmds.Mutator;
@@ -38,9 +44,21 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _vm = ScenarioVMFactory.Create();
+        _appVm = AppVMFactory.Create(mode: "native");
+        _appCmds = AppVMFactory.GetCommands(_appVm);
+        _vm = _appCmds.Scenario;
         _cmds = ScenarioVMFactory.GetCommands(_vm);
         DataContext = _vm;
+
+        // Apply the initial theme + re-apply on every theme change. The hub
+        // route is not used here because Avalonia's RequestedThemeVariant
+        // setter must run on the UI thread anyway.
+        ApplyTheme(_appVm.Model.Theme);
+        _appVm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ComponentVM<AppState>.Model))
+                ApplyTheme(_appVm.Model.Theme);
+        };
 
         // Subscribe to VM state changes to refresh charts.
         _vm.PropertyChanged += (_, e) =>
@@ -50,6 +68,18 @@ public partial class MainWindow : Window
         };
 
         InitCharts();
+    }
+
+    private static void ApplyTheme(string theme)
+    {
+        var app = Avalonia.Application.Current;
+        if (app is null) return;
+        app.RequestedThemeVariant = theme switch
+        {
+            "light" => Avalonia.Styling.ThemeVariant.Light,
+            "dark" => Avalonia.Styling.ThemeVariant.Dark,
+            _ => Avalonia.Styling.ThemeVariant.Default,
+        };
     }
 
     // -----------------------------------------------------------------------
