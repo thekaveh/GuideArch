@@ -564,7 +564,12 @@ public partial class MainWindow : Window
             {
                 bool wasDirty = _vm.Model.IsDirty;
                 _cmds.OpenCmd.Execute(path);
-                if (wasDirty) StampDiscardWarning("Open a scenario");
+                // Only stamp the discard warning when the Open actually
+                // succeeded — OpenCmd's catch path leaves the model
+                // unchanged (IsDirty stays true), and a corrupt-file load
+                // shouldn't claim "replaced unsaved changes" alongside
+                // the legitimate "Open failed: …" message.
+                if (wasDirty && !_vm.Model.IsDirty) StampDiscardWarning("Open a scenario");
             }
         }
     }
@@ -617,14 +622,14 @@ public partial class MainWindow : Window
     {
         bool wasDirty = _vm.Model.IsDirty;
         OpenSample(SampleScenarios.All[0]);
-        if (wasDirty) StampDiscardWarning("Open Sample SAS");
+        if (wasDirty && !_vm.Model.IsDirty) StampDiscardWarning("Open Sample SAS");
     }
 
     private void OnOpenSampleEdsClicked(object? sender, RoutedEventArgs e)
     {
         bool wasDirty = _vm.Model.IsDirty;
         OpenSample(SampleScenarios.All[1]);
-        if (wasDirty) StampDiscardWarning("Open Sample EDS");
+        if (wasDirty && !_vm.Model.IsDirty) StampDiscardWarning("Open Sample EDS");
     }
 
     /// <summary>
