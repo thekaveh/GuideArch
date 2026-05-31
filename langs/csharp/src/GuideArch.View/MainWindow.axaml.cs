@@ -95,6 +95,18 @@ public partial class MainWindow : Window
         _lastCandidateCount = state.Candidates.Length;
         _lastSelectedIndex = state.SelectedCandidateIndex;
 
+        // spec/viewmodels.md §6 caps the Results table at the top 50 rows
+        // — Python (main.py:1042) and TS (ResultsTab.svelte:14) do the same.
+        // Project here so the DataGrid never tries to render thousands of
+        // rows of TOPSIS candidates on a large scenario.
+        var resultsGrid = this.FindControl<DataGrid>("ResultsGrid");
+        if (resultsGrid is not null)
+        {
+            resultsGrid.ItemsSource = state.Candidates.Length > 50
+                ? state.Candidates.AsSpan(0, 50).ToArray()
+                : (System.Collections.IEnumerable)state.Candidates;
+        }
+
         RenderChartA(state);
         RenderChartB(state);
 

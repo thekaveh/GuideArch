@@ -12,9 +12,10 @@ A persistent app shell hosts:
 
 1. **Toolbar (top)** — buttons in this order:
    - `New` — clears scenario; `ScenarioVM.NewCmd`.
-   - `Open…` — OS-native file dialog; `OpenCmd`.
+   - `Open…` — file picker; `OpenCmd`. v1.0 uses browser-mode UX (FileReader in TS, `ui.upload` in Python web mode, `tkinter` in Python native) — see §3 for per-impl detail.
+   - `Open Sample SAS` / `Open Sample EDS` — load one of the two bundled scenarios; convenience entry points for new users (see `spec/design-system.md` §8 / README §5.5).
    - `Save` — disabled if `filePath` undefined; `SaveCmd`.
-   - `Save As…` — OS-native save dialog; `SaveAsCmd`.
+   - `Save As…` — file picker; `SaveAsCmd`. Same browser-mode caveat as Open.
    - A flexible spacer.
    - `Solve` — explicitly re-runs `SolveCmd` (useful after import).
 2. **Tab strip (left or top)** — eight tabs in order: `Decisions`, `Alternatives`, `Properties`, `Coefficients`, `Constraints`, `Results`, `Critical Decisions`, `Critical Constraints`. The last two were added in M4 with the analysis surface and ship in v1.0.
