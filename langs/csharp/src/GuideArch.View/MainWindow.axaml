@@ -479,8 +479,8 @@
         </Grid>
       </TabItem>
 
-      <!-- ── Tab 7: Critical decisions (M4, spec charts.md §4) ─────── -->
-      <TabItem Header="Critical decisions">
+      <!-- ── Tab 7: Critical Decisions (M4, spec charts.md §4) ─────── -->
+      <TabItem Header="Critical Decisions">
         <Grid RowDefinitions="Auto,*">
 
           <TextBlock Grid.Row="0"
@@ -528,8 +528,8 @@
         </Grid>
       </TabItem>
 
-      <!-- ── Tab 8: Critical constraints (M4, spec charts.md §5) ───── -->
-      <TabItem Header="Critical constraints">
+      <!-- ── Tab 8: Critical Constraints (M4, spec charts.md §5) ───── -->
+      <TabItem Header="Critical Constraints">
         <Grid RowDefinitions="Auto,*">
 
           <TextBlock Grid.Row="0"

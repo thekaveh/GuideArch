@@ -1435,8 +1435,8 @@ def index() -> None:
             tab_coefs = ui.tab("Coefficients")
             tab_constraints = ui.tab("Constraints")
             tab_results = ui.tab("Results")
-            tab_crit_dec = ui.tab("Critical decisions")
-            tab_crit_con = ui.tab("Critical constraints")
+            tab_crit_dec = ui.tab("Critical Decisions")
+            tab_crit_con = ui.tab("Critical Constraints")
 
         # ── Tab panels ──────────────────────────────────────────────────────
         # §6 Main pane: bg-page, 24px padding (applied per tab panel)
