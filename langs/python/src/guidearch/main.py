@@ -214,12 +214,21 @@ def _do_update_decision_name(vm: ScenarioVM, decision_id: str, name: str, refres
 
 
 def _do_delete_decision(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
-    async def _confirmed() -> None:
+    def _confirmed() -> None:
+        # Was `async def` previously, called inside a lambda that returned
+        # the unawaited coroutine — NiceGUI just dropped it and the Delete
+        # button silently no-op'd. Sync function now actually fires.
         try:
             vm.delete_decision(decision_id)
             refresh()
         except Exception as exc:
             ui.notify(str(exc), color="negative")
+
+    def _confirmed_then_close() -> None:
+        # Sequential helper so the button's on_click lambda returns None
+        # (mypy disallows tuple-of-None constructions).
+        _confirmed()
+        dlg.close()
 
     with (
         ui.dialog() as dlg,
@@ -231,7 +240,7 @@ def _do_delete_decision(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
         with ui.row():
             ui.button(
                 "Delete",
-                on_click=lambda: (dlg.close(), _confirmed()),
+                on_click=lambda: _confirmed_then_close(),
             ).props("color=negative")
             ui.button("Cancel", on_click=dlg.close).props("flat")
     dlg.open()
@@ -318,12 +327,16 @@ def _do_update_alternative_name(vm: ScenarioVM, alt_id: str, name: str, refresh:
 
 
 def _do_delete_alternative(vm: ScenarioVM, alt_id: str, refresh: Any) -> None:
-    async def _confirmed() -> None:
+    def _confirmed() -> None:
         try:
             vm.delete_alternative(alt_id)
             refresh()
         except Exception as exc:
             ui.notify(str(exc), color="negative")
+
+    def _confirmed_then_close() -> None:
+        _confirmed()
+        dlg.close()
 
     with (
         ui.dialog() as dlg,
@@ -333,7 +346,7 @@ def _do_delete_alternative(vm: ScenarioVM, alt_id: str, refresh: Any) -> None:
             "text-[var(--text-primary)] text-base mb-4"
         )
         with ui.row():
-            ui.button("Delete", on_click=lambda: (dlg.close(), _confirmed())).props(
+            ui.button("Delete", on_click=lambda: _confirmed_then_close()).props(
                 "color=negative"
             )
             ui.button("Cancel", on_click=dlg.close).props("flat")
@@ -458,12 +471,16 @@ def _do_update_property(
 
 
 def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
-    async def _confirmed() -> None:
+    def _confirmed() -> None:
         try:
             vm.delete_property(prop_id)
             refresh()
         except Exception as exc:
             ui.notify(str(exc), color="negative")
+
+    def _confirmed_then_close() -> None:
+        _confirmed()
+        dlg.close()
 
     with (
         ui.dialog() as dlg,
@@ -473,7 +490,7 @@ def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
             "text-[var(--text-primary)] text-base mb-4"
         )
         with ui.row():
-            ui.button("Delete", on_click=lambda: (dlg.close(), _confirmed())).props(
+            ui.button("Delete", on_click=lambda: _confirmed_then_close()).props(
                 "color=negative"
             )
             ui.button("Cancel", on_click=dlg.close).props("flat")
