@@ -287,10 +287,7 @@ export function runConformance(): { passed: number; failed: number; divergences:
       divs.push(...compareCandidates(candidates, expectedCandidates, `${name}.candidates`));
     } else {
       divs.push({
-        scenario: name,
-        kind: 'candidates',
-        index: -1,
-        field: 'expected-file',
+        field: `${name}.candidates: expected-file`,
         expected: expectedCandidatesPath,
         actual: '(missing)',
       });
@@ -305,10 +302,7 @@ export function runConformance(): { passed: number; failed: number; divergences:
       );
     } else {
       divs.push({
-        scenario: name,
-        kind: 'critical-decisions',
-        index: -1,
-        field: 'expected-file',
+        field: `${name}.critical-decisions: expected-file`,
         expected: expectedCritDecsPath,
         actual: '(missing)',
       });
@@ -327,10 +321,7 @@ export function runConformance(): { passed: number; failed: number; divergences:
       );
     } else {
       divs.push({
-        scenario: name,
-        kind: 'critical-constraints',
-        index: -1,
-        field: 'expected-file',
+        field: `${name}.critical-constraints: expected-file`,
         expected: expectedCritConstsPath,
         actual: '(missing)',
       });
