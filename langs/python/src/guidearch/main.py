@@ -551,10 +551,10 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
         "text-xs text-[var(--text-muted)] mb-3"
     )
 
-    with ui.scroll_area().classes("w-full"):
+    with ui.scroll_area().style("height: calc(100vh - 220px)").classes("w-full"):
         # §5.3 Table header: bg-surface, text-secondary, 12px, 32px row height, sticky
         with ui.row().classes(
-            "gap-1 mb-1 sticky-top bg-[var(--bg-surface)] pb-1"
+            "gap-1 mb-1 bg-[var(--bg-surface)] pb-1"
         ):
             ui.label("Alternative").classes(
                 "font-semibold text-[var(--text-secondary)] w-44 text-xs"
@@ -606,74 +606,73 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
                             else "border-[var(--border-strong)]"
                         )
 
-                        with ui.column().classes(
-                            f"w-36 border rounded p-1 {warn_color}"
+                        with ui.row().classes(
+                            f"gap-1 items-center border rounded p-1 {warn_color}"
                         ):
-                            with ui.row().classes("gap-1 items-center"):
-                                l_in = (
-                                    ui.number(
-                                        value=lower_v,
-                                        format="%.3g",
-                                        step=0.1,
-                                    )
-                                    .props("dense dark borderless")
-                                    .classes("w-10 font-mono text-xs")
+                            l_in = (
+                                ui.number(
+                                    value=lower_v,
+                                    format="%.3g",
+                                    step=0.1,
                                 )
-                                ui.label("·").classes(
-                                    "text-[var(--text-muted)] text-xs"
-                                )
-                                m_in = (
-                                    ui.number(
-                                        value=modal_v,
-                                        format="%.3g",
-                                        step=0.1,
-                                    )
-                                    .props("dense dark borderless")
-                                    .classes("w-10 font-mono text-xs")
-                                )
-                                ui.label("·").classes(
-                                    "text-[var(--text-muted)] text-xs"
-                                )
-                                u_in = (
-                                    ui.number(
-                                        value=upper_v,
-                                        format="%.3g",
-                                        step=0.1,
-                                    )
-                                    .props("dense dark borderless")
-                                    .classes("w-10 font-mono text-xs")
-                                )
-
-                            def _make_blur_handler(
-                                a_id: str,
-                                p_id: str,
-                                li: Any,
-                                mi: Any,
-                                ui_: Any,
-                                rf: Any,
-                            ) -> Any:
-                                def _handler(_: Any = None) -> None:
-                                    try:
-                                        vm.update_coefficient(
-                                            a_id,
-                                            p_id,
-                                            float(li.value or 0),
-                                            float(mi.value or 0),
-                                            float(ui_.value or 0),
-                                        )
-                                        _schedule_solve()
-                                        rf()
-                                    except Exception as exc:
-                                        ui.notify(str(exc), color="negative")
-
-                                return _handler
-
-                            handler = _make_blur_handler(
-                                alt.id, prop.id, l_in, m_in, u_in, _refresh
+                                .props("dense dark borderless")
+                                .classes("w-10 font-mono text-xs")
                             )
-                            l_in.on("blur", handler)
-                            m_in.on("blur", handler)
-                            u_in.on("blur", handler)
+                            ui.label("·").classes(
+                                "text-[var(--text-muted)] text-xs"
+                            )
+                            m_in = (
+                                ui.number(
+                                    value=modal_v,
+                                    format="%.3g",
+                                    step=0.1,
+                                )
+                                .props("dense dark borderless")
+                                .classes("w-10 font-mono text-xs")
+                            )
+                            ui.label("·").classes(
+                                "text-[var(--text-muted)] text-xs"
+                            )
+                            u_in = (
+                                ui.number(
+                                    value=upper_v,
+                                    format="%.3g",
+                                    step=0.1,
+                                )
+                                .props("dense dark borderless")
+                                .classes("w-10 font-mono text-xs")
+                            )
+
+                        def _make_blur_handler(
+                            a_id: str,
+                            p_id: str,
+                            li: Any,
+                            mi: Any,
+                            ui_: Any,
+                            rf: Any,
+                        ) -> Any:
+                            def _handler(_: Any = None) -> None:
+                                try:
+                                    vm.update_coefficient(
+                                        a_id,
+                                        p_id,
+                                        float(li.value or 0),
+                                        float(mi.value or 0),
+                                        float(ui_.value or 0),
+                                    )
+                                    _schedule_solve()
+                                    rf()
+                                except Exception as exc:
+                                    ui.notify(str(exc), color="negative")
+
+                            return _handler
+
+                        handler = _make_blur_handler(
+                            alt.id, prop.id, l_in, m_in, u_in, _refresh
+                        )
+                        l_in.on("blur", handler)
+                        m_in.on("blur", handler)
+                        u_in.on("blur", handler)
 
 
 # ---------------------------------------------------------------------------
