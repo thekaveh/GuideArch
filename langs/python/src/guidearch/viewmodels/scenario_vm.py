@@ -266,6 +266,10 @@ class ScenarioVM:
         self._scenario = empty
         self._file_path = None
         self._is_dirty = False
+        # Reset solve-needed: a stale True from a pre-New mutation must not
+        # carry into the empty scenario (the next solve_cmd.execute() would
+        # otherwise try to solve on the empty scenario when adapters poll it).
+        self._solve_needed = False
         self._candidates = ()
         self._critical_decisions = ()
         self._critical_constraints = ()
@@ -453,7 +457,7 @@ class ScenarioVM:
         """Delete a decision and cascade: removes its alternatives, their
         coefficients, and any constraints referencing those alternatives.
 
-        Raises ValueError if no scenario is loaded or decision_id not found.
+        Raises ScenarioMutationError if no scenario is loaded or decision_id not found.
         """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
@@ -492,7 +496,7 @@ class ScenarioVM:
         """Delete an alternative and cascade: removes its coefficients and any
         constraints referencing it.
 
-        Raises ValueError if no scenario is loaded or alternative_id not found.
+        Raises ScenarioMutationError if no scenario is loaded or alternative_id not found.
         """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
@@ -520,7 +524,7 @@ class ScenarioVM:
         """Delete a property and cascade: removes its coefficients and any
         threshold constraints referencing it.
 
-        Raises ValueError if no scenario is loaded or property_id not found.
+        Raises ScenarioMutationError if no scenario is loaded or property_id not found.
         """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
@@ -548,7 +552,7 @@ class ScenarioVM:
     def delete_constraint(self, index: int) -> None:
         """Delete a constraint by its position in scenario.constraints.
 
-        Raises ValueError if index is out of range.
+        Raises ScenarioMutationError if index is out of range.
         """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
