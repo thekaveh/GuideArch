@@ -602,18 +602,18 @@ public sealed class ScenarioMutator
             }
         }
 
-        ImmutableArray<string> warnings = State.Warnings;
+        // Drop any prior ordering warning for this (alt, prop) pair before
+        // deciding whether to emit one — matches the Python + TS pattern so
+        // a re-edit that fixes the values clears the warning chip. The
+        // message shape also matches Python + TS so log/UI parity holds.
+        var stalePrefix = $"Coefficient ({alternativeId}, {propertyId}): ordering";
+        ImmutableArray<string> warnings =
+            State.Warnings.RemoveAll(w => w.StartsWith(stalePrefix));
         if (lower > modal || modal > upper)
         {
-            // Warning: triangular ordering violated (invariant 4.1)
-            var w = $"Coefficient [{alternativeId}, {propertyId}]: lower ≤ modal ≤ upper should hold.";
-            warnings = warnings.Contains(w) ? warnings : warnings.Add(w);
-        }
-        else
-        {
-            // Remove prior triangular-ordering warning for this cell if now valid.
-            var w = $"Coefficient [{alternativeId}, {propertyId}]: lower ≤ modal ≤ upper should hold.";
-            warnings = warnings.Remove(w);
+            warnings = warnings.Add(
+                $"Coefficient ({alternativeId}, {propertyId}): " +
+                $"ordering violated lower={lower} modal={modal} upper={upper}");
         }
 
         var newValue = new TriangularFuzzyM(lower, modal, upper);
