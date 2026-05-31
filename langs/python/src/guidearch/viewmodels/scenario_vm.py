@@ -246,7 +246,11 @@ class ScenarioVM:
             constraints=(),
             config=ConfigM(
                 aggregation="max",
-                weights=NormalizedFuzzyM(positive=0.5, average=0.0, negative=0.5),
+                weights=NormalizedFuzzyM(
+                    positive=1.0 / 3.0,
+                    average=1.0 / 3.0,
+                    negative=1.0 / 3.0,
+                ),
             ),
         )
         self._scenario = empty

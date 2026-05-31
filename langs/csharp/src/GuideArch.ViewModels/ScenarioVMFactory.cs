@@ -242,7 +242,7 @@ public sealed class ScenarioMutator
     /// Default empty scenario used when auto-creating on first add-X.
     /// </summary>
     private static readonly ScenarioM EmptyScenario = new(
-        SchemaVersion: "1.0",
+        SchemaVersion: "1.0.0",
         Name: "New scenario",
         Description: "",
         Decisions: System.Collections.Immutable.ImmutableArray<DecisionM>.Empty,
@@ -250,7 +250,7 @@ public sealed class ScenarioMutator
         Properties: System.Collections.Immutable.ImmutableArray<PropertyM>.Empty,
         Coefficients: System.Collections.Immutable.ImmutableArray<CoefficientM>.Empty,
         Constraints: System.Collections.Immutable.ImmutableArray<ConstraintM>.Empty,
-        Config: new ConfigM(Aggregation.Max, new NormalizedFuzzyM(0.5, 0.25, 0.25)),
+        Config: new ConfigM(Aggregation.Max, new NormalizedFuzzyM(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0)),
         Warnings: System.Collections.Immutable.ImmutableArray<string>.Empty
     );
 

@@ -211,7 +211,7 @@ export function makeScenarioVm(): ScenarioVM {
         coefficients: [],
         constraints: [],
         config: {
-          aggregation: 'sum',
+          aggregation: 'max',
           weights: {
             positive: 1 / 3,
             average: 1 / 3,
