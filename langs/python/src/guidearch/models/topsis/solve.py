@@ -116,9 +116,13 @@ def _candidate_total_value(
 
 def _normalize_candidates(
     z_values: list[NormalizedFuzzyM],
-    weights: NormalizedFuzzyM,
 ) -> list[NormalizedFuzzyM]:
-    """Compute PIS/NIS in Z-space and normalize — topsis.md §3.7, §3.8."""
+    """Compute PIS/NIS in Z-space and normalize — topsis.md §3.7, §3.8.
+
+    Weights do not enter the PIS/NIS step (they multiply per-property values
+    *before* aggregation in §3.5); earlier drafts carried a `weights` param
+    that this function never read. Removed.
+    """
     if not z_values:
         return []
 
@@ -249,7 +253,7 @@ def solve(scenario: ScenarioM) -> tuple[CandidateM, ...]:
     # -----------------------------------------------------------------------
     # §3.7-3.8  PIS/NIS normalization
     # -----------------------------------------------------------------------
-    norm_values = _normalize_candidates(z_values, scenario.config.weights)
+    norm_values = _normalize_candidates(z_values)
 
     # -----------------------------------------------------------------------
     # §3.9-3.10  Score, sort, rank

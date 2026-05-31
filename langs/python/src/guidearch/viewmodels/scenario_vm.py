@@ -63,7 +63,6 @@ from reactivex.subject import Subject
 from vmx.commands.relay_command import RelayCommand, RelayCommandOfT
 from vmx.messages.property_changed import PropertyChangedMessage
 from vmx.messages.protocols import Message
-from vmx.services.dispatcher import RxDispatcher
 from vmx.services.message_hub import MessageHub
 
 from guidearch.models.alternative import AlternativeM
@@ -122,7 +121,6 @@ class ScenarioVM:
 
     def __init__(self) -> None:
         self._hub: MessageHub[Message] = MessageHub()
-        self._dispatcher = RxDispatcher.immediate()
 
         # ── State ────────────────────────────────────────────────────────────
         self._scenario: ScenarioM | None = None
