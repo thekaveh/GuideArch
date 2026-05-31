@@ -54,9 +54,30 @@ public static class ScenarioVMFactory
             }
 
             var scenario = state.Scenario;
-            var candidates = Solver.Solve(scenario);
-            var critDec = CriticalDecisions.Analyze(scenario, candidates);
-            var critCon = CriticalConstraints.Analyze(scenario);
+            ImmutableArray<CandidateM> candidates;
+            ImmutableArray<CriticalDecisionM> critDec;
+            ImmutableArray<CriticalConstraintM> critCon;
+            try
+            {
+                candidates = Solver.Solve(scenario);
+                critDec = CriticalDecisions.Analyze(scenario, candidates);
+                critCon = CriticalConstraints.Analyze(scenario);
+            }
+            catch (Exception ex)
+            {
+                // Mirror Python+TS: surface solver errors to Status instead of
+                // letting them bubble to the Avalonia dispatcher (which would
+                // crash the app on an unhandled exception).
+                SetState(state with
+                {
+                    Candidates = ImmutableArray<CandidateM>.Empty,
+                    CriticalDecisions = ImmutableArray<CriticalDecisionM>.Empty,
+                    CriticalConstraints = ImmutableArray<CriticalConstraintM>.Empty,
+                    Status = $"Solve error: {ex.Message}",
+                    SelectedCandidateIndex = null
+                });
+                return;
+            }
 
             // Default SelectedCandidateIndex to 0 whenever candidates become non-empty;
             // preserve existing selection if still in range (spec charts.md §6).
@@ -598,6 +619,10 @@ public sealed class ScenarioMutator
         double lower, double modal, double upper)
     {
         var s = RequireScenario();
+        if (!s.Alternatives.Any(a => a.Id == alternativeId))
+            throw new ScenarioMutationException($"Alternative '{alternativeId}' not found.");
+        if (!s.Properties.Any(p => p.Id == propertyId))
+            throw new ScenarioMutationException($"Property '{propertyId}' not found.");
         var idx = -1;
         for (int i = 0; i < s.Coefficients.Length; i++)
         {

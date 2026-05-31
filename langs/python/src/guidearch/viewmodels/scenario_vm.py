@@ -800,6 +800,10 @@ class ScenarioVM:
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
         scenario = self._scenario
+        if not any(a.id == alternative_id for a in scenario.alternatives):
+            raise ScenarioMutationError(f"Alternative '{alternative_id}' not found.")
+        if not any(p.id == property_id for p in scenario.properties):
+            raise ScenarioMutationError(f"Property '{property_id}' not found.")
         new_value = TriangularFuzzyM(lower=lower, modal=modal, upper=upper)
         new_coefficients = tuple(
             replace(c, value=new_value)
