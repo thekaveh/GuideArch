@@ -96,6 +96,7 @@
     a.download = (vm.model.filePath ?? 'scenario.json') + '';
     a.click();
     URL.revokeObjectURL(url);
+    vm._browserMarkSaved();
   }
 
   function handleSaveAs() {
@@ -122,6 +123,7 @@
     a.download = saveName;
     a.click();
     URL.revokeObjectURL(url);
+    vm._browserMarkSaved(saveName);
   }
 
   function handleSolve() {

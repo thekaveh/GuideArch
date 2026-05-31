@@ -70,7 +70,7 @@ The workflow uses GitHub's `generate_release_notes: true` on `softprops/action-g
 
 - Summary one-liner derived from the tag version
 - The "What's in this release" feature-scope block (see `release.yml`)
-- Asset table (mirrors §3 above; filenames derived from `${{ github.ref_name }}`)
+- Asset table (mirrors §3 above; filenames derived from `${{ steps.version.outputs.version }}`, which is `github.ref_name` with the leading `v` stripped — see the `Resolve VERSION from tag` step in `release.yml`)
 - Known issues / unsigned binary note
 - Auto-generated PR list under standard GitHub categories
 

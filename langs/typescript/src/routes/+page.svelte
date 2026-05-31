@@ -26,7 +26,10 @@
   ] as const;
   type Tab = (typeof TABS)[number];
 
-  let activeTab: Tab = 'Results';
+  // Default to Decisions on first launch — matches Python and C# initial-tab
+  // UX so a user comparing screenshots across impls sees the same empty
+  // state. Results lands as the active tab only after a scenario is loaded.
+  let activeTab: Tab = 'Decisions';
 
   // Error/alert modal
   let errorMessage: string | null = null;

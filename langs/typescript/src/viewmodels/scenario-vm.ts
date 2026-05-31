@@ -101,6 +101,14 @@ export type ScenarioVM = ComponentVMOf<ScenarioState> & {
    * Uses the bundled inlined schema so no fs access is needed.
    */
   _browserOpen(raw: unknown, fileName: string): void;
+
+  /**
+   * Browser-mode hook: clear the dirty flag after a successful out-of-band
+   * save (e.g. the anchor-download path in Toolbar.svelte). Optionally also
+   * sets filePath. The Tauri/Node fs-based saveCmd handles its own dirty
+   * clearing; this is for the browser path that bypasses the VM's IO.
+   */
+  _browserMarkSaved(filePath?: string): void;
 };
 
 // ---------------------------------------------------------------------------
@@ -625,6 +633,12 @@ export function makeScenarioVm(): ScenarioVM {
     // Name change does not trigger solve
   }
 
+  function _browserMarkSaved(filePath?: string): void {
+    const patch: Partial<ScenarioState> = { isDirty: false };
+    if (filePath !== undefined) patch.filePath = filePath;
+    _setState(patch);
+  }
+
   function _browserOpen(raw: unknown, fileName: string): void {
     try {
       const scenario = loadScenarioFromParsed(raw, inlinedSchema as object);
@@ -765,6 +779,12 @@ export function makeScenarioVm(): ScenarioVM {
     },
     _browserOpen: {
       value: _browserOpen,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    },
+    _browserMarkSaved: {
+      value: _browserMarkSaved,
       writable: false,
       enumerable: true,
       configurable: false,

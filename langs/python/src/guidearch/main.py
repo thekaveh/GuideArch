@@ -1580,11 +1580,19 @@ def _do_open_upload(vm: ScenarioVM, event: Any, dialog: Any) -> None:
 
 
 def _do_save(vm: ScenarioVM) -> None:
-    if vm.file_path:
-        vm.save_cmd.execute()
-        ui.notify("Saved.", color="positive")
-    else:
+    if not vm.file_path:
         ui.notify("No file path — use Save As.", color="warning")
+        return
+    # Snapshot status before execute so we can detect the VM's catch-and-warn
+    # surface (commit b85dec5 widened _do_save to catch any Exception and set
+    # status to 'Save failed: …'). Without this we'd cheerfully toast 'Saved.'
+    # over a quiet IO failure.
+    prev_status = vm.status
+    vm.save_cmd.execute()
+    if vm.status.startswith("Save failed:") and vm.status != prev_status:
+        ui.notify(vm.status, color="negative")
+    else:
+        ui.notify("Saved.", color="positive")
 
 
 def _do_explicit_solve(vm: ScenarioVM) -> None:
