@@ -62,8 +62,19 @@ jobs:
       - name: Smoke test (web mode reachable)
         if: matrix.os == 'ubuntu-latest'
         run: |
+          set -e
           uv run guidearch --port 8765 &
           PID=$!
-          sleep 5
-          curl -fsS http://localhost:8765 >/dev/null
-          kill $PID
+          # Poll instead of sleeping a fixed interval — NiceGUI startup time
+          # varies on shared runners and a 5s sleep was occasionally flaky.
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8765 >/dev/null 2>&1; then
+              echo "Server up after ${i}s."
+              kill $PID
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server did not respond within 30s." >&2
+          kill $PID || true
+          exit 1
