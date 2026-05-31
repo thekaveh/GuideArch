@@ -284,15 +284,23 @@ class ScenarioVM:
         self._raise_property_changed("warnings")
 
     def _do_open(self, path: str | None) -> None:
-        """Load scenario from *path*.  On failure, emit warning without mutating state."""
+        """Load scenario from *path*.
+
+        On failure, emit a warning AND update status — but do not mutate the
+        scenario / file_path / dirty flag. Matches the TS+C# behavior so the
+        status bar surfaces the error consistently across impls (spec §3.2
+        says "do not mutate state; emit warning" — read as "do not mutate
+        scenario state"; status is a display-only signal).
+        """
         if not path:
             return
         try:
             scenario = load_scenario(Path(path))
         except Exception as exc:
-            # Emit warning, do not mutate state
-            new_warnings = (*self._warnings, f"Failed to load '{path}': {exc}")
-            self._warnings = new_warnings
+            msg = f"Open failed: {exc}"
+            self._status = msg
+            self._warnings = (*self._warnings, msg)
+            self._raise_property_changed("status")
             self._raise_property_changed("warnings")
             return
 
@@ -537,7 +545,7 @@ class ScenarioVM:
 
     # ── Add operations ────────────────────────────────────────────────────────
 
-    def add_decision(self, name: str = "New Decision") -> str:
+    def add_decision(self, name: str = "New decision") -> str:
         """Append a new decision; returns its new id."""
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
@@ -549,7 +557,7 @@ class ScenarioVM:
         )
         return new_id
 
-    def add_alternative(self, decision_id: str, name: str = "New Alternative") -> str:
+    def add_alternative(self, decision_id: str, name: str = "New alternative") -> str:
         """Append a new alternative under decision_id; adds zero-fuzzy coefficients
         for every existing property.  Returns new alternative id.
         """
@@ -579,7 +587,7 @@ class ScenarioVM:
 
     def add_property(
         self,
-        name: str = "New Property",
+        name: str = "New property",
         kind: Literal["min", "max"] = "min",
         weight: float = 1.0,
     ) -> str:
