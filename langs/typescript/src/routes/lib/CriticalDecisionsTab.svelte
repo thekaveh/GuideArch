@@ -60,7 +60,7 @@
         <tbody>
           {#each sorted as cd (cd.rank)}
             <tr>
-              <td class="rank">{cd.rank + 1}</td>
+              <td class="rank">{cd.rank}</td>
               <td class="decision">{decisionName(cd.decisionId)}</td>
               <td class="score">{fmtScore(cd.score)}</td>
               <td class="tri"
