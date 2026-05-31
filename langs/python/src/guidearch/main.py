@@ -4,7 +4,7 @@ App shell
 ---------
 - Top toolbar: New / Open / Save / Save As / [spacer] / Solve
 - Tab strip (top): Decisions / Alternatives / Properties / Coefficients /
-  Constraints / Results / Critical decisions / Critical constraints
+  Constraints / Results / Critical Decisions / Critical Constraints
 - Status bar (bottom): scenario name · candidate count · warnings
 
 File dialogs
@@ -1175,7 +1175,7 @@ def _on_chart_a_click(vm: ScenarioVM, top_candidates: tuple[Any, ...], event: An
 
 
 # ---------------------------------------------------------------------------
-# Tab: Critical decisions
+# Tab: Critical Decisions
 # ---------------------------------------------------------------------------
 
 
@@ -1241,7 +1241,7 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Tab: Critical constraints
+# Tab: Critical Constraints
 # ---------------------------------------------------------------------------
 
 

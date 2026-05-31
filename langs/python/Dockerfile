@@ -14,9 +14,8 @@ COPY vendor/vmx/langs/python /app/vendor/vmx/langs/python
 # when `uv sync` runs, so it must travel with the project files.
 COPY langs/python/pyproject.toml langs/python/uv.lock langs/python/README.md /app/langs/python/
 # src/ includes guidearch/samples/*.json (bundled sample scenarios) and the
-# scenario.schema.json packaged under guidearch/_data/ via hatchling's
-# force-include rule, so the schema travels with the wheel — no need to
-# COPY spec/ at runtime.
+# committed schema copy at guidearch/_data/scenario.schema.json, so the
+# schema travels with the package — no need to COPY spec/ at runtime.
 COPY langs/python/src /app/langs/python/src
 
 # Sync production dependencies only (no dev extras)

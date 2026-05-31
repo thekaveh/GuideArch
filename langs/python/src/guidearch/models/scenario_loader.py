@@ -36,9 +36,10 @@ def _load_default_schema() -> dict[str, Any]:
 
     2. Wheel install (``pip install guidearch``):
        site-packages/guidearch/models/... has no usable parent at depth 5.
-       The schema is shipped as package data at guidearch/_data/ via
-       hatchling's force-include rule (see pyproject.toml). Use
-       importlib.resources to read it portably from the wheel.
+       The schema is shipped as package data at guidearch/_data/ —
+       maintained as a committed copy of spec/domain/scenario.schema.json
+       and CI-gated by .github/workflows/spec.yml. Use importlib.resources
+       to read it portably from the wheel.
     """
     in_tree = Path(__file__).parents[5] / "spec" / "domain" / "scenario.schema.json"
     if in_tree.exists():

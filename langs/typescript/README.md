@@ -25,7 +25,7 @@ pnpm tauri dev    # desktop mode — native Tauri window (first build is slow; s
 
 After the app loads, click **Open Sample SAS** or **Open Sample EDS** in the toolbar to try a bundled scenario.
 
-In **browser mode**, file picking goes through `<input type="file">`. In **Tauri mode** the OS-native file picker is used.
+v1.0 uses the same browser-mode UX in both browser and Tauri runs: `<input type="file">` for Open, anchor-download (`URL.createObjectURL`) for Save / Save-As. The OS-native picker integration via `@tauri-apps/plugin-dialog` is on the v1.1 backlog (`spec/editors.md` §3).
 
 ## Build (production)
 

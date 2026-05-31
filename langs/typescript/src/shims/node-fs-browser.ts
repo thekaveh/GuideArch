@@ -1,12 +1,14 @@
 /**
  * Browser-compatible stub for Node.js `fs` module.
  *
- * The scenario-loader and scenario-vm use `fs.readFileSync` and
- * `fs.writeFileSync` at runtime — these are only reachable in Tauri/Node
- * environments, not pure browser. This stub exports the minimal surface so
- * the browser bundle compiles; calling these functions in a pure browser
- * context will throw at runtime (expected — the View must guard appropriately
- * by checking that the path comes from Tauri's File API before calling openCmd).
+ * scenario-loader and scenario-vm reference `fs.readFileSync` and
+ * `fs.writeFileSync` so that a Node-context test or future Tauri-native
+ * integration can read/write directly. v1.0 ships a single browser-mode
+ * UX in both browser and Tauri runs (`spec/editors.md` §3): Toolbar.svelte
+ * loads files via FileReader + `_browserOpen` and writes via anchor-download,
+ * so neither stubbed call is reached at runtime. The stubs make the
+ * browser bundle compile and throw loudly if a future caller routes
+ * through the VM's fs path before the v1.1 plugin-dialog integration.
  */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
