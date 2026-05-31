@@ -112,6 +112,16 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Resolve VERSION from tag (or 'dev' on manual dispatch)
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=dev" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish self-contained single-file binary
         run: >
           dotnet publish src/GuideArch.View
@@ -125,20 +135,20 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           cd publish/${{ matrix.rid }}
-          zip -r ../../GuideArch-Avalonia-1.0.0-${{ matrix.rid }}.zip .
+          zip -r ../../GuideArch-Avalonia-${{ steps.version.outputs.version }}-${{ matrix.rid }}.zip .
 
       - name: Zip artifact (Windows)
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
           Compress-Archive -Path publish\${{ matrix.rid }}\* `
-            -DestinationPath GuideArch-Avalonia-1.0.0-${{ matrix.rid }}.zip
+            -DestinationPath GuideArch-Avalonia-${{ steps.version.outputs.version }}-${{ matrix.rid }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: avalonia-${{ matrix.rid }}
-          path: langs/csharp/GuideArch-Avalonia-1.0.0-${{ matrix.rid }}.zip
+          path: langs/csharp/GuideArch-Avalonia-${{ steps.version.outputs.version }}-${{ matrix.rid }}.zip
 
   # ─── 3. Python wheel + sdist ─────────────────────────────────────────────────
   python-package:
@@ -242,16 +252,25 @@ jobs:
       - name: Build web bundle
         run: pnpm build
 
+      - name: Resolve VERSION from tag (or 'dev' on manual dispatch)
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=dev" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Zip web bundle
         run: |
           cd build
-          zip -r ../guidearch-web-1.0.0.zip .
+          zip -r ../guidearch-web-${{ steps.version.outputs.version }}.zip .
 
       - name: Upload web bundle
         uses: actions/upload-artifact@v4
         with:
           name: web-bundle
-          path: langs/typescript/guidearch-web-1.0.0.zip
+          path: langs/typescript/guidearch-web-${{ steps.version.outputs.version }}.zip
 
   # ─── 6. Create GitHub Release ─────────────────────────────────────────────────
   release:
@@ -264,6 +283,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Resolve VERSION from tag (or 'dev' on manual dispatch)
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=dev" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -284,13 +312,13 @@ jobs:
           generate_release_notes: true
           files: flat-artifacts/*
           body: |
-            ## GuideArch v1.0.0
+            ## GuideArch v${{ steps.version.outputs.version }}
 
-            First full release of GuideArch — fuzzy multi-criteria decision analysis for software architecture, shipped as three concurrent implementations sharing one spec.
+            Fuzzy multi-criteria decision analysis for software architecture, shipped as three concurrent implementations sharing one spec.
 
-            ### What's in v1.0.0
+            ### What's in this release
 
-            All three implementations (TypeScript + Tauri 2, C# + Avalonia, Python + NiceGUI) are feature-complete:
+            All three implementations (TypeScript + Tauri 2, C# + Avalonia, Python + NiceGUI):
 
             - Full domain + TOPSIS engine (fuzzy ranking, sensitivity, constraint elimination counting)
             - Decision / alternative / property / coefficient editors
@@ -306,14 +334,14 @@ jobs:
             | `*.AppImage`, `*_amd64.deb` | Linux desktop (Tauri) |
             | `*.dmg` | macOS desktop (Tauri) |
             | `*-setup.exe`, `*.msi` | Windows desktop (Tauri) |
-            | `guidearch-web-1.0.0.zip` | Web bundle (SvelteKit static) |
-            | `GuideArch-Avalonia-1.0.0-win-x64.zip` | Windows desktop (Avalonia) |
-            | `GuideArch-Avalonia-1.0.0-osx-x64.zip` | macOS x64 desktop (Avalonia) |
-            | `GuideArch-Avalonia-1.0.0-osx-arm64.zip` | macOS arm64 desktop (Avalonia) |
-            | `GuideArch-Avalonia-1.0.0-linux-x64.zip` | Linux desktop (Avalonia) |
-            | `guidearch-1.0.0-py3-none-any.whl` | Python wheel |
-            | `guidearch-1.0.0.tar.gz` | Python sdist |
-            | `ghcr.io/thekaveh/guidearch:1.0.0` | Docker image (GHCR) |
+            | `guidearch-web-${{ steps.version.outputs.version }}.zip` | Web bundle (SvelteKit static) |
+            | `GuideArch-Avalonia-${{ steps.version.outputs.version }}-win-x64.zip` | Windows desktop (Avalonia) |
+            | `GuideArch-Avalonia-${{ steps.version.outputs.version }}-osx-x64.zip` | macOS x64 desktop (Avalonia) |
+            | `GuideArch-Avalonia-${{ steps.version.outputs.version }}-osx-arm64.zip` | macOS arm64 desktop (Avalonia) |
+            | `GuideArch-Avalonia-${{ steps.version.outputs.version }}-linux-x64.zip` | Linux desktop (Avalonia) |
+            | `guidearch-${{ steps.version.outputs.version }}-py3-none-any.whl` | Python wheel |
+            | `guidearch-${{ steps.version.outputs.version }}.tar.gz` | Python sdist |
+            | `ghcr.io/thekaveh/guidearch:${{ steps.version.outputs.version }}` | Docker image (GHCR) |
 
             ### Known issues
 
