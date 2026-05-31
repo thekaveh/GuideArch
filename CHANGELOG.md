@@ -6,7 +6,48 @@ The format is loosely [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). 
 
 ## [Unreleased]
 
-Ongoing maintenance after v1.0.0. See `git log` for granular changes.
+Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
+behavior change a user-facing release note would call out.
+
+### Fixed
+- Cross-impl `New` scenario defaults, status strings, error-message
+  punctuation, tab labels (TitleCase `Critical Decisions` / `Critical
+  Constraints`), mutation-error texts, and the coefficient ordering
+  warning format are now identical across TypeScript, C# and Python.
+- All three impls' `addX` / `updateX` / `addConstraint` mutators enforce
+  invariants 2.5 (referenced ID must exist) and 7.1 (self-edge is fatal)
+  at the mutation boundary, not just at the loader.
+- `New` scenario now uses the schema-correct `(1/3, 1/3, 1/3)` weights,
+  `"1.0.0"` schemaVersion, and `aggregation: max` in all three impls
+  (was three different defaults).
+- Save errors no longer leave `filePath` pointing at a failed destination
+  (Python + TypeScript aligned with C#'s write-then-commit-state order).
+- C# release single-file binary can now find `scenario.schema.json`
+  (embedded as a manifest resource).
+- Python wheel install can find the schema (force-included under
+  `guidearch/_data/` with `importlib.resources` fallback).
+- Tauri scaffold metadata replaced with `GuideArch` everywhere (was
+  shipping installers branded `tauri-app`).
+
+### CI
+- All three per-impl workflows run their unit suites (Python `pytest`,
+  C# `dotnet test`, TS `vitest`) on every PR — previously CI built but
+  never executed.
+- Workflows trigger on `spec/**` edits; concurrency-cancel on every
+  workflow; `setup-uv@v6` with caching; release.yml derives version from
+  the tag; GHCR login `if:` gate corrected.
+- `spec.yml` validates conformance scenarios against the schema and
+  gates the TS-bundled schema copy against the canonical file.
+- Python smoke test polls instead of `sleep 5 && curl` (was flaky).
+
+### Docs
+- README, SECURITY, `spec/README`, `CONTRIBUTING`, and all per-impl
+  READMEs aligned with v1.0.0 reality.
+- C# WebAssembly target marked deferred to v1.1 (was claimed in README
+  but not built).
+- Spec self-contradictions (debounce wording, threshold-bound + self-edge
+  severity, tab-count, broken cross-refs) resolved.
+- Added `CHANGELOG.md`.
 
 ## [1.0.0] — 2026-05-30
 

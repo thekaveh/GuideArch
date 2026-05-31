@@ -12,7 +12,7 @@ VMs are built on **VMx** (the submodule at `vendor/vmx/`). Per the project ADRs:
 - Python uses `ComponentVMOf[M]` with `.builder()`.
 - TypeScript uses `ComponentVMOf<M>` with `.builder()`.
 
-All require a `MessageHub` and `Dispatcher` from VMx. M0 used the null variants for the smoke samples; M2 still uses the null variants because there's no inter-VM messaging yet beyond the standard property-change hub.
+All require a `MessageHub` and `Dispatcher` from VMx. M0 used the null variants for the smoke samples. At v1.0 ship, TypeScript and Python use a live `MessageHub` so adapter code can subscribe to `PropertyChangedMessage`; C# still constructs its `ComponentVM<ScenarioState>` with `NullMessageHub.Instance` (equalising the C# impl with the other two is on the v1.1 backlog).
 
 ## 2. The VM tree
 
@@ -62,9 +62,9 @@ The root VM owns the loaded scenario and brokers re-solve when its children chan
 | Command | Shape | Behavior |
 |---|---|---|
 | `NewCmd` | `() -> void` | Replace `scenario` with a fresh empty `ScenarioM`. Clear `filePath`. Set `isDirty = false`. Re-solve (will be empty). |
-| `OpenCmd` | `(path: string) -> void` | Call `loadScenario(path)`. On success: set `scenario`, `filePath`, clear `isDirty`, re-solve. On failure: do not mutate state; emit warning. |
+| `OpenCmd` | `(path: string) -> void` | Call `loadScenario(path)`. On success: set `scenario`, `filePath`, clear `isDirty`, re-solve. On failure: do not mutate the *scenario state* (`scenario` / `filePath` / `isDirty` stay as they were), but DO set `status` to `"Open failed: {error}"` and append the same message to `warnings` so the user gets a visible signal in both the status bar and the warnings tray. |
 | `SaveCmd` | `() -> void` | Write current `scenario` to `filePath` as JSON via the impl's scenario serializer. Output must be `JSON.stringify`-compatible (any compliant JSON reader can round-trip it). Clear `isDirty`. Disabled (`canExecute = false`) if `filePath` undefined. **Note:** key ordering inside objects is not currently normalized across impls — Python emits alphabetical (`json.dumps(sort_keys=True)`), TypeScript and C# preserve schema insertion order. Cross-impl byte-equality is not a v1.0 guarantee; load-then-resolve equality is. |
-| `SaveAsCmd` | `(path: string) -> void` | Set `filePath = path`, then `SaveCmd()`. |
+| `SaveAsCmd` | `(path: string) -> void` | Write `scenario` to `path` using the same serializer as `SaveCmd`. On success: set `filePath = path` and clear `isDirty`. On failure: set `status` + append to `warnings` (`"Save failed: {error}"`) and leave `filePath` UNCHANGED so the next `SaveCmd` retries against the last known-good destination, not the bad path. |
 | `SolveCmd` | `() -> void` | Re-run `solve` + the two analyses; update `candidates`, `criticalDecisions`, `criticalConstraints`, `status`. Always enabled when `scenario` is defined. |
 
 `SolveCmd` is **implicitly invoked** by every mutating operation on children (edit a property, add an alternative, change config, etc.), via property-change subscriptions. Explicit `SolveCmd` is for the View's "Re-solve" button (M4).
@@ -134,8 +134,10 @@ Size: ~140 LOC including type hints and docstrings (count grew through M3-M4 as 
 
 `langs/typescript/src/view/adapters/vmx-to-svelte.ts` exposes:
 
-- `vmxToStore<T>(vm, propName): Readable<T>` — wraps a VMx property as a Svelte store; subscribes to `PropertyChangedMessage` from the hub.
-- `commandAction(cmd: RelayCommand): { onClick: () => void; disabled: Readable<boolean> }` — for use with Svelte's `use:` action or directly on buttons.
+- `vmxToStore<M, K extends keyof M>(vm, propName): Readable<M[K]>` — wraps a single VMx property as a Svelte store; subscribes to `PropertyChangedMessage` from the hub.
+- `vmxStoreAll<M>(vm): Readable<M>` — same shape but returns the whole model for any property change.
+- `commandToButton(cmd: RelayCommand): { onClick: () => void; disabled: Readable<boolean> }` — wrap a parameterless command for direct use on a `<button>`.
+- `commandOfToButton<T>(cmd: RelayCommandOf<T>, parameter): { onClick; disabled }` — the same for `RelayCommandOf<T>` with the parameter bound at call site.
 
 Size: ~165 LOC including types and JSDoc (count grew through M3-M4). Tested in `tests/unit/vmx-to-svelte.test.ts`.
 
