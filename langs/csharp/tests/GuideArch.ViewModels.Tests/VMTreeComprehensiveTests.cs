@@ -567,11 +567,11 @@ public class VMTreeComprehensiveTests
     }
 
     [Fact]
-    public void Mutator_RenameDecision_UpdatesDecisionName()
+    public void Mutator_UpdateDecisionName_UpdatesDecisionName()
     {
         var (vm, cmds) = CreateWithMinimalScenario();
         var d = vm.Model.Scenario!.Decisions[0];
-        cmds.Mutator.RenameDecision(d.Id, "NewName");
+        cmds.Mutator.UpdateDecisionName(d.Id, "NewName");
         var updated = vm.Model.Scenario!.Decisions.First(x => x.Id == d.Id);
         Assert.Equal("NewName", updated.Name);
     }
@@ -596,11 +596,11 @@ public class VMTreeComprehensiveTests
     }
 
     [Fact]
-    public void Mutator_RenameAlternative_UpdatesAlternativeName()
+    public void Mutator_UpdateAlternativeName_UpdatesAlternativeName()
     {
         var (vm, cmds) = CreateWithMinimalScenario();
         var a = vm.Model.Scenario!.Alternatives[0];
-        cmds.Mutator.RenameAlternative(a.Id, "RenamedAlt");
+        cmds.Mutator.UpdateAlternativeName(a.Id, "RenamedAlt");
         var updated = vm.Model.Scenario!.Alternatives.First(x => x.Id == a.Id);
         Assert.Equal("RenamedAlt", updated.Name);
     }
@@ -890,21 +890,21 @@ public class VMTreeComprehensiveTests
     }
 
     [Fact]
-    public void SolveTrigger_RenameDecision_DoesNotTriggerResolve()
+    public void SolveTrigger_UpdateDecisionName_DoesNotTriggerResolve()
     {
         var (vm, cmds) = CreateWithMinimalScenario();
         var d = vm.Model.Scenario!.Decisions[0];
-        bool solved = DidSolveRun(vm, () => cmds.Mutator.RenameDecision(d.Id, "New Name"));
-        Assert.False(solved, "RenameDecision must NOT trigger a solve.");
+        bool solved = DidSolveRun(vm, () => cmds.Mutator.UpdateDecisionName(d.Id, "New Name"));
+        Assert.False(solved, "UpdateDecisionName must NOT trigger a solve.");
     }
 
     [Fact]
-    public void SolveTrigger_RenameAlternative_DoesNotTriggerResolve()
+    public void SolveTrigger_UpdateAlternativeName_DoesNotTriggerResolve()
     {
         var (vm, cmds) = CreateWithMinimalScenario();
         var a = vm.Model.Scenario!.Alternatives[0];
-        bool solved = DidSolveRun(vm, () => cmds.Mutator.RenameAlternative(a.Id, "New Alt Name"));
-        Assert.False(solved, "RenameAlternative must NOT trigger a solve.");
+        bool solved = DidSolveRun(vm, () => cmds.Mutator.UpdateAlternativeName(a.Id, "New Alt Name"));
+        Assert.False(solved, "UpdateAlternativeName must NOT trigger a solve.");
     }
 
     [Fact]
@@ -1196,11 +1196,11 @@ public class VMTreeComprehensiveTests
     // =====================================================================
 
     [Fact]
-    public void Mutator_RenameDecision_ThrowsForUnknownId()
+    public void Mutator_UpdateDecisionName_ThrowsForUnknownId()
     {
         var (_, cmds) = CreateWithMinimalScenario();
         Assert.Throws<ScenarioMutationException>(
-            () => cmds.Mutator.RenameDecision("d-does-not-exist", "X"));
+            () => cmds.Mutator.UpdateDecisionName("d-does-not-exist", "X"));
     }
 
     [Fact]

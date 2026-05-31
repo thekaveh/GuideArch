@@ -356,7 +356,12 @@ public sealed class ScenarioMutator
         _solve();
     }
 
-    public void RenameDecision(string id, string newName)
+    /// <summary>
+    /// Rename a decision. Does NOT trigger solve (spec viewmodels.md §3.3).
+    /// The method name mirrors Python's update_decision_name and TypeScript's
+    /// updateDecisionName so the three impls share the same mutation verb.
+    /// </summary>
+    public void UpdateDecisionName(string id, string newName)
     {
         var s = RequireScenario();
         var idx = s.Decisions.IndexOf(s.Decisions.FirstOrDefault(d => d.Id == id)!);
@@ -367,7 +372,6 @@ public sealed class ScenarioMutator
             Scenario = s with { Decisions = updated },
             IsDirty = true
         });
-        // Rename does NOT trigger solve (spec viewmodels.md §3.3).
     }
 
     /// <summary>
@@ -449,7 +453,11 @@ public sealed class ScenarioMutator
         _solve();
     }
 
-    public void RenameAlternative(string id, string newName)
+    /// <summary>
+    /// Rename an alternative. Does NOT trigger solve (spec viewmodels.md §3.3).
+    /// See UpdateDecisionName for the naming-parity rationale.
+    /// </summary>
+    public void UpdateAlternativeName(string id, string newName)
     {
         var s = RequireScenario();
         var alt = s.Alternatives.FirstOrDefault(a => a.Id == id);
@@ -460,7 +468,6 @@ public sealed class ScenarioMutator
             Scenario = s with { Alternatives = s.Alternatives.SetItem(idx, alt with { Name = newName }) },
             IsDirty = true
         });
-        // Name change does NOT trigger solve.
     }
 
     /// <summary>
