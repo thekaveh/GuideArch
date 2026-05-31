@@ -91,16 +91,16 @@
             class="bar"
             role="button"
             tabindex={0}
-            aria-label="Rank {d.rank + 1} score {formatScore(d.score)}"
+            aria-label="Rank {d.rank} score {formatScore(d.score)}"
             on:click={() => handleClick(d.rank)}
             on:keydown={(e) => handleKeydown(e, d.rank)}
           >
-            <title>Rank {d.rank + 1} · {formatScore(d.score)} · {d.altNames.join(', ')}</title>
+            <title>Rank {d.rank} · {formatScore(d.score)} · {d.altNames.join(', ')}</title>
           </rect>
 
           <!-- Y-axis rank label -->
           <text x={-4} y={y + ROW_HEIGHT / 2 + 4} class="rank-label" text-anchor="end">
-            {d.rank + 1}
+            {d.rank}
           </text>
         {/each}
       </g>
