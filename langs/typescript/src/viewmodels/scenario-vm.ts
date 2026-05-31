@@ -633,7 +633,9 @@ export function makeScenarioVm(): ScenarioVM {
   function setSelectedCandidateIndex(index: number | null): void {
     const { candidates } = _getModel();
     if (index !== null && (index < 0 || index >= candidates.length)) {
-      throw new ScenarioMutationError(`Candidate index ${index} out of range.`);
+      throw new ScenarioMutationError(
+        `Candidate index ${index} out of range (0–${candidates.length - 1}).`,
+      );
     }
     _setState({ selectedCandidateIndex: index });
   }

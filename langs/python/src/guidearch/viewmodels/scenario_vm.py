@@ -218,6 +218,15 @@ class ScenarioVM:
 
     @selected_candidate_index.setter
     def selected_candidate_index(self, value: int | None) -> None:
+        # Range-validate like C# (SelectCandidate) and TS (setSelectedCandidateIndex)
+        # so a stale index from an event handler raises instead of silently
+        # producing an out-of-bounds state that the View then dereferences.
+        if value is not None:
+            n = len(self._candidates)
+            if value < 0 or value >= n:
+                raise ScenarioMutationError(
+                    f"Candidate index {value} out of range (0–{n - 1})."
+                )
         self._selected_candidate_index = value
         self._raise_property_changed("selected_candidate_index")
 

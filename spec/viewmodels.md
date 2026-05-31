@@ -16,7 +16,7 @@ All require a `MessageHub` and `Dispatcher` from VMx. M0 used the null variants 
 
 ## 2. The VM tree
 
-The conceptual tree is the same in every impl. Names below are the canonical names (each language adapts case: `ScenarioVM` in C#, `scenario_vm` in Python source filenames but `ScenarioVM` as the class identifier, `scenarioVm.ts` filename / `ScenarioVM` exported type for TS).
+The conceptual tree is the same in every impl. Names below are the canonical names (each language adapts case: `ScenarioVM` in C#, `scenario_vm.py` filename + `ScenarioVM` class in Python, `scenario-vm.ts` filename + `ScenarioVM` exported type in TypeScript). The TypeScript filename convention is kebab-case to match the rest of the TS source tree, not camelCase as earlier drafts of this spec sketched.
 
 ```
 ScenarioVM

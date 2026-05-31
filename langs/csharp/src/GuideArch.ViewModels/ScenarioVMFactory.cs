@@ -703,7 +703,7 @@ public sealed class ScenarioMutator
             .ToList();
 
         if (index < 0 || index >= thresholds.Count)
-            throw new ScenarioMutationException($"Threshold constraint index {index} out of range.");
+            throw new ScenarioMutationException($"Constraint index {index} out of range.");
 
         var (existing, globalIdx) = thresholds[index];
         var tc = (ThresholdConstraintM)existing;
@@ -765,7 +765,7 @@ public sealed class ScenarioMutator
             .ToList();
 
         if (index < 0 || index >= thresholds.Count)
-            throw new ScenarioMutationException($"Threshold constraint index {index} out of range.");
+            throw new ScenarioMutationException($"Constraint index {index} out of range.");
 
         var (_, globalIdx) = thresholds[index];
         _setState(State with
@@ -813,7 +813,7 @@ public sealed class ScenarioMutator
             .ToList();
 
         if (index < 0 || index >= deps.Count)
-            throw new ScenarioMutationException($"Dependency constraint index {index} out of range.");
+            throw new ScenarioMutationException($"Constraint index {index} out of range.");
 
         var (_, globalIdx) = deps[index];
         _setState(State with
@@ -857,7 +857,7 @@ public sealed class ScenarioMutator
             .ToList();
 
         if (index < 0 || index >= conflicts.Count)
-            throw new ScenarioMutationException($"Conflict constraint index {index} out of range.");
+            throw new ScenarioMutationException($"Constraint index {index} out of range.");
 
         var (_, globalIdx) = conflicts[index];
         _setState(State with
