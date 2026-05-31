@@ -982,6 +982,23 @@ class ScenarioVM:
         self._raise_property_changed("scenario")
         self._raise_property_changed("is_dirty")
 
+    def browser_mark_saved(self, file_path: str | None = None) -> None:
+        """Clear the dirty flag after a successful out-of-band save.
+
+        Mirrors the TS ``_browserMarkSaved`` hook. NiceGUI web-mode Save
+        does an anchor-download in the browser instead of routing through
+        save_cmd (whose write would land on the server host); this method
+        lets the View tell the VM that the persist happened so the
+        '[unsaved]' chip clears. Optionally updates file_path too — pass
+        the new download filename to mark Save As complete.
+        """
+        if file_path is not None:
+            self._file_path = file_path
+            self._raise_property_changed("file_path")
+        if self._is_dirty:
+            self._is_dirty = False
+            self._raise_property_changed("is_dirty")
+
     def dispose(self) -> None:
         """Clean up subscriptions and subjects."""
         self._hub_sub.dispose()

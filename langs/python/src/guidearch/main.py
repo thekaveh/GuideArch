@@ -131,9 +131,10 @@ def _download_scenario(vm: ScenarioVM) -> None:
     buf = io.BytesIO(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False).encode())
     # Prefer scenario.name (e.g. 'SAS', 'EDS', or whatever the user named
     # their scenario) over a server-side tmp path basename.
-    safe_name = "".join(c if c.isalnum() or c in "-_." else "_" for c in vm.scenario.name).strip(
-        "_"
-    ) or "scenario"
+    safe_name = (
+        "".join(c if c.isalnum() or c in "-_." else "_" for c in vm.scenario.name).strip("_")
+        or "scenario"
+    )
     filename = f"{safe_name}.json"
     ui.download(buf.read(), filename)
 
@@ -362,9 +363,7 @@ def _do_delete_alternative(vm: ScenarioVM, alt_id: str, refresh: Any) -> None:
             "text-[var(--text-primary)] text-base mb-4"
         )
         with ui.row():
-            ui.button("Delete", on_click=lambda: _confirmed_then_close()).props(
-                "color=negative"
-            )
+            ui.button("Delete", on_click=lambda: _confirmed_then_close()).props("color=negative")
             ui.button("Cancel", on_click=dlg.close).props("flat")
     dlg.open()
 
@@ -506,9 +505,7 @@ def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
             "text-[var(--text-primary)] text-base mb-4"
         )
         with ui.row():
-            ui.button("Delete", on_click=lambda: _confirmed_then_close()).props(
-                "color=negative"
-            )
+            ui.button("Delete", on_click=lambda: _confirmed_then_close()).props("color=negative")
             ui.button("Cancel", on_click=dlg.close).props("flat")
     dlg.open()
 
@@ -1420,28 +1417,37 @@ def index() -> None:
 
             ui.button("New", icon="add", on_click=lambda: _do_new(vm)).props("flat color=white")
 
+            def _open_native_guarded() -> None:
+                if _confirm_discard_if_dirty(vm, "Open"):
+                    _do_open_native(vm)
+
+            def _open_dialog_guarded() -> None:
+                if _confirm_discard_if_dirty(vm, "Open"):
+                    open_dialog.open()
+
             if _is_native:
-                ui.button(
-                    "Open…",
-                    icon="folder_open",
-                    on_click=lambda: _do_open_native(vm),
-                ).props("flat color=white")
+                ui.button("Open…", icon="folder_open", on_click=_open_native_guarded).props(
+                    "flat color=white"
+                )
             else:
-                ui.button(
-                    "Open…",
-                    icon="folder_open",
-                    on_click=lambda: open_dialog.open(),
-                ).props("flat color=white")
+                ui.button("Open…", icon="folder_open", on_click=_open_dialog_guarded).props(
+                    "flat color=white"
+                )
 
             from guidearch.samples import SAMPLES as _SAMPLES
 
             for _sample in _SAMPLES:
                 _sample_path = str(_sample["path"])
                 _sample_label = str(_sample["label"]).split(" — ")[0]  # "SAS" or "EDS"
+
+                def _open_sample_guarded(p: str = _sample_path) -> None:
+                    if _confirm_discard_if_dirty(vm, "Open Sample"):
+                        vm.open_cmd.execute(p)
+
                 ui.button(
                     f"Open Sample {_sample_label}",
                     icon="science",
-                    on_click=lambda _p=_sample_path: vm.open_cmd.execute(_p),
+                    on_click=_open_sample_guarded,
                 ).props("flat color=primary")
 
             # Web-mode Save = anchor-download, not server-side write. Mirrors
@@ -1450,9 +1456,9 @@ def index() -> None:
             # otherwise share / overwrite scenario files). Native mode keeps
             # _do_save which routes through vm.save_cmd → local file system.
             if _is_native:
-                save_btn = ui.button(
-                    "Save", icon="save", on_click=lambda: _do_save(vm)
-                ).props("flat color=white")
+                save_btn = ui.button("Save", icon="save", on_click=lambda: _do_save(vm)).props(
+                    "flat color=white"
+                )
                 if vm.scenario is None or vm.file_path is None:
                     save_btn.props(add="disabled")
             else:
@@ -1471,10 +1477,14 @@ def index() -> None:
                     on_click=lambda: _save_as_native(vm),
                 ).props("flat color=white")
             else:
+                # Web-mode Save As also goes through _do_save_browser so
+                # the post-download 'Downloaded.' toast + is_dirty clear
+                # run (Save and Save As share the anchor-download path —
+                # the user picks the filename in the browser dialog).
                 ui.button(
                     "Save As…",
                     icon="save_as",
-                    on_click=lambda: _download_scenario(vm),
+                    on_click=lambda: _do_save_browser(vm),
                 ).props("flat color=white")
 
             ui.space()
@@ -1650,24 +1660,39 @@ def _do_open_upload(vm: ScenarioVM, event: Any, dialog: Any) -> None:
         dialog.close()
 
 
-def _do_save_browser(vm: ScenarioVM) -> None:
-    """Web-mode Save: anchor-download, then clear is_dirty.
+def _do_save_browser(vm: ScenarioVM, file_path: str | None = None) -> None:
+    """Web-mode Save / Save As: anchor-download, then mark saved.
 
-    Mirrors the TS handleSave + vm._browserMarkSaved pair (commit 5639776).
-    No vm.save_cmd here — that would write to the NiceGUI host's disk.
+    Mirrors the TS handleSave + vm._browserMarkSaved pair. No vm.save_cmd
+    here — that would write to the NiceGUI host's disk. Pass file_path to
+    also update vm.file_path (Save As); leave None for plain Save.
     """
     if vm.scenario is None:
         return
     _download_scenario(vm)
-    # Clear is_dirty so the 'unsaved' chip in the status bar disappears
-    # after the download. The VM has no public mark-saved hook, but
-    # writing directly to the private attribute and raising the property
-    # change is fine in this anchor-download path (there is no file
-    # round-trip to wait for; the user got the bytes).
-    if vm.is_dirty:
-        vm._is_dirty = False
-        vm._raise_property_changed("is_dirty")
+    vm.browser_mark_saved(file_path)
     ui.notify("Downloaded.", color="positive")
+
+
+def _confirm_discard_if_dirty(vm: ScenarioVM, action: str) -> bool:
+    """JS confirm equivalent for unsaved-changes prompts. Returns True if
+    the caller should proceed. Mirrors the TS Toolbar's _confirmDiscardIfDirty.
+    JavaScript window.confirm via ui.run_javascript would be async; for
+    parity with the JS prompt without going async we use a synchronous
+    notification + ``return True`` policy: if the scenario isn't dirty just
+    proceed silently.
+
+    Note: NiceGUI doesn't expose a synchronous modal-confirm primitive.
+    This currently always returns True when dirty AND surfaces a warning
+    notification so the user sees their edits are being replaced. A full
+    modal-confirm dialog matching TS UX is on the v1.1 backlog.
+    """
+    if vm.is_dirty:
+        ui.notify(
+            f"{action} replaced unsaved changes — last revision discarded.",
+            color="warning",
+        )
+    return True
 
 
 def _do_save(vm: ScenarioVM) -> None:
