@@ -109,6 +109,14 @@ public sealed record ScenarioState(
     public bool HasScenario => Scenario is not null;
 
     /// <summary>
+    /// True when SaveCmd would succeed — a scenario is loaded AND a FilePath
+    /// is set. Matches the SaveCmd predicate (ScenarioVMFactory) so the View
+    /// binding can disable the Save button when SaveCmd would no-op. Save As
+    /// keeps using HasScenario because it supplies its own path.
+    /// </summary>
+    public bool CanSave => Scenario is not null && FilePath is not null;
+
+    /// <summary>
     /// 2-D fuzzy coefficient matrix grouped by decision (spec editors.md §2.4).
     /// Rows = alternatives (grouped by decision); columns = properties.
     /// Empty when no scenario is loaded.

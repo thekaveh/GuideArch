@@ -68,7 +68,7 @@
                 ToolTip.Tip="Save current scenario"
                 Classes="toolbar-btn"
                 Click="OnSaveClicked"
-                IsEnabled="{ReflectionBinding Model.HasScenario}" />
+                IsEnabled="{ReflectionBinding Model.CanSave}" />
 
         <!-- Save As -->
         <Button Name="BtnSaveAs"

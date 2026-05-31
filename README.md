@@ -122,7 +122,7 @@ dotnet build
 dotnet run --project src/GuideArch.View   # desktop Avalonia window
 ```
 
-Close the window to stop. For the WebAssembly build see `langs/csharp/README.md`.
+Close the window to stop. The Avalonia WebAssembly target is deferred to v1.1 (see `spec/release.md` §1.2); v1.0 C# ships desktop-only.
 
 ### 5.4 Python (NiceGUI 3.x)
 
