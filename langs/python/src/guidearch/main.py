@@ -33,7 +33,6 @@ from __future__ import annotations
 import argparse
 import io
 import json
-from pathlib import Path
 from typing import Any
 
 from nicegui import ui
@@ -111,14 +110,31 @@ def _save_as_native(vm: ScenarioVM) -> None:
 
 
 def _download_scenario(vm: ScenarioVM) -> None:
-    """Web-mode Save: download the current scenario as JSON bytes."""
+    """Web-mode Save: download the current scenario as JSON bytes.
+
+    Mirrors the TS browser-mode handleSave (anchor-download) — server-side
+    writes via vm.save_cmd would put the file on the NiceGUI host, which
+    is wrong in web mode (user wanted their browser to download it, not
+    write to a server temp dir or corrupt a bundled sample). The 'Saved.'
+    notification and is_dirty clearing happen at the call site (the
+    Save button handler) so success/failure feedback matches _do_save.
+
+    The download filename prefers the scenario name over the file_path
+    basename: after an upload, file_path is a server-side tmpXXX.json
+    which is a useless suggestion for the user's local save target.
+    """
     if vm.scenario is None:
         return
     from guidearch.viewmodels.scenario_vm import _scenario_to_dict
 
     data = _scenario_to_dict(vm.scenario)
     buf = io.BytesIO(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False).encode())
-    filename = Path(vm.file_path).name if vm.file_path else "scenario.json"
+    # Prefer scenario.name (e.g. 'SAS', 'EDS', or whatever the user named
+    # their scenario) over a server-side tmp path basename.
+    safe_name = "".join(c if c.isalnum() or c in "-_." else "_" for c in vm.scenario.name).strip(
+        "_"
+    ) or "scenario"
+    filename = f"{safe_name}.json"
     ui.download(buf.read(), filename)
 
 
@@ -1428,11 +1444,25 @@ def index() -> None:
                     on_click=lambda _p=_sample_path: vm.open_cmd.execute(_p),
                 ).props("flat color=primary")
 
-            save_btn = ui.button("Save", icon="save", on_click=lambda: _do_save(vm)).props(
-                "flat color=white"
-            )
-            if vm.scenario is None or vm.file_path is None:
-                save_btn.props(add="disabled")
+            # Web-mode Save = anchor-download, not server-side write. Mirrors
+            # the TS Toolbar.handleSave: a user-clicked Save should never
+            # write to the NiceGUI host's disk (multi-user deploys would
+            # otherwise share / overwrite scenario files). Native mode keeps
+            # _do_save which routes through vm.save_cmd → local file system.
+            if _is_native:
+                save_btn = ui.button(
+                    "Save", icon="save", on_click=lambda: _do_save(vm)
+                ).props("flat color=white")
+                if vm.scenario is None or vm.file_path is None:
+                    save_btn.props(add="disabled")
+            else:
+                save_btn = ui.button(
+                    "Save",
+                    icon="save",
+                    on_click=lambda: _do_save_browser(vm),
+                ).props("flat color=white")
+                if vm.scenario is None:
+                    save_btn.props(add="disabled")
 
             if _is_native:
                 ui.button(
@@ -1618,6 +1648,26 @@ def _do_open_upload(vm: ScenarioVM, event: Any, dialog: Any) -> None:
             with contextlib.suppress(OSError):
                 os.unlink(tmp_path)
         dialog.close()
+
+
+def _do_save_browser(vm: ScenarioVM) -> None:
+    """Web-mode Save: anchor-download, then clear is_dirty.
+
+    Mirrors the TS handleSave + vm._browserMarkSaved pair (commit 5639776).
+    No vm.save_cmd here — that would write to the NiceGUI host's disk.
+    """
+    if vm.scenario is None:
+        return
+    _download_scenario(vm)
+    # Clear is_dirty so the 'unsaved' chip in the status bar disappears
+    # after the download. The VM has no public mark-saved hook, but
+    # writing directly to the private attribute and raising the property
+    # change is fine in this anchor-download path (there is no file
+    # round-trip to wait for; the user got the bytes).
+    if vm.is_dirty:
+        vm._is_dirty = False
+        vm._raise_property_changed("is_dirty")
+    ui.notify("Downloaded.", color="positive")
 
 
 def _do_save(vm: ScenarioVM) -> None:
