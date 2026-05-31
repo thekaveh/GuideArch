@@ -284,8 +284,22 @@ export function makeScenarioVm(): ScenarioVM {
 
   const saveAsCmd = RelayCommandOf.builder<string>()
     .task((path: string) => {
-      _setState({ filePath: path });
-      saveCmd.execute();
+      const { scenario } = _getModel();
+      if (scenario === undefined) return;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { warnings: _w, ...persistable } = scenario as ScenarioM & { warnings?: unknown };
+        fs.writeFileSync(path, JSON.stringify(persistable, null, 2) + '\n', 'utf-8');
+      } catch (err) {
+        const msg = `Save failed: ${err instanceof Error ? err.message : String(err)}`;
+        // Mirror C# + Python: do NOT update filePath on failure — leave it
+        // pointing at the last successful destination so the next Ctrl-S
+        // doesn't repeat the failure against the same bad path.
+        _setState({ status: msg, warnings: [..._getModel().warnings, msg] });
+        return;
+      }
+      // Write succeeded — commit the new filePath and clear isDirty.
+      _setState({ filePath: path, isDirty: false });
     })
     .build();
 

@@ -337,12 +337,29 @@ class ScenarioVM:
         self._raise_property_changed("is_dirty")
 
     def _do_save_as(self, path: str | None) -> None:
-        """Set file_path = path then save."""
-        if not path:
+        """Save to *path*; only update file_path if the write succeeds.
+
+        Earlier implementations set self._file_path FIRST and then ran
+        _do_save. On IO failure that left file_path pointing at a
+        non-existent destination — the user's next Ctrl-S would target the
+        bad path again. C# uses the write-then-commit-state order; aligned
+        Python to match.
+        """
+        if not path or self._scenario is None:
+            return
+        try:
+            self._write_scenario(self._scenario, path)
+        except OSError as exc:
+            msg = f"Save failed: {exc}"
+            self._status = msg
+            self._warnings = (*self._warnings, msg)
+            self._raise_property_changed("status")
+            self._raise_property_changed("warnings")
             return
         self._file_path = path
+        self._is_dirty = False
         self._raise_property_changed("file_path")
-        self._do_save()
+        self._raise_property_changed("is_dirty")
 
     def _do_solve(self) -> None:
         """Re-run solve + analyses; update candidates, criticals, status."""
