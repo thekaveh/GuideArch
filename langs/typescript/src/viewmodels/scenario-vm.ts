@@ -193,7 +193,7 @@ export function makeScenarioVm(): ScenarioVM {
 
   function _requireScenario(): ScenarioM {
     const s = _getModel().scenario;
-    if (!s) throw new ScenarioMutationError('No scenario loaded');
+    if (!s) throw new ScenarioMutationError('No scenario loaded.');
     return s;
   }
 
@@ -310,7 +310,7 @@ export function makeScenarioVm(): ScenarioVM {
   function deleteDecision(id: string): void {
     const s = _requireScenario();
     const dec = s.decisions.find((d) => d.id === id);
-    if (!dec) throw new ScenarioMutationError(`Decision '${id}' not found`);
+    if (!dec) throw new ScenarioMutationError(`Decision '${id}' not found.`);
 
     // Cascade: collect all alternatives belonging to this decision
     const removedAltIds = new Set(
@@ -352,7 +352,7 @@ export function makeScenarioVm(): ScenarioVM {
   function addAlternative(decisionId: string, name?: string): void {
     const s = _requireScenario();
     if (!s.decisions.find((d) => d.id === decisionId)) {
-      throw new ScenarioMutationError(`Decision '${decisionId}' not found`);
+      throw new ScenarioMutationError(`Decision '${decisionId}' not found.`);
     }
     const id = genId('a');
     const newAlt = { id, decisionId, name: name ?? 'New alternative' };
@@ -376,7 +376,7 @@ export function makeScenarioVm(): ScenarioVM {
   function deleteAlternative(id: string): void {
     const s = _requireScenario();
     if (!s.alternatives.find((a) => a.id === id)) {
-      throw new ScenarioMutationError(`Alternative '${id}' not found`);
+      throw new ScenarioMutationError(`Alternative '${id}' not found.`);
     }
 
     const alternatives = s.alternatives.filter((a) => a.id !== id);
@@ -432,7 +432,7 @@ export function makeScenarioVm(): ScenarioVM {
   function deleteProperty(id: string): void {
     const s = _requireScenario();
     if (!s.properties.find((p) => p.id === id)) {
-      throw new ScenarioMutationError(`Property '${id}' not found`);
+      throw new ScenarioMutationError(`Property '${id}' not found.`);
     }
 
     const properties = s.properties.filter((p) => p.id !== id);
@@ -555,7 +555,7 @@ export function makeScenarioVm(): ScenarioVM {
   function deleteConstraint(index: number): void {
     const s = _requireScenario();
     if (index < 0 || index >= s.constraints.length) {
-      throw new ScenarioMutationError(`Constraint index ${index} out of range`);
+      throw new ScenarioMutationError(`Constraint index ${index} out of range.`);
     }
     const constraints = s.constraints.filter((_, i) => i !== index);
     _setState({ scenario: { ...s, constraints }, isDirty: true });
@@ -565,7 +565,7 @@ export function makeScenarioVm(): ScenarioVM {
   function updateConstraint(index: number, c: ConstraintM): void {
     const s = _requireScenario();
     if (index < 0 || index >= s.constraints.length) {
-      throw new ScenarioMutationError(`Constraint index ${index} out of range`);
+      throw new ScenarioMutationError(`Constraint index ${index} out of range.`);
     }
     _validateConstraint(s, c);
     const constraints = s.constraints.map((existing, i) => (i === index ? c : existing));
@@ -595,8 +595,8 @@ export function makeScenarioVm(): ScenarioVM {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       _setState({
-        warnings: [..._getModel().warnings, `Browser open failed: ${msg}`],
-        status: `Browser open failed: ${msg}`,
+        warnings: [..._getModel().warnings, `Open failed: ${msg}`],
+        status: `Open failed: ${msg}`,
       });
     }
   }
@@ -604,7 +604,7 @@ export function makeScenarioVm(): ScenarioVM {
   function setSelectedCandidateIndex(index: number | null): void {
     const { candidates } = _getModel();
     if (index !== null && (index < 0 || index >= candidates.length)) {
-      throw new ScenarioMutationError(`Candidate index ${index} out of range`);
+      throw new ScenarioMutationError(`Candidate index ${index} out of range.`);
     }
     _setState({ selectedCandidateIndex: index });
   }

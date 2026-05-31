@@ -302,7 +302,7 @@ public sealed class ScenarioMutator
     private ScenarioM RequireScenario()
     {
         if (State.Scenario is null)
-            throw new ScenarioMutationException("No scenario is loaded.");
+            throw new ScenarioMutationException("No scenario loaded.");
         return State.Scenario;
     }
 
