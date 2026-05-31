@@ -540,13 +540,13 @@ public partial class MainWindow : Window
 
     private void OnNewClicked(object? sender, RoutedEventArgs e)
     {
-        if (!ConfirmDiscardIfDirty("Create a new scenario")) return;
+        bool wasDirty = _vm.Model.IsDirty;
         _cmds.NewCmd.Execute(null);
+        if (wasDirty) StampDiscardWarning("Create a new scenario");
     }
 
     private async void OnOpenClicked(object? sender, RoutedEventArgs e)
     {
-        if (!ConfirmDiscardIfDirty("Open a scenario")) return;
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Open scenario JSON",
@@ -561,31 +561,30 @@ public partial class MainWindow : Window
         {
             var path = files[0].TryGetLocalPath();
             if (path is not null)
+            {
+                bool wasDirty = _vm.Model.IsDirty;
                 _cmds.OpenCmd.Execute(path);
+                if (wasDirty) StampDiscardWarning("Open a scenario");
+            }
         }
     }
 
     /// <summary>
-    /// Cross-impl unsaved-changes gate (mirrors TS Toolbar._confirmDiscardIfDirty
-    /// and Python _confirm_discard_if_dirty). Returns true if the caller should
-    /// proceed; false to abort. Avalonia has no synchronous-modal confirm so
-    /// we use a fire-and-forget MessageBox-style approach via TopLevel —
-    /// since none is wired yet, this stub returns true on a clean model and
-    /// surfaces a status-bar warning on a dirty model. A modal confirm
-    /// dialog matching the TS UX is on the v1.1 backlog.
+    /// Records a warning that the just-completed action discarded unsaved
+    /// changes. Mirrors the TS Toolbar._confirmDiscardIfDirty + Python
+    /// _confirm_discard_if_dirty user-facing UX (a real modal-confirm is on
+    /// the v1.1 backlog for all three impls). Call AFTER the action
+    /// completes so a cancelled file-picker doesn't leave a phantom
+    /// "discarded changes" warning.
     /// </summary>
-    private bool ConfirmDiscardIfDirty(string action)
+    private void StampDiscardWarning(string action)
     {
-        if (!_vm.Model.IsDirty) return true;
-        // Lightweight feedback rather than silent overwrite. Replaced by a
-        // real modal in v1.1.
         var state = _vm.Model;
         _vm.Model = state with
         {
             Warnings = state.Warnings.Add(
                 $"{action} replaced unsaved changes — last revision discarded.")
         };
-        return true;
     }
 
     private void OnSaveClicked(object? sender, RoutedEventArgs e)
@@ -616,14 +615,16 @@ public partial class MainWindow : Window
 
     private void OnOpenSampleSasClicked(object? sender, RoutedEventArgs e)
     {
-        if (!ConfirmDiscardIfDirty("Open Sample SAS")) return;
+        bool wasDirty = _vm.Model.IsDirty;
         OpenSample(SampleScenarios.All[0]);
+        if (wasDirty) StampDiscardWarning("Open Sample SAS");
     }
 
     private void OnOpenSampleEdsClicked(object? sender, RoutedEventArgs e)
     {
-        if (!ConfirmDiscardIfDirty("Open Sample EDS")) return;
+        bool wasDirty = _vm.Model.IsDirty;
         OpenSample(SampleScenarios.All[1]);
+        if (wasDirty) StampDiscardWarning("Open Sample EDS");
     }
 
     /// <summary>

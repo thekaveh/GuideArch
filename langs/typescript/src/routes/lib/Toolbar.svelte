@@ -13,12 +13,15 @@
   // Re-derive stores each time vm changes (for reactivity)
   $: filePathStore = vmxToStore(vm, 'filePath');
   $: scenarioStore = vmxToStore(vm, 'scenario');
-  // Save needs both a scenario and a filePath (matches saveCmd's predicate
-  // and C#'s CanSave). Save As only needs a scenario — it prompts for the
-  // path. Earlier both buttons shared one gate, so a user couldn't Save As
-  // after New until they had already saved once.
+  // v1.0 web-mode handleSave/handleSaveAs both anchor-download (Toolbar
+  // bypasses vm.saveCmd, see spec/editors.md §3). Anchor-download needs
+  // only a loaded scenario — the filename comes from filePath when set or
+  // 'scenario.json' as fallback (Save) or a prompt() (Save As). The
+  // earlier filePath-gated canSave matched saveCmd's predicate but not the
+  // actual handler, so the Save button was incorrectly disabled after New
+  // in browser mode even though the anchor-download would work fine.
   $: canSaveAs = $scenarioStore !== undefined;
-  $: canSave = canSaveAs && $filePathStore !== undefined;
+  $: canSave = canSaveAs;
 
   // Single confirm-if-dirty gate shared by New, Open, and Open Sample —
   // each replaces the current scenario, so each should ask the same
