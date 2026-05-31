@@ -5,12 +5,16 @@ on:
     branches: [main]
     paths:
       - 'spec/**'
-      - 'langs/typescript/src/samples/scenario.schema.json'
+      - 'langs/typescript/src/samples/**'
+      - 'langs/python/src/guidearch/samples/**'
+      - 'langs/csharp/src/GuideArch.View/Assets/Samples/**'
       - '.github/workflows/spec.yml'
   pull_request:
     paths:
       - 'spec/**'
-      - 'langs/typescript/src/samples/scenario.schema.json'
+      - 'langs/typescript/src/samples/**'
+      - 'langs/python/src/guidearch/samples/**'
+      - 'langs/csharp/src/GuideArch.View/Assets/Samples/**'
       - '.github/workflows/spec.yml'
   workflow_dispatch:
 
@@ -83,3 +87,31 @@ jobs:
             exit 1
           fi
           echo "TS bundled schema matches canonical."
+
+      - name: Check bundled sample scenarios match canonical
+        run: |
+          # Each impl ships sas.json + eds.json inside its source tree (for
+          # browser-mode/bundled-resource access). They're all expected to be
+          # byte-identical copies of the canonical spec/conformance/scenarios/
+          # versions. Without a gate, an edit to one impl's sample drifts
+          # silently. Diff against canonical and fail loudly on any difference.
+          set -e
+          drift=0
+          for impl_path in \
+              langs/typescript/src/samples \
+              langs/python/src/guidearch/samples \
+              langs/csharp/src/GuideArch.View/Assets/Samples; do
+            for sample in sas.json eds.json; do
+              if ! diff -q "spec/conformance/scenarios/$sample" \
+                          "$impl_path/$sample" >/dev/null; then
+                echo "Sample drift: $impl_path/$sample differs from canonical." >&2
+                diff -u "spec/conformance/scenarios/$sample" "$impl_path/$sample" || true
+                drift=1
+              fi
+            done
+          done
+          if [ "$drift" -ne 0 ]; then
+            echo "Sync impl-bundled samples by copying spec/conformance/scenarios/{sas,eds}.json over them." >&2
+            exit 1
+          fi
+          echo "All impl-bundled samples match canonical."

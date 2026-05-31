@@ -488,7 +488,8 @@ export function makeScenarioVm(): ScenarioVM {
 
   function updatePropertyWeight(id: string, weight: number): void {
     const s = _requireScenario();
-    if (weight <= 0) throw new ScenarioMutationError('Property weight must be > 0.');
+    if (weight <= 0)
+      throw new ScenarioMutationError(`Property weight must be > 0 (got ${weight}).`);
     _requireProperty(s, id);
     const properties = s.properties.map((p) => (p.id === id ? { ...p, weight } : p));
     _setState({ scenario: { ...s, properties }, isDirty: true });

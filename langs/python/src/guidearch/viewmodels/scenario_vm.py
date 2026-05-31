@@ -224,8 +224,11 @@ class ScenarioVM:
         if value is not None:
             n = len(self._candidates)
             if value < 0 or value >= n:
+                # En-dash matches the C# and TS message text — keep them
+                # byte-identical even though ruff RUF001 flags it as
+                # ambiguous; the cross-impl-consistency win is worth more.
                 raise ScenarioMutationError(
-                    f"Candidate index {value} out of range (0–{n - 1})."
+                    f"Candidate index {value} out of range (0–{n - 1})."  # noqa: RUF001
                 )
         self._selected_candidate_index = value
         self._raise_property_changed("selected_candidate_index")
@@ -858,8 +861,10 @@ class ScenarioVM:
             raise ScenarioMutationError(
                 f"Constraint at index {index} is not a ThresholdConstraint."
             )
-        new_min = c.min if min_val is _UNSET else min_val
-        new_max = c.max if max_val is _UNSET else max_val
+        # min_val / max_val are the public API and tagged with the _UNSET
+        # sentinel; once normalised they're plain float|None.
+        new_min: float | None = c.min if min_val is _UNSET else min_val  # type: ignore[assignment]
+        new_max: float | None = c.max if max_val is _UNSET else max_val  # type: ignore[assignment]
         if new_min is None and new_max is None:
             raise ScenarioMutationError("ThresholdConstraint requires at least one of min or max.")
         if new_min is not None and new_max is not None and new_min > new_max:
@@ -869,8 +874,8 @@ class ScenarioVM:
         new_c = ThresholdConstraint(
             kind="threshold",
             property_id=property_id if property_id is not None else c.property_id,
-            min=new_min,  # type: ignore[arg-type]
-            max=new_max,  # type: ignore[arg-type]
+            min=new_min,
+            max=new_max,
         )
         new_constraints = tuple(
             new_c if i == index else old_c for i, old_c in enumerate(scenario.constraints)

@@ -562,7 +562,8 @@ public sealed class ScenarioMutator
         if (prop is null) throw new ScenarioMutationException($"Property '{id}' not found.");
 
         if (weight.HasValue && weight.Value <= 0)
-            throw new ScenarioMutationException("Property weight must be > 0.");
+            throw new ScenarioMutationException(
+                $"Property weight must be > 0 (got {weight.Value}).");
 
         var idx = s.Properties.IndexOf(prop);
         var updated = prop with
