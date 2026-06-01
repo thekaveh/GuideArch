@@ -607,10 +607,12 @@
   .num-input::-webkit-outer-spin-button,
   .num-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
+    appearance: none;
     margin: 0;
   }
   .num-input[type='number'] {
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 
   /* Destructive button */

@@ -87,10 +87,12 @@
   .fnum::-webkit-outer-spin-button,
   .fnum::-webkit-inner-spin-button {
     -webkit-appearance: none;
+    appearance: none;
     margin: 0;
   }
   .fnum[type='number'] {
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 
   .dot {
