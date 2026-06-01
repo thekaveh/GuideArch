@@ -155,7 +155,7 @@
   .coeff-table {
     border-collapse: collapse;
     font-size: 13px;
-    min-width: 100%;
+    width: 100%;
   }
 
   thead tr {
@@ -169,7 +169,7 @@
     padding: 6px 8px;
     border-bottom: 1px solid var(--border-subtle);
     border-right: 1px solid var(--border-subtle);
-    min-width: 14rem;
+    min-width: 9rem;
     text-align: center;
     background: var(--bg-surface);
   }
@@ -229,7 +229,7 @@
   }
 
   .group-col {
-    min-width: 14rem;
+    min-width: 12rem;
     padding: 0 8px;
     height: 32px;
     color: var(--text-secondary);
@@ -263,7 +263,8 @@
     border-bottom: 1px solid var(--border-subtle);
     border-right: 1px solid var(--border-subtle);
     background: var(--bg-page);
-    min-width: 14rem;
+    min-width: 12rem;
+    width: 12rem;
   }
 
   .alt-name {

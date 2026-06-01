@@ -149,8 +149,12 @@ public partial class MainWindow : Window
     // -----------------------------------------------------------------------
 
     // Column widths (px).
+    // AltNameColWidth: fixed (alt names are short; we don't want them to grow).
+    // MinPropColWidth: floor for star-sized property columns so 4 props don't
+    // shrink below readability when the window is narrow. Above that floor
+    // each property column shares the remaining canvas width equally.
     private const double AltNameColWidth = 160.0;
-    private const double PropColWidth = 190.0;   // L / M / U compact
+    private const double MinPropColWidth = 140.0;
     private const double RowHeight = 28.0;
     private const double GroupHeaderHeight = 26.0;
 
@@ -175,11 +179,13 @@ public partial class MainWindow : Window
         var monoFont = new AvaFontFamily("Cascadia Code,Consolas,monospace");
 
         int propCount = matrix.Properties.Length;
-        double totalWidth = AltNameColWidth + propCount * PropColWidth;
+        // Minimum total width — once the canvas is wider than this, columns
+        // share the extra. The host ScrollViewer kicks in below it.
+        double minTotalWidth = AltNameColWidth + propCount * MinPropColWidth;
 
         // ── Build the root StackPanel ──────────────────────────────────
         var root = new StackPanel { Orientation = AvaOrientation.Vertical };
-        root.MinWidth = totalWidth;
+        root.MinWidth = minTotalWidth;
 
         // ── Property column header row ─────────────────────────────────
         var headerRow = new Grid { Height = GroupHeaderHeight + 4 };
@@ -187,7 +193,7 @@ public partial class MainWindow : Window
         var headerCols = new ColumnDefinitions();
         headerCols.Add(new ColumnDefinition(AltNameColWidth, GridUnitType.Pixel));
         for (int p = 0; p < propCount; p++)
-            headerCols.Add(new ColumnDefinition(PropColWidth, GridUnitType.Pixel));
+            headerCols.Add(new ColumnDefinition(1, GridUnitType.Star) { MinWidth = MinPropColWidth });
         headerRow.ColumnDefinitions = headerCols;
 
         // "Alternative" label in the first col
@@ -256,7 +262,7 @@ public partial class MainWindow : Window
             {
                 Background = accentMuted,
                 Padding = new Avalonia.Thickness(8, 4, 8, 4),
-                MinWidth = totalWidth
+                MinWidth = minTotalWidth
             };
             groupHeader.Child = new TextBlock
             {
@@ -275,7 +281,7 @@ public partial class MainWindow : Window
                 var rowCols = new ColumnDefinitions();
                 rowCols.Add(new ColumnDefinition(AltNameColWidth, GridUnitType.Pixel));
                 for (int p = 0; p < propCount; p++)
-                    rowCols.Add(new ColumnDefinition(PropColWidth, GridUnitType.Pixel));
+                    rowCols.Add(new ColumnDefinition(1, GridUnitType.Star) { MinWidth = MinPropColWidth });
                 rowGrid.ColumnDefinitions = rowCols;
                 rowGrid.Background = bgSurface;
 

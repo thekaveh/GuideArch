@@ -563,14 +563,17 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
     ui.label("Format: lower · modal · upper").classes("text-xs text-[var(--text-muted)] mb-3")
 
     with ui.scroll_area().style("height: calc(100vh - 220px)").classes("w-full"):
-        # §5.3 Table header: bg-surface, text-secondary, 12px, 32px row height, sticky
-        with ui.row().classes("gap-1 mb-1 bg-[var(--bg-surface)] pb-1"):
+        # §5.3 Table header: bg-surface, text-secondary, 12px, 32px row height, sticky.
+        # Property columns flex to share the available canvas; min-w keeps
+        # each column above readable width. Horizontal scroll only kicks in
+        # when propCount * min-w exceeds the canvas.
+        with ui.row().classes("gap-1 mb-1 bg-[var(--bg-surface)] pb-1 w-full"):
             ui.label("Alternative").classes(
-                "font-semibold text-[var(--text-secondary)] w-44 text-xs"
+                "font-semibold text-[var(--text-secondary)] w-44 shrink-0 text-xs"
             )
             for prop in props:
                 kind_badge = "↓" if prop.kind == "min" else "↑"
-                with ui.column().classes("items-center w-36"):
+                with ui.column().classes("items-center flex-1 min-w-[9rem]"):
                     ui.label(prop.name).classes(
                         "font-semibold text-[var(--text-secondary)] text-xs text-center"
                     )
@@ -589,12 +592,16 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
 
             for alt in dec_alts:
                 # §5.3 Body rows: 36px height, border-subtle between rows
-                with ui.row().classes("gap-1 mb-1 items-center"):
-                    ui.label(alt.name).classes("text-[var(--text-primary)] text-sm w-44 truncate")
+                with ui.row().classes("gap-1 mb-1 items-center w-full"):
+                    ui.label(alt.name).classes(
+                        "text-[var(--text-primary)] text-sm w-44 shrink-0 truncate"
+                    )
                     for prop in props:
                         coef = coef_map.get((alt.id, prop.id))
                         if coef is None:
-                            ui.label("—").classes("w-36 text-center text-[var(--text-muted)]")
+                            ui.label("—").classes(
+                                "flex-1 min-w-[9rem] text-center text-[var(--text-muted)]"
+                            )
                             continue
 
                         lower_v = coef.value.lower
@@ -607,9 +614,11 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
                             else "border-[var(--border-strong)]"
                         )
 
-                        with ui.row().classes(
-                            f"gap-1 items-center border rounded p-1 {warn_color}"
-                        ):
+                        cell_classes = (
+                            "gap-1 items-center border rounded p-1 "
+                            f"flex-1 min-w-[9rem] {warn_color}"
+                        )
+                        with ui.row().classes(cell_classes):
                             l_in = (
                                 ui.number(
                                     value=lower_v,
