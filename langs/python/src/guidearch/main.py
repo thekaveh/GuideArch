@@ -211,6 +211,33 @@ def _hero_illustration_svg() -> str:
     )
 
 
+def _render_section_header(
+    *,
+    title: str,
+    subtitle: str | None = None,
+    action: tuple[str, Callable[[], None]] | None = None,
+) -> None:
+    """Render a section header (title + subtitle + optional primary action).
+
+    Mirrors langs/typescript SectionHeader.svelte so every editor tab
+    announces what it is and where the user can take action. Sits at the
+    top of each editor-tab body, above any sub-tabs or tables.
+    """
+    with ui.row().classes(
+        "items-center justify-between w-full gap-4 pb-3 mb-3 border-b border-[var(--border-subtle)]"
+    ):
+        with ui.column().classes("gap-0 min-w-0"):
+            ui.label(title).classes(
+                "text-[16px] font-semibold text-[var(--text-primary)] leading-tight"
+            )
+            if subtitle is not None:
+                ui.label(subtitle).classes("text-xs text-[var(--text-muted)] mt-0.5")
+        if action is not None:
+            ui.button(action[0], on_click=action[1]).props(
+                "color=primary unelevated dense"
+            ).classes("text-sm shrink-0")
+
+
 def _render_empty_state(
     *,
     headline: str,
@@ -346,12 +373,11 @@ def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
         with container:
             _render_decisions_tab(vm, container)
 
-    with ui.row().classes("items-center gap-2 mb-3"):
-        ui.label("Decisions").classes("text-base font-semibold text-[var(--text-primary)]")
-        ui.space()
-        ui.button("+ Add Decision", on_click=lambda: _do_add_decision(vm, _refresh)).props(
-            "flat color=secondary"
-        )
+    _render_section_header(
+        title="Decisions",
+        subtitle=("Architectural choices you'll resolve by picking one alternative each."),
+        action=("+ Add Decision", lambda: _do_add_decision(vm, _refresh)),
+    )
 
     if not scenario.decisions:
         ui.label("No decisions yet.").classes("text-[var(--text-muted)] py-4")
@@ -449,7 +475,12 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
         with container:
             _render_alternatives_tab(vm, container)
 
-    ui.label("Alternatives").classes("text-base font-semibold text-[var(--text-primary)] mb-3")
+    _render_section_header(
+        title="Alternatives",
+        subtitle=(
+            "Concrete options under each decision; pick one per decision to form a candidate."
+        ),
+    )
 
     if not scenario.decisions:
         ui.label("Add decisions first.").classes("text-[var(--text-muted)]")
@@ -551,12 +582,14 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
         with container:
             _render_properties_tab(vm, container)
 
-    with ui.row().classes("items-center gap-2 mb-3"):
-        ui.label("Properties").classes("text-base font-semibold text-[var(--text-primary)]")
-        ui.space()
-        ui.button("+ Add Property", on_click=lambda: _do_add_property(vm, _refresh)).props(
-            "flat color=secondary"
-        )
+    _render_section_header(
+        title="Properties",
+        subtitle=(
+            "Quality criteria — each with a kind (max / min) and a weight; "
+            "together they decide how candidates rank."
+        ),
+        action=("+ Add Property", lambda: _do_add_property(vm, _refresh)),
+    )
 
     if not scenario.properties:
         ui.label("No properties yet.").classes("text-[var(--text-muted)] py-4")
@@ -708,10 +741,13 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
         with container:
             _render_coefficients_tab(vm, container)
 
-    ui.label("Coefficients (fuzzy matrix)").classes(
-        "text-base font-semibold text-[var(--text-primary)] mb-2"
+    _render_section_header(
+        title="Coefficients",
+        subtitle=(
+            "Fuzzy values per (alternative, property): lower · modal · upper. "
+            "Edit to shift how each alternative scores."
+        ),
     )
-    ui.label("Format: lower · modal · upper").classes("text-xs text-[var(--text-muted)] mb-3")
 
     with ui.scroll_area().style("height: calc(100vh - 220px)").classes("w-full"):
         # §5.3 Table header: bg-surface, text-secondary, 12px, 32px row height, sticky.
@@ -845,7 +881,13 @@ def _render_constraints_tab(vm: ScenarioVM, container: Any) -> None:
         with container:
             _render_constraints_tab(vm, container)
 
-    ui.label("Constraints").classes("text-base font-semibold text-[var(--text-primary)] mb-2")
+    _render_section_header(
+        title="Constraints",
+        subtitle=(
+            "Rules that eliminate candidates: thresholds bound a single "
+            "property; dependencies require pairings; conflicts forbid them."
+        ),
+    )
 
     with ui.tabs() as sub_tabs:
         tab_thresh = ui.tab("Threshold")

@@ -225,16 +225,30 @@
       <TabItem Header="Decisions">
         <Grid RowDefinitions="Auto,*">
 
-          <!-- Add Decision toolbar -->
-          <StackPanel Grid.Row="0"
-                      Orientation="Horizontal"
-                      Spacing="8"
-                      Margin="24,12,24,8"
-                      IsVisible="{ReflectionBinding Model.HasScenario}">
-            <Button Content="Add Decision"
-                    Click="OnAddDecisionClicked"
-                    Classes="action-btn" />
-          </StackPanel>
+          <!-- §SectionHeader — title + subtitle + primary action -->
+          <Border Grid.Row="0"
+                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12"
+                  IsVisible="{ReflectionBinding Model.HasScenario}">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Text="Decisions"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Architectural choices you'll resolve by picking one alternative each."
+                           FontSize="12"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+              <Button Grid.Column="1"
+                      Content="+ Add Decision"
+                      Click="OnAddDecisionClicked"
+                      Classes="action-btn"
+                      VerticalAlignment="Center" />
+            </Grid>
+          </Border>
 
           <!-- Decisions list -->
           <!-- ReflectionBinding: open generic DataContext (see file header) -->
@@ -277,20 +291,36 @@
       <TabItem Header="Alternatives">
         <Grid RowDefinitions="Auto,*">
 
-          <!-- Per-decision Add Alternative — handled in code-behind -->
-          <StackPanel Grid.Row="0"
-                      Orientation="Horizontal"
-                      Spacing="8"
-                      Margin="24,12,24,8"
-                      IsVisible="{ReflectionBinding Model.HasScenario}">
-            <TextBlock Text="Select a decision then:"
-                       VerticalAlignment="Center"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       FontSize="12" />
-            <Button Content="Add Alternative"
-                    Click="OnAddAlternativeClicked"
-                    Classes="action-btn" />
-          </StackPanel>
+          <!-- §SectionHeader — Add Alternative attaches to the selected
+               decision; the selection lives in the grid below. -->
+          <Border Grid.Row="0"
+                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12"
+                  IsVisible="{ReflectionBinding Model.HasScenario}">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+              <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Text="Alternatives"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Concrete options under each decision; pick one per decision to form a candidate."
+                           FontSize="12"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+              <TextBlock Grid.Column="1"
+                         Text="Select a decision then:"
+                         VerticalAlignment="Center"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         FontSize="12" />
+              <Button Grid.Column="2"
+                      Content="+ Add Alternative"
+                      Click="OnAddAlternativeClicked"
+                      Classes="action-btn"
+                      VerticalAlignment="Center" />
+            </Grid>
+          </Border>
 
           <!-- Alternatives grouped by decision -->
           <!-- ReflectionBinding: open generic DataContext (see file header) -->
@@ -332,15 +362,30 @@
       <TabItem Header="Properties">
         <Grid RowDefinitions="Auto,*">
 
-          <StackPanel Grid.Row="0"
-                      Orientation="Horizontal"
-                      Spacing="8"
-                      Margin="24,12,24,8"
-                      IsVisible="{ReflectionBinding Model.HasScenario}">
-            <Button Content="Add Property"
-                    Click="OnAddPropertyClicked"
-                    Classes="action-btn" />
-          </StackPanel>
+          <!-- §SectionHeader -->
+          <Border Grid.Row="0"
+                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12"
+                  IsVisible="{ReflectionBinding Model.HasScenario}">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Text="Properties"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Quality criteria — each with a kind (max / min) and a weight; together they decide how candidates rank."
+                           FontSize="12"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+              <Button Grid.Column="1"
+                      Content="+ Add Property"
+                      Click="OnAddPropertyClicked"
+                      Classes="action-btn"
+                      VerticalAlignment="Center" />
+            </Grid>
+          </Border>
 
           <!-- Properties table -->
           <!-- ReflectionBinding: open generic DataContext (see file header) -->
@@ -387,12 +432,23 @@
       <TabItem Header="Coefficients">
         <Grid RowDefinitions="Auto,*">
 
-          <TextBlock Grid.Row="0"
-                     Text="Fuzzy coefficient matrix: rows = alternatives (grouped by decision), columns = properties."
-                     Margin="24,12,24,8"
-                     FontSize="12"
-                     Foreground="{StaticResource TextSecondaryBrush}"
-                     IsVisible="{ReflectionBinding Model.HasScenario}" />
+          <!-- §SectionHeader -->
+          <Border Grid.Row="0"
+                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12"
+                  IsVisible="{ReflectionBinding Model.HasScenario}">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Coefficients"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}" />
+              <TextBlock Text="Fuzzy values per (alternative, property): lower · modal · upper. Edit to shift how each alternative scores."
+                         FontSize="12"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
           <!-- 2-D matrix: built in code-behind, hosted here -->
           <ScrollViewer Grid.Row="1"
@@ -409,8 +465,28 @@
 
       <!-- ── Tab 5: Constraints ─────────────────────────────────────── -->
       <TabItem Header="Constraints">
-        <TabControl Background="{StaticResource BgPageBrush}"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+        <Grid RowDefinitions="Auto,*"
+              IsVisible="{ReflectionBinding Model.HasScenario}">
+
+          <!-- §SectionHeader -->
+          <Border Grid.Row="0"
+                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Constraints"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}" />
+              <TextBlock Text="Rules that eliminate candidates: thresholds bound a single property; dependencies require pairings; conflicts forbid them."
+                         FontSize="12"
+                         Foreground="{StaticResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+        <TabControl Grid.Row="1"
+                    Background="{StaticResource BgPageBrush}">
 
           <!-- Sub-tab: Threshold -->
           <TabItem Header="Threshold">
@@ -533,6 +609,7 @@
           </TabItem>
 
         </TabControl>
+        </Grid>
       </TabItem>
 
       <!-- ── Tab 6: Results — split pane (M4) ──────────────────────── -->
