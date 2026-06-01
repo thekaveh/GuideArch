@@ -1168,7 +1168,11 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
 
         # Right: charts (fixed ~420px, or 40%)
         with ui.column().classes("w-96 gap-3 shrink-0"):
-            from guidearch.view.chart_data import candidates_bar_option, triangle_option
+            from guidearch.view.chart_data import (
+                candidates_bar_option,
+                comparison_option,
+                triangle_option,
+            )
 
             # Chart A — bar chart
             chart_a_opt = candidates_bar_option(top30, alt_map, vm.selected_candidate_index)
@@ -1195,6 +1199,24 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                 ui.echart(chart_b_opt)
                 .classes("w-full rounded border border-[var(--border-strong)]")
                 .style("height:280px; background: var(--bg-surface);")
+            )
+
+            # Chart C — top-10 polyline comparison across properties
+            chart_c_opt = comparison_option(
+                candidates,
+                tuple(scenario.properties),
+                tuple(scenario.coefficients),
+                vm.selected_candidate_index,
+            )
+            chart_c = (
+                ui.echart(chart_c_opt)
+                .classes("w-full rounded border border-[var(--border-strong)]")
+                .style("height:300px; background: var(--bg-surface);")
+            )
+            # Clicking a legend entry or polyline selects that candidate.
+            chart_c.on(
+                "click",
+                lambda e, v=vm, cands=candidates: _on_chart_c_click(v, cands, e),
             )
 
 
@@ -1227,6 +1249,22 @@ def _on_chart_a_click(vm: ScenarioVM, top_candidates: tuple[Any, ...], event: An
         return
     if 0 <= data_index < len(top_candidates):
         vm.selected_candidate_index = top_candidates[data_index].rank
+
+
+def _on_chart_c_click(vm: ScenarioVM, candidates: tuple[Any, ...], event: Any) -> None:
+    """Handle clicks on Chart C — top-10 comparison polylines.
+
+    ECharts click events carry ``seriesIndex`` for the line that was hit.
+    Each series corresponds to candidates[seriesIndex]; we use that to
+    drive selection. Legend clicks fire the same handler and resolve the
+    same way. Narrow exception scope mirrors Chart A's handler.
+    """
+    try:
+        series_index = int(event.args.get("seriesIndex", -1))
+    except (KeyError, TypeError, ValueError):
+        return
+    if 0 <= series_index < len(candidates):
+        vm.selected_candidate_index = candidates[series_index].rank
 
 
 # ---------------------------------------------------------------------------

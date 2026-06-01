@@ -478,9 +478,9 @@
               </DataGrid.Columns>
             </DataGrid>
 
-            <!-- Right: two stacked ScottPlot charts -->
+            <!-- Right: three stacked ScottPlot charts -->
             <Grid Grid.Column="1"
-                  RowDefinitions="*,*"
+                  RowDefinitions="*,*,*"
                   Margin="12,0,24,24">
 
               <!-- Chart A: horizontal bar chart of top 30 candidates (spec charts.md §2) -->
@@ -491,6 +491,11 @@
               <!-- Chart B: triangle series for selected candidate (spec charts.md §3) -->
               <scottplot:AvaPlot Grid.Row="1"
                                  Name="ChartB" />
+
+              <!-- Chart C: top-10 candidate comparison polylines (legacy view) -->
+              <scottplot:AvaPlot Grid.Row="2"
+                                 Name="ChartC"
+                                 PointerPressed="OnChartCPointerPressed" />
 
             </Grid>
 

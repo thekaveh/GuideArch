@@ -3,7 +3,12 @@
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import RankedCandidatesChart from './RankedCandidatesChart.svelte';
   import FuzzyTriangleChart from './FuzzyTriangleChart.svelte';
-  import { buildCandidateBarData, buildTriangleSeriesData } from '../../view/chart-data.js';
+  import CandidateComparisonChart from './CandidateComparisonChart.svelte';
+  import {
+    buildCandidateBarData,
+    buildTriangleSeriesData,
+    buildComparisonSeries,
+  } from '../../view/chart-data.js';
 
   export let vm: ScenarioVM;
 
@@ -26,6 +31,10 @@
     selectedCandidate !== null
       ? buildTriangleSeriesData(selectedCandidate, properties, coefficients)
       : [];
+
+  // Chart C data — top-10 candidate comparison polylines
+  $: comparisonSeries = buildComparisonSeries($candidatesStore, properties, coefficients, 10);
+  $: propertyNames = properties.map((p) => p.name);
 
   function altName(id: string): string {
     return alternatives.find((a) => a.id === id)?.name ?? id;
@@ -106,6 +115,15 @@
             Fuzzy Profile{selectedCandidate !== null ? ` — Rank ${selectedCandidate.rank}` : ''}
           </div>
           <FuzzyTriangleChart series={triangleSeries} />
+        </div>
+        <div class="chart-section">
+          <div class="chart-title">Top 10 Comparison</div>
+          <CandidateComparisonChart
+            series={comparisonSeries}
+            {propertyNames}
+            selectedRank={$selectedIndexStore}
+            onSelect={handleBarSelect}
+          />
         </div>
       </div>
     </div>

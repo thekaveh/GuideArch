@@ -135,6 +135,83 @@ public static class ChartData
     }
 
     // -----------------------------------------------------------------------
+    // Chart C — top-N candidate comparison polylines (legacy "color-coded
+    // comparison chart"). One polyline per top-N candidate; x = property
+    // index, y = sum of modal coefficients across the candidate's
+    // alternatives for that property. Same modal value the fuzzy-triangle
+    // chart uses for its peak — keeps the two charts numerically consistent.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// One polyline per top-N candidate for the Chart C comparison view.
+    /// </summary>
+    /// <param name="Rank">Candidate rank, 0-based — stable across re-solves.</param>
+    /// <param name="Label">Display label, e.g. "#0 (0.0312)".</param>
+    /// <param name="Score">TOPSIS score (for legends).</param>
+    /// <param name="PaletteIndex">Stable index into the comparison palette.</param>
+    /// <param name="Xs">Property indices (0..N-1).</param>
+    /// <param name="Ys">Modal sums per property.</param>
+    public sealed record ComparisonSeries(
+        int Rank,
+        string Label,
+        double Score,
+        int PaletteIndex,
+        double[] Xs,
+        double[] Ys
+    );
+
+    /// <summary>
+    /// Cap on the comparison view — matches the cross-impl agreement (top 10).
+    /// Also caps at the palette size in the View.
+    /// </summary>
+    public const int DefaultComparisonTopN = 10;
+
+    /// <summary>
+    /// Builds the per-candidate polyline series for Chart C. Returns at most
+    /// <paramref name="topN"/> entries, in rank order.
+    /// </summary>
+    public static ImmutableArray<ComparisonSeries> PrepComparisonSeries(
+        ImmutableArray<CandidateM> candidates,
+        ScenarioM scenario,
+        int topN = DefaultComparisonTopN)
+    {
+        if (candidates.IsEmpty || scenario.Properties.IsEmpty)
+            return ImmutableArray<ComparisonSeries>.Empty;
+
+        int n = Math.Min(topN, candidates.Length);
+        var props = scenario.Properties;
+        var xs = Enumerable.Range(0, props.Length).Select(i => (double)i).ToArray();
+
+        var builder = ImmutableArray.CreateBuilder<ComparisonSeries>(n);
+        for (int i = 0; i < n; i++)
+        {
+            var c = candidates[i];
+            var altIds = c.AlternativeIds.ToHashSet();
+            var ys = new double[props.Length];
+            for (int p = 0; p < props.Length; p++)
+            {
+                double sum = 0;
+                var pid = props[p].Id;
+                foreach (var coeff in scenario.Coefficients)
+                {
+                    if (coeff.PropertyId == pid && altIds.Contains(coeff.AlternativeId))
+                        sum += coeff.Value.Modal;
+                }
+                ys[p] = sum;
+            }
+            builder.Add(new ComparisonSeries(
+                Rank: c.Rank,
+                Label: $"#{c.Rank} ({c.Score:G3})",
+                Score: c.Score,
+                PaletteIndex: i,
+                Xs: xs,
+                Ys: ys
+            ));
+        }
+        return builder.ToImmutable();
+    }
+
+    // -----------------------------------------------------------------------
     // Critical decisions display helpers (spec §4)
     // -----------------------------------------------------------------------
 

@@ -105,7 +105,35 @@ public partial class MainWindow : Window
         plotB.Grid.MajorLineColor = Color.FromHex("#313244");
         plotB.XLabel("Value");
         plotB.YLabel("Membership");
+
+        // Chart C — top-10 comparison polylines, dark background
+        var plotC = ChartC.Plot;
+        plotC.FigureBackground.Color = Color.FromHex("#1E1E2E");
+        plotC.DataBackground.Color = Color.FromHex("#181825");
+        plotC.Axes.Color(Color.FromHex("#CDD6F4"));
+        plotC.Grid.MajorLineColor = Color.FromHex("#313244");
+        plotC.Title("Top 10 candidates — modal per property");
+        plotC.XLabel("Property");
+        plotC.YLabel("Modal sum");
     }
+
+    // ScottPlot v5 has no native qualitative palette helper for these specific
+    // hex codes, so we keep our own. Same order as the TS COMPARISON_PALETTE
+    // and the Python COMPARISON_PALETTE so visual identity is stable across
+    // impls and screenshots line up in cross-impl review.
+    private static readonly string[] ComparisonPalette =
+    {
+        "#4e79a7", // blue
+        "#f28e2b", // orange
+        "#e15759", // red
+        "#76b7b2", // teal
+        "#59a14f", // green
+        "#edc948", // yellow
+        "#b07aa1", // purple
+        "#ff9da7", // pink
+        "#9c755f", // brown
+        "#bab0ac", // grey
+    };
 
     // -----------------------------------------------------------------------
     // State-change observer — re-plots charts when relevant state changes
@@ -139,6 +167,7 @@ public partial class MainWindow : Window
 
         RenderChartA(state);
         RenderChartB(state);
+        RenderChartC(state);
 
         // Sync the candidates DataGrid selection row.
         SyncResultsGridSelection(state);
@@ -499,6 +528,98 @@ public partial class MainWindow : Window
         plotB.ShowLegend();
         plotB.Axes.AutoScale();
         ChartB.Refresh();
+    }
+
+    // -----------------------------------------------------------------------
+    // Chart C — top-10 candidate comparison polylines (legacy view)
+    // One polyline per candidate; x = property index, y = modal sum per
+    // property. Click on any line (or its legend) selects that candidate.
+    // -----------------------------------------------------------------------
+
+    private void RenderChartC(ScenarioState state)
+    {
+        var plotC = ChartC.Plot;
+        plotC.Clear();
+
+        if (state.Candidates.IsEmpty || state.Scenario is null)
+        {
+            ChartC.Refresh();
+            return;
+        }
+
+        var series = ChartData.PrepComparisonSeries(state.Candidates, state.Scenario);
+        if (series.IsEmpty)
+        {
+            ChartC.Refresh();
+            return;
+        }
+
+        int selectedRank = state.SelectedCandidateIndex ?? -1;
+
+        for (int i = 0; i < series.Length; i++)
+        {
+            var s = series[i];
+            var hex = ComparisonPalette[s.PaletteIndex % ComparisonPalette.Length];
+            bool isSelected = (s.Rank == selectedRank);
+            // De-emphasise non-selected lines when something is selected, so
+            // the chosen line reads against a faded background.
+            byte alpha = (byte)(selectedRank < 0 ? 230 : (isSelected ? 255 : 70));
+            var baseColor = Color.FromHex(hex);
+            var color = new Color(baseColor.R, baseColor.G, baseColor.B, alpha);
+
+            var line = plotC.Add.ScatterLine(s.Xs, s.Ys, color);
+            line.LineWidth = isSelected ? 2.5f : 1.4f;
+            line.LegendText = s.Label;
+        }
+
+        // X-axis ticks = property names.
+        var props = state.Scenario.Properties;
+        double[] xs = Enumerable.Range(0, props.Length).Select(i => (double)i).ToArray();
+        string[] labels = props.Select(p => p.Name).ToArray();
+        plotC.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.NumericManual(xs, labels);
+
+        plotC.ShowLegend();
+        plotC.Axes.AutoScale();
+        ChartC.Refresh();
+    }
+
+    private void OnChartCPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var state = _vm.Model;
+        if (state.Candidates.IsEmpty || state.Scenario is null) return;
+
+        // Pointer in plot coordinates.
+        var pixel = e.GetPosition(ChartC);
+        var coord = ChartC.Plot.GetCoordinates(
+            (float)pixel.X, (float)pixel.Y,
+            ChartC.Plot.Axes.Bottom, ChartC.Plot.Axes.Left);
+
+        // Pick the nearest polyline at the nearest property-x index.
+        var series = ChartData.PrepComparisonSeries(state.Candidates, state.Scenario);
+        if (series.IsEmpty) return;
+
+        int nearestX = (int)Math.Round(coord.X);
+        if (nearestX < 0 || nearestX >= state.Scenario.Properties.Length) return;
+
+        int hitRank = -1;
+        double bestDy = double.MaxValue;
+        foreach (var s in series)
+        {
+            double y = s.Ys[nearestX];
+            double dy = Math.Abs(y - coord.Y);
+            if (dy < bestDy) { bestDy = dy; hitRank = s.Rank; }
+        }
+
+        if (hitRank < 0) return;
+
+        try
+        {
+            Mutator.SelectCandidate(hitRank);
+        }
+        catch (ScenarioMutationException)
+        {
+            // Out-of-range click — ignore.
+        }
     }
 
     // -----------------------------------------------------------------------
