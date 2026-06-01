@@ -53,6 +53,14 @@
   <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
   <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}" />
 
+  <!-- Muted variants for chip backgrounds (12-14% opacity over the page).
+       Used by status-bar chips and similar low-emphasis surfaces so the
+       fill doesn't compete with the text color it carries. -->
+  <SolidColorBrush x:Key="SuccessMutedBrush" Color="{StaticResource SuccessColor}" Opacity="0.14" />
+  <SolidColorBrush x:Key="WarningMutedBrush" Color="{StaticResource WarningColor}" Opacity="0.14" />
+  <SolidColorBrush x:Key="DangerMutedBrush" Color="{StaticResource DangerColor}" Opacity="0.14" />
+  <SolidColorBrush x:Key="InfoMutedBrush" Color="{StaticResource InfoColor}" Opacity="0.14" />
+
   <!-- §2.5 Fuzzy axes (charts) -->
   <Color x:Key="FuzzyPositiveColor">#34d399</Color>
   <Color x:Key="FuzzyAverageColor">#fbbf24</Color>

@@ -259,6 +259,7 @@ def _render_empty_state(
 
 
 def _status_text(vm: ScenarioVM) -> str:
+    """Legacy fallback for places that still want a flat string."""
     parts: list[str] = []
     if vm.scenario:
         parts.append(vm.scenario.name)
@@ -268,6 +269,63 @@ def _status_text(vm: ScenarioVM) -> str:
     if vm.is_dirty:
         parts.append("[unsaved]")
     return "  ·  ".join(parts)
+
+
+def _render_statusbar(vm: ScenarioVM) -> None:
+    """Render the structured status-bar row in the current container.
+
+    Matches the TS and C# status bars segment-for-segment:
+    scenario name · file path · status · [spacer] · candidates chip ·
+    unsaved chip · warning chip. Called inside a cleared container on
+    every vm change so segments stay in sync.
+    """
+    import os
+
+    # Scenario name (accent)
+    if vm.scenario is not None:
+        ui.label(vm.scenario.name).classes("text-[var(--accent-hover)] font-semibold text-xs")
+
+        # File path basename (muted mono); full path goes in the tooltip
+        if vm.file_path:
+            fp_label = ui.label(os.path.basename(vm.file_path)).classes(
+                "text-[var(--text-muted)] font-mono text-[11px] max-w-[24rem] truncate ml-2"
+            )
+            fp_label.tooltip(vm.file_path)
+
+        ui.label("·").classes("text-[var(--text-muted)] opacity-40 mx-2")
+
+    # Primary status text
+    ui.label(vm.status).classes("text-[var(--text-secondary)] text-xs")
+
+    # Pushes the chips to the right
+    ui.space()
+
+    # Candidate count chip (info)
+    if vm.scenario is not None and vm.candidates:
+        n = len(vm.candidates)
+        ui.label(f"{n} candidate{'s' if n != 1 else ''}").classes(
+            "inline-flex items-center h-5 px-2 rounded-full text-[11px] "
+            "font-medium bg-[color-mix(in_srgb,var(--info)_14%,transparent)] "
+            "text-[var(--info)] tabular-nums"
+        )
+
+    # Unsaved chip (warning)
+    if vm.is_dirty:
+        ui.label("unsaved").classes(
+            "inline-flex items-center h-5 px-2 rounded-full text-[11px] "
+            "font-medium bg-[color-mix(in_srgb,var(--warning)_12%,transparent)] "
+            "text-[var(--warning)] ml-2"
+        )
+
+    # Warning chip (danger color so it distinguishes from unsaved)
+    if vm.warnings:
+        n = len(vm.warnings)
+        warn_label = ui.label(f"⚠ {n} warning{'s' if n != 1 else ''}").classes(
+            "inline-flex items-center h-5 px-2 rounded-full text-[11px] "
+            "font-medium bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] "
+            "text-[var(--danger)] ml-2 cursor-help"
+        )
+        warn_label.tooltip("\n".join(vm.warnings))
 
 
 # ---------------------------------------------------------------------------
@@ -1766,17 +1824,20 @@ def index() -> None:
                 with crit_con_container:
                     _render_critical_constraints_tab(vm, crit_con_container)
 
-        # ── Status bar (§6: 32px tall, 24px h-padding, 12px text-secondary) ─
-        status_label = ui.label(_status_text(vm)).classes(
-            "guidearch-statusbar w-full flex items-center "
-            "bg-[var(--bg-page)] text-[var(--text-secondary)] "
-            "border-t border-[var(--border-subtle)] font-mono"
+        # ── Status bar (§6: 32px tall, 24px h-padding, structured segments) ─
+        status_row = ui.row().classes(
+            "guidearch-statusbar w-full items-center gap-2 "
+            "bg-[var(--bg-page)] border-t border-[var(--border-subtle)]"
         )
+        with status_row:
+            _render_statusbar(vm)
 
     # ── Reactive updates ─────────────────────────────────────────────────────
 
     def _on_vm_change(prop: str) -> None:
-        status_label.set_text(_status_text(vm))
+        status_row.clear()
+        with status_row:
+            _render_statusbar(vm)
         if prop in ("candidates", "selected_candidate_index"):
             res_container.clear()
             with res_container:

@@ -8,14 +8,30 @@
   $: statusStore = vmxToStore(vm, 'status');
   $: warningsStore = vmxToStore(vm, 'warnings');
   $: isDirtyStore = vmxToStore(vm, 'isDirty');
+  $: filePathStore = vmxToStore(vm, 'filePath');
+  $: candidatesStore = vmxToStore(vm, 'candidates');
+
+  function basename(path: string): string {
+    // Display tail only — full path goes in the title attribute on hover.
+    const parts = path.split(/[\\/]/);
+    return parts[parts.length - 1] || path;
+  }
 </script>
 
 <footer class="status-bar">
   {#if $scenarioStore !== undefined}
     <span class="scenario-name">{$scenarioStore.name}</span>
+    {#if $filePathStore !== undefined}
+      <span class="sep">·</span>
+      <span class="file-path" title={$filePathStore}>{basename($filePathStore)}</span>
+    {/if}
     <span class="sep">·</span>
   {/if}
   <span class="status-text">{$statusStore}</span>
+  <span class="spacer"></span>
+  {#if $scenarioStore !== undefined && $candidatesStore.length > 0}
+    <span class="info-chip">{$candidatesStore.length} candidate{$candidatesStore.length !== 1 ? 's' : ''}</span>
+  {/if}
   {#if $isDirtyStore}
     <span class="dirty-chip">unsaved</span>
   {/if}
@@ -46,11 +62,39 @@
     color: var(--accent-hover);
   }
 
+  .file-path {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: help;
+    max-width: 24rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .sep {
     opacity: 0.4;
   }
 
+  .spacer {
+    flex: 1;
+  }
+
   /* §5.6 Status chips — 20px tall, 4/8 padding, 10px radius */
+  .info-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 8px;
+    background: color-mix(in srgb, var(--info) 14%, transparent);
+    color: var(--info);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
   .dirty-chip {
     display: inline-flex;
     align-items: center;
@@ -59,7 +103,7 @@
     background: color-mix(in srgb, var(--warning) 12%, transparent);
     color: var(--warning);
     border-radius: 10px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
   }
 
@@ -68,10 +112,10 @@
     align-items: center;
     height: 20px;
     padding: 0 8px;
-    background: color-mix(in srgb, var(--warning) 12%, transparent);
-    color: var(--warning);
+    background: color-mix(in srgb, var(--danger) 14%, transparent);
+    color: var(--danger);
     border-radius: 10px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     cursor: help;
   }

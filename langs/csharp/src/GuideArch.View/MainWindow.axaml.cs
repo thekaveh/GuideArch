@@ -64,8 +64,12 @@ public partial class MainWindow : Window
         _vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(ComponentVM<ScenarioState>.Model))
+            {
                 OnStateChanged();
+                UpdateStatusFilePath();
+            }
         };
+        UpdateStatusFilePath();
 
         InitCharts();
     }
@@ -90,6 +94,21 @@ public partial class MainWindow : Window
     {
         var current = _appVm.Model.Theme;
         _appCmds.SetTheme(current == "dark" ? "light" : "dark");
+    }
+
+    private void UpdateStatusFilePath()
+    {
+        var label = this.FindControl<TextBlock>("StatusFilePath");
+        if (label is null) return;
+        var path = _vm.Model.FilePath;
+        if (string.IsNullOrEmpty(path))
+        {
+            label.IsVisible = false;
+            return;
+        }
+        label.Text = Path.GetFileName(path);
+        ToolTip.SetTip(label, path);
+        label.IsVisible = true;
     }
 
     // -----------------------------------------------------------------------

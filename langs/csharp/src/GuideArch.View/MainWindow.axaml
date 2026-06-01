@@ -139,21 +139,76 @@
             BorderThickness="0,1,0,0"
             Height="32"
             Padding="24,0">
-      <Grid ColumnDefinitions="*,Auto">
-        <!-- Status text — scenario name · n candidates -->
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto">
+        <!-- Scenario name -->
         <TextBlock Grid.Column="0"
+                   Text="{ReflectionBinding Model.Scenario.Name}"
+                   FontSize="12"
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource AccentHoverBrush}"
+                   VerticalAlignment="Center"
+                   IsVisible="{ReflectionBinding Model.HasScenario}" />
+        <!-- File path (basename only; full path in tooltip) -->
+        <TextBlock Grid.Column="1"
+                   Name="StatusFilePath"
+                   FontSize="11"
+                   FontFamily="Cascadia Code,Consolas,monospace"
+                   Foreground="{StaticResource TextMutedBrush}"
+                   VerticalAlignment="Center"
+                   Margin="8,0,0,0"
+                   IsVisible="False" />
+        <!-- Status text -->
+        <TextBlock Grid.Column="2"
                    Text="{ReflectionBinding Model.Status}"
                    FontSize="12"
                    Foreground="{StaticResource TextSecondaryBrush}"
-                   VerticalAlignment="Center" />
-        <!-- Warnings chip — shows last warning if any -->
-        <TextBlock Grid.Column="1"
-                   Text="{ReflectionBinding Model.Warnings[0]}"
-                   FontSize="11"
-                   Foreground="{StaticResource DangerBrush}"
                    VerticalAlignment="Center"
-                   Margin="16,0,0,0"
-                   IsVisible="{ReflectionBinding !Model.Warnings.IsEmpty}" />
+                   Margin="12,0,0,0" />
+
+        <!-- Spacer column 3 is *  -->
+
+        <!-- Candidates chip -->
+        <Border Grid.Column="4"
+                Background="{DynamicResource InfoMutedBrush}"
+                CornerRadius="10"
+                Padding="8,2"
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                IsVisible="{ReflectionBinding Model.HasScenario}">
+          <TextBlock Text="{ReflectionBinding Model.Candidates.Length, StringFormat={}{0} candidates}"
+                     FontSize="11"
+                     FontWeight="Medium"
+                     Foreground="{StaticResource InfoBrush}" />
+        </Border>
+
+        <!-- Dirty chip -->
+        <Border Grid.Column="5"
+                Background="{DynamicResource WarningMutedBrush}"
+                CornerRadius="10"
+                Padding="8,2"
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                IsVisible="{ReflectionBinding Model.IsDirty}">
+          <TextBlock Text="unsaved"
+                     FontSize="11"
+                     FontWeight="Medium"
+                     Foreground="{StaticResource WarningBrush}" />
+        </Border>
+
+        <!-- Warnings chip — shows last warning if any -->
+        <Border Grid.Column="6"
+                Background="{DynamicResource DangerMutedBrush}"
+                CornerRadius="10"
+                Padding="8,2"
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                ToolTip.Tip="{ReflectionBinding Model.Warnings[0]}"
+                IsVisible="{ReflectionBinding !Model.Warnings.IsEmpty}">
+          <TextBlock Text="⚠ warning"
+                     FontSize="11"
+                     FontWeight="Medium"
+                     Foreground="{StaticResource DangerBrush}" />
+        </Border>
       </Grid>
     </Border>
 
