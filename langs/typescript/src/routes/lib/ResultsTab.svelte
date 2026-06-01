@@ -36,6 +36,18 @@
   $: comparisonSeries = buildComparisonSeries($candidatesStore, properties, coefficients, 10);
   $: propertyNames = properties.map((p) => p.name);
 
+  // Right-rail sub-tabs. The three charts share the rail; the user
+  // picks one and it fills the available vertical space rather than
+  // splitting it three ways. Default is Ranking — the bar chart is
+  // the most familiar entry point.
+  type RightTab = 'ranking' | 'profile' | 'compare';
+  let activeRightTab: RightTab = 'ranking';
+  const RIGHT_TABS: { id: RightTab; label: string }[] = [
+    { id: 'ranking', label: 'Ranking' },
+    { id: 'profile', label: 'Profile' },
+    { id: 'compare', label: 'Compare' },
+  ];
+
   function altName(id: string): string {
     return alternatives.find((a) => a.id === id)?.name ?? id;
   }
@@ -100,30 +112,47 @@
         </div>
       </div>
 
-      <!-- Right: charts (~40%) -->
+      <!-- Right: chart sub-tabs (~40%) -->
       <div class="right-pane">
-        <div class="chart-section">
-          <div class="chart-title">Top 30 by Score</div>
-          <RankedCandidatesChart
-            data={barData}
-            selectedIndex={$selectedIndexStore}
-            onSelect={handleBarSelect}
-          />
+        <div class="right-tabs" role="tablist" aria-label="Charts">
+          {#each RIGHT_TABS as t (t.id)}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeRightTab === t.id}
+              class="right-tab"
+              class:active={activeRightTab === t.id}
+              on:click={() => (activeRightTab = t.id)}
+            >
+              {t.label}
+            </button>
+          {/each}
         </div>
+
         <div class="chart-section">
-          <div class="chart-title">
-            Fuzzy Profile{selectedCandidate !== null ? ` — Rank ${selectedCandidate.rank}` : ''}
-          </div>
-          <FuzzyTriangleChart series={triangleSeries} />
-        </div>
-        <div class="chart-section">
-          <div class="chart-title">Top 10 Comparison</div>
-          <CandidateComparisonChart
-            series={comparisonSeries}
-            {propertyNames}
-            selectedRank={$selectedIndexStore}
-            onSelect={handleBarSelect}
-          />
+          {#if activeRightTab === 'ranking'}
+            <div class="chart-title">Top 30 by Score</div>
+            <RankedCandidatesChart
+              data={barData}
+              selectedIndex={$selectedIndexStore}
+              onSelect={handleBarSelect}
+            />
+          {:else if activeRightTab === 'profile'}
+            <div class="chart-title">
+              Fuzzy Profile{selectedCandidate !== null
+                ? ` — Rank ${selectedCandidate.rank}`
+                : ''}
+            </div>
+            <FuzzyTriangleChart series={triangleSeries} />
+          {:else}
+            <div class="chart-title">Top 10 Comparison</div>
+            <CandidateComparisonChart
+              series={comparisonSeries}
+              {propertyNames}
+              selectedRank={$selectedIndexStore}
+              onSelect={handleBarSelect}
+            />
+          {/if}
         </div>
       </div>
     </div>
@@ -187,11 +216,44 @@
     flex: 0 0 40%;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+    overflow: hidden;
     padding: 12px;
-    gap: 12px;
+    gap: 8px;
     min-height: 0;
     background: var(--bg-surface);
+  }
+
+  /* Sub-tabs for the right rail charts */
+  .right-tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+
+  .right-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 80ms ease-out, color 80ms ease-out;
+  }
+
+  .right-tab:hover {
+    color: var(--text-primary);
+  }
+
+  .right-tab.active {
+    background: var(--accent);
+    color: var(--accent-on);
   }
 
   /* §5.5 Card for chart sections */
@@ -203,6 +265,9 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
   }
 
   .chart-title {

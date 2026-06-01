@@ -77,7 +77,7 @@
 </script>
 
 <div class="app-shell">
-  <Toolbar {vm} onError={showError} />
+  <Toolbar {vm} {app} onError={showError} />
   <TabStrip tabs={[...TABS]} active={activeTab} onSelect={(t) => (activeTab = t as Tab)} />
 
   <div class="tab-body">

@@ -70,7 +70,7 @@ public partial class MainWindow : Window
         InitCharts();
     }
 
-    private static void ApplyTheme(string theme)
+    private void ApplyTheme(string theme)
     {
         var app = Avalonia.Application.Current;
         if (app is null) return;
@@ -80,6 +80,16 @@ public partial class MainWindow : Window
             "dark" => Avalonia.Styling.ThemeVariant.Dark,
             _ => Avalonia.Styling.ThemeVariant.Default,
         };
+        // Update the toolbar's theme-toggle icon to reflect what the click
+        // will switch *to* next (sun while in dark mode, moon while in light).
+        var icon = this.FindControl<TextBlock>("ThemeIcon");
+        if (icon is not null) icon.Text = theme == "dark" ? "☀" : "🌙";
+    }
+
+    private void OnThemeToggleClicked(object? sender, RoutedEventArgs e)
+    {
+        var current = _appVm.Model.Theme;
+        _appCmds.SetTheme(current == "dark" ? "light" : "dark");
     }
 
     // -----------------------------------------------------------------------

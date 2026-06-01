@@ -1,12 +1,19 @@
 <script lang="ts">
   import type { ScenarioVM } from '../../viewmodels/scenario-vm.js';
   import type { ScenarioM } from '../../models/scenario.js';
+  import type { AppVM } from '../../viewmodels/app-vm.js';
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import { SAMPLES } from '../../samples/index.js';
 
   export let vm: ScenarioVM;
+  export let app: AppVM;
   export let onError: (msg: string) => void = () => {};
+
+  $: themeStore = vmxToStore(app, 'theme');
+  function toggleTheme() {
+    app.setTheme($themeStore === 'dark' ? 'light' : 'dark');
+  }
 
   let fileInputEl: HTMLInputElement;
 
@@ -172,6 +179,28 @@
     <button class="btn" disabled={!canSaveAs} on:click={handleSaveAs}>Save As…</button>
   </div>
   <span class="spacer"></span>
+  <button
+    class="btn-icon"
+    type="button"
+    title={$themeStore === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+    aria-label={$themeStore === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+    on:click={toggleTheme}
+  >
+    {#if $themeStore === 'dark'}
+      <!-- Sun: clicking will switch to light -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      </svg>
+    {:else}
+      <!-- Moon: clicking will switch to dark -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+      </svg>
+    {/if}
+  </button>
   <button class="btn btn-solve" disabled={$scenarioStore === undefined} on:click={handleSolve}>
     Solve
   </button>
@@ -246,6 +275,28 @@
 
   .spacer {
     flex: 1;
+  }
+
+  /* Theme toggle: square icon button, ghost style */
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 80ms ease-out, color 80ms ease-out, border-color 80ms ease-out;
+  }
+
+  .btn-icon:hover {
+    background: var(--bg-surface-2);
+    color: var(--text-primary);
+    border-color: var(--border-strong);
   }
 
   /* Primary button — Solve */

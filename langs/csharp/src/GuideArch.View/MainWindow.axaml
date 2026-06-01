@@ -81,6 +81,22 @@
         <!-- Flexible spacer -->
         <Panel HorizontalAlignment="Stretch" />
 
+        <!-- Theme toggle: clicking flips AppVM.Theme between dark and light.
+             The label updates from code-behind so the moon/sun feedback
+             matches the current theme. -->
+        <Button Name="BtnTheme"
+                ToolTip.Tip="Toggle theme"
+                Classes="toolbar-btn icon-btn"
+                Width="32"
+                Padding="0"
+                Click="OnThemeToggleClicked">
+          <TextBlock Name="ThemeIcon"
+                     Text="🌙"
+                     FontSize="14"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center" />
+        </Button>
+
         <!-- Solve -->
         <Button Name="BtnSolve"
                 Content="Solve"
@@ -478,26 +494,31 @@
               </DataGrid.Columns>
             </DataGrid>
 
-            <!-- Right: three stacked ScottPlot charts -->
-            <Grid Grid.Column="1"
-                  RowDefinitions="*,*,*"
-                  Margin="12,0,24,24">
+            <!-- Right: sub-tabbed ScottPlot charts so each gets full
+                 vertical real estate instead of splitting the rail three
+                 ways. Default tab = Ranking (the bar chart is the most
+                 familiar entry point). All three plots stay constructed
+                 so plot state survives tab switches. -->
+            <TabControl Grid.Column="1"
+                        Name="RightTabs"
+                        Margin="12,0,24,24"
+                        TabStripPlacement="Top">
 
-              <!-- Chart A: horizontal bar chart of top 30 candidates (spec charts.md §2) -->
-              <scottplot:AvaPlot Grid.Row="0"
-                                 Name="ChartA"
-                                 PointerPressed="OnChartAPointerPressed" />
+              <TabItem Header="Ranking">
+                <scottplot:AvaPlot Name="ChartA"
+                                   PointerPressed="OnChartAPointerPressed" />
+              </TabItem>
 
-              <!-- Chart B: triangle series for selected candidate (spec charts.md §3) -->
-              <scottplot:AvaPlot Grid.Row="1"
-                                 Name="ChartB" />
+              <TabItem Header="Profile">
+                <scottplot:AvaPlot Name="ChartB" />
+              </TabItem>
 
-              <!-- Chart C: top-10 candidate comparison polylines (legacy view) -->
-              <scottplot:AvaPlot Grid.Row="2"
-                                 Name="ChartC"
-                                 PointerPressed="OnChartCPointerPressed" />
+              <TabItem Header="Compare">
+                <scottplot:AvaPlot Name="ChartC"
+                                   PointerPressed="OnChartCPointerPressed" />
+              </TabItem>
 
-            </Grid>
+            </TabControl>
 
           </Grid>
 

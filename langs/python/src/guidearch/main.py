@@ -1247,58 +1247,70 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                 lambda e, v=vm: _on_candidate_row_click(v, e),
             )
 
-        # Right: charts (fixed ~420px, or 40%)
-        with ui.column().classes("w-96 gap-3 shrink-0"):
+        # Right: chart sub-tabs (Ranking / Profile / Compare). Each tab
+        # gets the full vertical space of the column instead of three
+        # cramped panels. Default = Ranking (familiar entry point).
+        with ui.column().classes("w-96 gap-2 shrink-0"):
             from guidearch.view.chart_data import (
                 candidates_bar_option,
                 comparison_option,
                 triangle_option,
             )
 
-            # Chart A — bar chart
-            chart_a_opt = candidates_bar_option(top30, alt_map, vm.selected_candidate_index)
-            chart_a = (
-                ui.echart(chart_a_opt)
-                .classes("w-full rounded border border-[var(--border-strong)]")
-                .style("height:280px; background: var(--bg-surface);")
-            )
+            with ui.tabs().classes("w-full bg-[var(--bg-surface-2)] rounded") as chart_tabs:
+                tab_rank = ui.tab("Ranking")
+                tab_profile = ui.tab("Profile")
+                tab_compare = ui.tab("Compare")
 
-            # Chart A click handler
-            chart_a.on(
-                "click",
-                lambda e, v=vm, cands=top30: _on_chart_a_click(v, cands, e),
-            )
+            with (
+                ui.tab_panels(chart_tabs, value=tab_rank)
+                .classes("w-full bg-transparent")
+                .props("dark")
+            ):
+                with ui.tab_panel(tab_rank).classes("p-0"):
+                    # Chart A — bar chart
+                    chart_a_opt = candidates_bar_option(top30, alt_map, vm.selected_candidate_index)
+                    chart_a = (
+                        ui.echart(chart_a_opt)
+                        .classes("w-full rounded border border-[var(--border-strong)]")
+                        .style("height:520px; background: var(--bg-surface);")
+                    )
+                    chart_a.on(
+                        "click",
+                        lambda e, v=vm, cands=top30: _on_chart_a_click(v, cands, e),
+                    )
 
-            # Chart B — triangle
-            sel = vm.selected_candidate_index
-            if sel is not None and sel < len(candidates):
-                selected_cand = candidates[sel]
-                chart_b_opt = triangle_option(selected_cand, prop_names, alt_map)
-            else:
-                chart_b_opt = triangle_option(candidates[0], prop_names, alt_map)
-            (
-                ui.echart(chart_b_opt)
-                .classes("w-full rounded border border-[var(--border-strong)]")
-                .style("height:280px; background: var(--bg-surface);")
-            )
+                with ui.tab_panel(tab_profile).classes("p-0"):
+                    # Chart B — triangle for selected candidate
+                    sel = vm.selected_candidate_index
+                    if sel is not None and sel < len(candidates):
+                        selected_cand = candidates[sel]
+                        chart_b_opt = triangle_option(selected_cand, prop_names, alt_map)
+                    else:
+                        chart_b_opt = triangle_option(candidates[0], prop_names, alt_map)
+                    (
+                        ui.echart(chart_b_opt)
+                        .classes("w-full rounded border border-[var(--border-strong)]")
+                        .style("height:520px; background: var(--bg-surface);")
+                    )
 
-            # Chart C — top-10 polyline comparison across properties
-            chart_c_opt = comparison_option(
-                candidates,
-                tuple(scenario.properties),
-                tuple(scenario.coefficients),
-                vm.selected_candidate_index,
-            )
-            chart_c = (
-                ui.echart(chart_c_opt)
-                .classes("w-full rounded border border-[var(--border-strong)]")
-                .style("height:300px; background: var(--bg-surface);")
-            )
-            # Clicking a legend entry or polyline selects that candidate.
-            chart_c.on(
-                "click",
-                lambda e, v=vm, cands=candidates: _on_chart_c_click(v, cands, e),
-            )
+                with ui.tab_panel(tab_compare).classes("p-0"):
+                    # Chart C — top-10 polyline comparison across properties
+                    chart_c_opt = comparison_option(
+                        candidates,
+                        tuple(scenario.properties),
+                        tuple(scenario.coefficients),
+                        vm.selected_candidate_index,
+                    )
+                    chart_c = (
+                        ui.echart(chart_c_opt)
+                        .classes("w-full rounded border border-[var(--border-strong)]")
+                        .style("height:520px; background: var(--bg-surface);")
+                    )
+                    chart_c.on(
+                        "click",
+                        lambda e, v=vm, cands=candidates: _on_chart_c_click(v, cands, e),
+                    )
 
 
 def _on_candidate_row_click(vm: ScenarioVM, event: Any) -> None:
@@ -1649,6 +1661,21 @@ def index() -> None:
                 ).props("flat color=white")
 
             ui.space()
+
+            # Theme toggle: flips AppVM.Theme; the on-page dark_mode
+            # subscription rewires the Quasar dark class on each change.
+            theme_btn = ui.button(
+                icon="dark_mode" if app_vm.theme == "light" else "light_mode",
+                on_click=lambda: app_vm.set_theme("light" if app_vm.theme == "dark" else "dark"),
+            ).props("flat color=white")
+            theme_btn.tooltip("Toggle theme")
+
+            def _refresh_theme_icon(name: str) -> None:
+                if name != "theme":
+                    return
+                theme_btn.props(f"icon={'dark_mode' if app_vm.theme == 'light' else 'light_mode'}")
+
+            app_vm.property_changed.subscribe(on_next=_refresh_theme_icon)
 
             # §5.1 Primary button: accent bg, accent-on text, 8/16 padding, 6px radius
             ui.button(
