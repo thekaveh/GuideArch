@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ScenarioVM } from '../../viewmodels/scenario-vm.js';
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
+  import EmptyState from './EmptyState.svelte';
 
   export let vm: ScenarioVM;
 

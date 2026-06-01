@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ScenarioVM } from '../../viewmodels/scenario-vm.js';
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
+  import EmptyState from './EmptyState.svelte';
 
   export let vm: ScenarioVM;
 
@@ -26,12 +27,10 @@
       </div>
     </div>
   {:else if sorted.length === 0}
-    <div class="empty">
-      <div class="empty-headline">No constraints found.</div>
-      <div class="empty-body">
-        Add constraints on the <strong>Constraints</strong> tab, then solve to see their impact here.
-      </div>
-    </div>
+    <EmptyState
+      headline="No constraints to analyze"
+      body="Critical-constraint analysis shows which constraints eliminate the most candidates. Add a constraint on the Constraints tab and Solve to see its impact ranked here."
+    />
   {:else}
     <div class="table-wrap">
       <table>

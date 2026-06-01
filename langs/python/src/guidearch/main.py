@@ -1162,13 +1162,14 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
 
     candidates = vm.candidates
     if not candidates:
-        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
-            ui.label("No candidates — check scenario and constraints.").classes(
-                "text-[var(--text-secondary)] text-sm font-medium"
-            )
-            ui.label("All architecture combinations may be eliminated by constraints.").classes(
-                "text-[var(--text-muted)] text-xs"
-            )
+        _render_empty_state(
+            headline="No feasible candidates",
+            body=(
+                "Every alternative combination was eliminated by constraints, or "
+                "the scenario has no alternatives yet. Relax constraints or add "
+                "alternatives to see ranked candidates here."
+            ),
+        )
         return
 
     alt_map, alt_dec, _ = _build_alt_maps(vm)
@@ -1373,13 +1374,14 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
 
     crit = vm.critical_decisions
     if not crit:
-        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
-            ui.label("No critical decisions computed yet.").classes(
-                "text-[var(--text-secondary)] text-sm font-medium"
-            )
-            ui.label("Click Solve to compute critical decisions.").classes(
-                "text-[var(--text-muted)] text-xs"
-            )
+        _render_empty_state(
+            headline="No critical decisions computed",
+            body=(
+                "Critical-decision analysis tells you which architectural choices "
+                "move the result most. Add decisions and alternatives, then Solve to "
+                "see them ranked here."
+            ),
+        )
         return
 
     dec_map = {d.id: d.name for d in scenario.decisions}
@@ -1433,13 +1435,14 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
 
     crit = vm.critical_constraints
     if not crit:
-        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
-            ui.label("No constraints active — add constraints to see analysis.").classes(
-                "text-[var(--text-secondary)] text-sm font-medium"
-            )
-            ui.label("Threshold, dependency, and conflict constraints appear here.").classes(
-                "text-[var(--text-muted)] text-xs"
-            )
+        _render_empty_state(
+            headline="No constraints to analyze",
+            body=(
+                "Critical-constraint analysis shows which constraints eliminate "
+                "the most candidates. Add a constraint on the Constraints tab and "
+                "Solve to see its impact ranked here."
+            ),
+        )
         return
 
     # Sort descending by eliminated (most-binding first)
