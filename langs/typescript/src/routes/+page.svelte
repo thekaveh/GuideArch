@@ -14,6 +14,7 @@
   import CriticalDecisionsTab from './lib/CriticalDecisionsTab.svelte';
   import CriticalConstraintsTab from './lib/CriticalConstraintsTab.svelte';
   import EmptyState from './lib/EmptyState.svelte';
+  import ConfirmDialog from './lib/ConfirmDialog.svelte';
   import { SAMPLES } from '../samples/index.js';
 
   // AppVM is the root VM. Tabs and the toolbar continue to bind to
@@ -115,6 +116,8 @@
 
   <StatusBar {vm} />
 </div>
+
+<ConfirmDialog />
 
 <!-- Error modal -->
 {#if errorMessage !== null}

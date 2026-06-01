@@ -5,6 +5,7 @@
   import EmptyState from './EmptyState.svelte';
   import SectionHeader from './SectionHeader.svelte';
   import { SAMPLES } from '../../samples/index.js';
+  import { confirmDialog } from './confirm-dialog.js';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -28,9 +29,14 @@
     }
   }
 
-  function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete decision "${name}" and all its alternatives? This cannot be undone.`))
-      return;
+  async function handleDelete(id: string, name: string) {
+    const ok = await confirmDialog({
+      title: `Delete decision "${name}"?`,
+      body: 'This cascades into all the decision\'s alternatives, coefficients, and any constraints that reference them. The deletion is permanent.',
+      confirmLabel: 'Delete decision',
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       vm.deleteDecision(id);
     } catch (err) {

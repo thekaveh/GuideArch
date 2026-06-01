@@ -4,6 +4,7 @@
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import EmptyState from './EmptyState.svelte';
   import SectionHeader from './SectionHeader.svelte';
+  import { confirmDialog } from './confirm-dialog.js';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -20,13 +21,14 @@
     }
   }
 
-  function handleDelete(id: string, name: string) {
-    if (
-      !confirm(
-        `Delete property "${name}"? This removes its coefficients and threshold constraints.`,
-      )
-    )
-      return;
+  async function handleDelete(id: string, name: string) {
+    const ok = await confirmDialog({
+      title: `Delete property "${name}"?`,
+      body: 'This also removes the property\'s coefficients across every alternative and any threshold constraints that reference it.',
+      confirmLabel: 'Delete property',
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       vm.deleteProperty(id);
     } catch (err) {

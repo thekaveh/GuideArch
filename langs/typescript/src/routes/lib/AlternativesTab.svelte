@@ -4,6 +4,7 @@
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import EmptyState from './EmptyState.svelte';
   import SectionHeader from './SectionHeader.svelte';
+  import { confirmDialog } from './confirm-dialog.js';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -25,9 +26,14 @@
     }
   }
 
-  function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete alternative "${name}"? This removes its coefficients and constraints.`))
-      return;
+  async function handleDelete(id: string, name: string) {
+    const ok = await confirmDialog({
+      title: `Delete alternative "${name}"?`,
+      body: 'This also removes the alternative\'s coefficients and any dependency or conflict constraints that reference it.',
+      confirmLabel: 'Delete alternative',
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       vm.deleteAlternative(id);
     } catch (err) {

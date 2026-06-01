@@ -4,6 +4,7 @@
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import type { ConstraintM } from '../../models/constraint.js';
   import SectionHeader from './SectionHeader.svelte';
+  import { confirmDialog } from './confirm-dialog.js';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -43,8 +44,14 @@
     return dec ? `${dec.name} / ${alt.name}` : alt.name;
   }
 
-  function deleteConstraint(index: number) {
-    if (!confirm('Delete this constraint?')) return;
+  async function deleteConstraint(index: number) {
+    const ok = await confirmDialog({
+      title: 'Delete this constraint?',
+      body: 'The constraint will be removed and the scenario will re-solve, which may surface candidates the constraint was previously eliminating.',
+      confirmLabel: 'Delete constraint',
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       vm.deleteConstraint(index);
     } catch (err) {

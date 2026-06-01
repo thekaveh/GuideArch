@@ -5,6 +5,7 @@
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import { SAMPLES } from '../../samples/index.js';
+  import { confirmDialog } from './confirm-dialog.js';
 
   export let vm: ScenarioVM;
   export let app: AppVM;
@@ -34,22 +35,28 @@
   // each replaces the current scenario, so each should ask the same
   // question (the earlier code only gated New, which let an Open silently
   // discard edits).
-  function _confirmDiscardIfDirty(action: string): boolean {
-    return !vm.model.isDirty || confirm(`You have unsaved changes. ${action} anyway?`);
+  async function _confirmDiscardIfDirty(action: string): Promise<boolean> {
+    if (!vm.model.isDirty) return true;
+    return confirmDialog({
+      title: 'Discard unsaved changes?',
+      body: `You have unsaved changes. ${action} anyway?`,
+      confirmLabel: 'Discard',
+      destructive: true,
+    });
   }
 
-  function handleNew() {
-    if (!_confirmDiscardIfDirty('Create a new scenario')) return;
+  async function handleNew() {
+    if (!(await _confirmDiscardIfDirty('Create a new scenario'))) return;
     vm.newCmd.execute();
   }
 
-  function handleOpenClick() {
-    if (!_confirmDiscardIfDirty('Open a scenario')) return;
+  async function handleOpenClick() {
+    if (!(await _confirmDiscardIfDirty('Open a scenario'))) return;
     fileInputEl.click();
   }
 
-  function handleOpenSample(index: number) {
-    if (!_confirmDiscardIfDirty('Load a sample scenario')) return;
+  async function handleOpenSample(index: number) {
+    if (!(await _confirmDiscardIfDirty('Load a sample scenario'))) return;
     const sample = SAMPLES[index];
     // _browserOpen is part of the ScenarioVM interface (declared in
     // scenario-vm.ts) and the factory always installs it, so the hook is
