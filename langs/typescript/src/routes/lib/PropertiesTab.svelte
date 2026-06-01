@@ -3,6 +3,7 @@
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import EmptyState from './EmptyState.svelte';
+  import SectionHeader from './SectionHeader.svelte';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -89,14 +90,17 @@
       </div>
     </div>
   {:else}
-    <div class="tab-toolbar">
-      <button class="btn-add" on:click={handleAdd}>+ Add Property</button>
-    </div>
+    <SectionHeader
+      title="Properties"
+      subtitle="Quality criteria — each with a kind (max / min) and a weight; together they decide how candidates rank."
+      action={{ label: '+ Add Property', onClick: handleAdd }}
+    />
     {#if properties.length === 0}
-      <div class="empty">
-        <div class="empty-headline">No properties yet.</div>
-        <div class="empty-body">Click <strong>+ Add Property</strong> above to create one.</div>
-      </div>
+      <EmptyState
+        headline="No properties yet"
+        body="Quality properties — performance, cost, reliability — are how candidates get ranked. Add at least one, then weight it."
+        primary={{ label: '+ Add Property', onClick: handleAdd }}
+      />
     {:else}
       <div class="table-wrap">
         <table>
@@ -162,34 +166,6 @@
     flex-direction: column;
     height: 100%;
     overflow: hidden;
-  }
-
-  .tab-toolbar {
-    display: flex;
-    align-items: center;
-    height: 40px;
-    padding: 0 24px;
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-    gap: 8px;
-  }
-
-  /* Secondary button */
-  .btn-add {
-    height: 28px;
-    padding: 0 16px;
-    background: transparent;
-    color: var(--text-primary);
-    border: 1px solid var(--border-strong);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: background 120ms ease-out;
-  }
-
-  .btn-add:hover {
-    background: var(--bg-surface-2);
   }
 
   /* §8 Empty state */

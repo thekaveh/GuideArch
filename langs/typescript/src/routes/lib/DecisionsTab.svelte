@@ -3,6 +3,7 @@
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import EmptyState from './EmptyState.svelte';
+  import SectionHeader from './SectionHeader.svelte';
   import { SAMPLES } from '../../samples/index.js';
 
   export let vm: ScenarioVM;
@@ -65,9 +66,11 @@
       secondary={{ label: 'Open Sample EDS', onClick: () => openSample(1) }}
     />
   {:else}
-    <div class="tab-toolbar">
-      <button class="btn-add" on:click={handleAdd}>+ Add Decision</button>
-    </div>
+    <SectionHeader
+      title="Decisions"
+      subtitle="Architectural choices you'll resolve by picking one alternative each."
+      action={{ label: '+ Add Decision', onClick: handleAdd }}
+    />
     {#if decisions.length === 0}
       <EmptyState
         headline="No decisions yet"
@@ -116,34 +119,6 @@
     flex-direction: column;
     height: 100%;
     overflow: hidden;
-  }
-
-  .tab-toolbar {
-    display: flex;
-    align-items: center;
-    height: 40px;
-    padding: 0 24px;
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-    gap: 8px;
-  }
-
-  /* Secondary button — §5.1 */
-  .btn-add {
-    height: 28px;
-    padding: 0 16px;
-    background: transparent;
-    color: var(--text-primary);
-    border: 1px solid var(--border-strong);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: background 120ms ease-out;
-  }
-
-  .btn-add:hover {
-    background: var(--bg-surface-2);
   }
 
   .table-wrap {

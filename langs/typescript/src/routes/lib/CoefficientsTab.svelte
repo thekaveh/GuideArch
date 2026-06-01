@@ -4,6 +4,7 @@
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import FuzzyInput from './FuzzyInput.svelte';
   import EmptyState from './EmptyState.svelte';
+  import SectionHeader from './SectionHeader.svelte';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -52,6 +53,10 @@
       body="The matrix needs at least one decision and one property. Add them on their tabs and the cells will populate here automatically."
     />
   {:else}
+    <SectionHeader
+      title="Coefficients"
+      subtitle="Fuzzy values per (alternative, property): lower · modal · upper. Edit to shift how each alternative scores."
+    />
     <div class="grid-wrap">
       <table class="coeff-table">
         <thead>

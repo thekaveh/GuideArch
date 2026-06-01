@@ -3,6 +3,7 @@
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import EmptyState from './EmptyState.svelte';
+  import SectionHeader from './SectionHeader.svelte';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -66,6 +67,10 @@
       body="Alternatives belong to decisions. Switch to the Decisions tab and add at least one before coming back here."
     />
   {:else}
+    <SectionHeader
+      title="Alternatives"
+      subtitle="Concrete options under each decision; pick one per decision to form a candidate."
+    />
     <div class="table-wrap">
       {#each decisions as dec (dec.id)}
         <div class="decision-group">

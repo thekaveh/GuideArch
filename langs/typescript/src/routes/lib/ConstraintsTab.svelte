@@ -3,6 +3,7 @@
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import type { ConstraintM } from '../../models/constraint.js';
+  import SectionHeader from './SectionHeader.svelte';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -218,6 +219,10 @@
       </div>
     </div>
   {:else}
+    <SectionHeader
+      title="Constraints"
+      subtitle="Rules that eliminate candidates: thresholds bound a single property; dependencies require pairings; conflicts forbid them."
+    />
     <nav class="sub-tabs">
       {#each ['Threshold', 'Dependency', 'Conflict'] as t (t)}
         <button
