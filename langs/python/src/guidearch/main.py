@@ -1805,17 +1805,22 @@ def index() -> None:
             ).props("color=primary")
 
         # ── Tab strip (§5.4: 40px tall, border-subtle underline) ───────────
+        # Material icons mirror the TS and C# tab icon assignments so the
+        # apps read as one product. Authoring tabs first, analysis tabs
+        # after — Quasar QTabs doesn't natively render a separator between
+        # them; the icon difference (target / shield-alert vs the editor
+        # icons) does the grouping work visually.
         with ui.tabs().classes(
             "w-full bg-[var(--bg-surface)] text-[var(--text-secondary)]"
         ) as tabs:
-            tab_decisions = ui.tab("Decisions")
-            tab_alts = ui.tab("Alternatives")
-            tab_props = ui.tab("Properties")
-            tab_coefs = ui.tab("Coefficients")
-            tab_constraints = ui.tab("Constraints")
-            tab_results = ui.tab("Results")
-            tab_crit_dec = ui.tab("Critical Decisions")
-            tab_crit_con = ui.tab("Critical Constraints")
+            tab_decisions = ui.tab("Decisions", icon="account_tree")
+            tab_alts = ui.tab("Alternatives", icon="layers")
+            tab_props = ui.tab("Properties", icon="tune")
+            tab_coefs = ui.tab("Coefficients", icon="grid_on")
+            tab_constraints = ui.tab("Constraints", icon="filter_alt")
+            tab_results = ui.tab("Results", icon="bar_chart")
+            tab_crit_dec = ui.tab("Critical Decisions", icon="gps_fixed")
+            tab_crit_con = ui.tab("Critical Constraints", icon="shield")
 
         # ── Tab panels ──────────────────────────────────────────────────────
         # §6 Main pane: bg-page, 24px padding (applied per tab panel)
