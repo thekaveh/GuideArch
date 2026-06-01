@@ -33,6 +33,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+from collections.abc import Callable
 from typing import Any
 
 from nicegui import ui
@@ -146,6 +147,113 @@ def _download_scenario(vm: ScenarioVM) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Empty-state helper (§8) — used by every tab when no scenario is loaded
+# or when a tab has no rows yet. The hero variant carries an SVG
+# illustration and CTAs; the compact variant is a smaller inline panel.
+# Mirrors langs/typescript/src/routes/lib/EmptyState.svelte and the
+# C# MainWindow.axaml first-launch hero so the visual identity is the
+# same across all three impls.
+# ---------------------------------------------------------------------------
+
+
+def _render_first_launch_hero(vm: ScenarioVM) -> None:
+    """Render the unified first-launch hero. Called from every tab's
+    "no scenario loaded" branch so the user sees the same welcome
+    regardless of which tab they happen to land on first."""
+    _render_empty_state(
+        hero=True,
+        kicker="Welcome to GuideArch",
+        headline="Pick a software architecture, with fuzzy TOPSIS.",
+        body=(
+            "Model decisions, alternatives, weighted quality properties, "
+            "and constraints. GuideArch ranks every feasible candidate, then "
+            "shows which decisions move the result most and which constraints "
+            "bind hardest. Start with a bundled sample to see it in action."
+        ),
+        primary=("Open Sample SAS", lambda: _open_sample_by_id(vm, "sas")),
+        secondary=("Open Sample EDS", lambda: _open_sample_by_id(vm, "eds")),
+    )
+
+
+def _open_sample_by_id(vm: ScenarioVM, sample_id: str) -> None:
+    """Load a bundled sample by id ("sas" / "eds"). Used by hero CTAs.
+
+    No dirty-discard prompt — hero CTAs only render when no scenario is
+    loaded, so there is nothing to lose.
+    """
+    from guidearch.samples import SAMPLES as _SAMPLES
+
+    for sample in _SAMPLES:
+        if str(sample["id"]) == sample_id:
+            vm.open_cmd.execute(str(sample["path"]))
+            return
+
+
+def _hero_illustration_svg() -> str:
+    """Inline SVG for the three-triangle hero motif.
+
+    Matches the TS EmptyState and C# hero Path geometry so the apps read
+    as the same product in side-by-side screenshots.
+    """
+    accent = "#8b5cf6"
+    return (
+        '<svg width="120" height="96" viewBox="0 0 120 96" fill="none" '
+        'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+        f'<path d="M10 78 L40 18 L70 78 Z" stroke="{accent}" stroke-width="1.4" '
+        f'fill="{accent}" fill-opacity="0.08"/>'
+        f'<path d="M40 78 L70 12 L100 78 Z" stroke="{accent}" stroke-width="1.4" '
+        f'fill="{accent}" fill-opacity="0.16"/>'
+        f'<path d="M70 78 L92 36 L114 78 Z" stroke="{accent}" stroke-width="1.4" '
+        f'fill="{accent}" fill-opacity="0.24"/>'
+        f'<line x1="6" x2="118" y1="80" y2="80" stroke="{accent}" '
+        'stroke-opacity="0.4" stroke-width="1"/>'
+        "</svg>"
+    )
+
+
+def _render_empty_state(
+    *,
+    headline: str,
+    body: str,
+    kicker: str | None = None,
+    hero: bool = False,
+    primary: tuple[str, Callable[[], None]] | None = None,
+    secondary: tuple[str, Callable[[], None]] | None = None,
+) -> None:
+    """Render an empty-state block — hero or compact — at the current container.
+
+    Parameters mirror the TS ``EmptyState.svelte`` props so the docstring
+    here doubles as the cross-impl contract.
+    """
+    container_classes = "items-center w-full text-center " + (
+        "gap-3 py-16" if hero else "gap-2 py-10"
+    )
+    with ui.column().classes(container_classes):
+        if hero:
+            ui.html(_hero_illustration_svg()).classes("mb-2")
+        if kicker is not None:
+            ui.label(kicker).classes(
+                "text-[var(--accent-hover)] text-xs font-semibold tracking-widest uppercase"
+            )
+        headline_size = "text-2xl" if hero else "text-sm"
+        ui.label(headline).classes(f"text-[var(--text-primary)] {headline_size} font-semibold")
+        body_classes = "text-[var(--text-muted)] max-w-2xl leading-relaxed" + (
+            " text-sm mt-1" if hero else " text-xs"
+        )
+        ui.label(body).classes(body_classes)
+        if primary is not None or secondary is not None:
+            with ui.row().classes("gap-2 mt-3"):
+                if primary is not None:
+                    ui.button(primary[0], on_click=primary[1]).props(
+                        "color=primary unelevated"
+                    ).classes("text-sm")
+                if secondary is not None:
+                    ui.button(secondary[0], on_click=secondary[1]).props(
+                        "outline color=primary"
+                    ).classes("text-sm")
+
+
+# ---------------------------------------------------------------------------
 # Status bar
 # ---------------------------------------------------------------------------
 
@@ -170,11 +278,9 @@ def _status_text(vm: ScenarioVM) -> str:
 def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        # §8 empty state
-        ui.markdown(
-            "No scenario loaded. Click **Open Sample SAS** in the toolbar to try the example,"
-            " or **New** to start blank."
-        ).classes("text-[var(--text-secondary)] py-4")
+        # §8 first-launch hero — the Decisions tab is the default landing,
+        # so this is the user's first impression.
+        _render_first_launch_hero(vm)
         return
 
     def _refresh() -> None:
@@ -277,10 +383,7 @@ def _do_delete_decision(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
 def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.markdown(
-            "No scenario loaded. Click **Open Sample SAS** in the toolbar to try the example,"
-            " or **New** to start blank."
-        ).classes("text-[var(--text-secondary)] py-4")
+        _render_first_launch_hero(vm)
         return
 
     def _refresh() -> None:
@@ -382,10 +485,7 @@ def _do_delete_alternative(vm: ScenarioVM, alt_id: str, refresh: Any) -> None:
 def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        ui.markdown(
-            "No scenario loaded. Click **Open Sample SAS** in the toolbar to try the example,"
-            " or **New** to start blank."
-        ).classes("text-[var(--text-secondary)] py-4")
+        _render_first_launch_hero(vm)
         return
 
     def _refresh() -> None:
@@ -524,25 +624,18 @@ def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
 def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
-            ui.label("No scenario loaded.").classes(
-                "text-[var(--text-secondary)] text-sm font-medium"
-            )
-            ui.markdown("Click **Open Sample SAS** in the toolbar to try the example.").classes(
-                "text-[var(--text-muted)] text-xs"
-            )
+        _render_first_launch_hero(vm)
         return
 
     if not scenario.properties or not scenario.alternatives:
-        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
-            ui.label("Add decisions, alternatives and properties first.").classes(
-                "text-[var(--text-secondary)] text-sm font-medium"
-            )
-            ui.label("Coefficients appear here once all three are defined.").classes(
-                "text-[var(--text-muted)] text-xs"
-            )
+        _render_empty_state(
+            headline="Coefficient matrix is not ready",
+            body=(
+                "The matrix needs at least one alternative and one property. "
+                "Add them on their tabs and the cells will populate here."
+            ),
+        )
         return
-
     props = scenario.properties
     alts = scenario.alternatives
     decisions = scenario.decisions
@@ -686,13 +779,7 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
 def _render_constraints_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
-            ui.label("No scenario loaded.").classes(
-                "text-[var(--text-secondary)] text-sm font-medium"
-            )
-            ui.markdown("Click **Open Sample SAS** in the toolbar to try the example.").classes(
-                "text-[var(--text-muted)] text-xs"
-            )
+        _render_first_launch_hero(vm)
         return
 
     def _refresh() -> None:
@@ -1070,13 +1157,7 @@ def _build_alt_maps(
 def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
-            ui.label("No scenario loaded.").classes(
-                "text-[var(--text-secondary)] text-sm font-medium"
-            )
-            ui.markdown("Click **Open Sample SAS** in the toolbar to try the example.").classes(
-                "text-[var(--text-muted)] text-xs"
-            )
+        _render_first_launch_hero(vm)
         return
 
     candidates = vm.candidates
@@ -1275,13 +1356,7 @@ def _on_chart_c_click(vm: ScenarioVM, candidates: tuple[Any, ...], event: Any) -
 def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
-            ui.label("No scenario loaded.").classes(
-                "text-[var(--text-secondary)] text-sm font-medium"
-            )
-            ui.markdown("Click **Open Sample SAS** in the toolbar to try the example.").classes(
-                "text-[var(--text-muted)] text-xs"
-            )
+        _render_first_launch_hero(vm)
         return
 
     crit = vm.critical_decisions
@@ -1341,13 +1416,7 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
 def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
     scenario = vm.scenario
     if scenario is None:
-        with ui.column().classes("items-center justify-center w-full py-16 gap-2"):
-            ui.label("No scenario loaded.").classes(
-                "text-[var(--text-secondary)] text-sm font-medium"
-            )
-            ui.markdown("Click **Open Sample SAS** in the toolbar to try the example.").classes(
-                "text-[var(--text-muted)] text-xs"
-            )
+        _render_first_launch_hero(vm)
         return
 
     crit = vm.critical_constraints

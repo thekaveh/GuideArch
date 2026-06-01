@@ -2,6 +2,7 @@
   import type { ScenarioVM } from '../../viewmodels/scenario-vm.js';
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
+  import EmptyState from './EmptyState.svelte';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -60,12 +61,10 @@
       </div>
     </div>
   {:else if decisions.length === 0}
-    <div class="empty">
-      <div class="empty-headline">No decisions yet.</div>
-      <div class="empty-body">
-        Add decisions first on the <strong>Decisions</strong> tab, then come back here to add alternatives.
-      </div>
-    </div>
+    <EmptyState
+      headline="No decisions yet"
+      body="Alternatives belong to decisions. Switch to the Decisions tab and add at least one before coming back here."
+    />
   {:else}
     <div class="table-wrap">
       {#each decisions as dec (dec.id)}

@@ -13,6 +13,8 @@
   import ResultsTab from './lib/ResultsTab.svelte';
   import CriticalDecisionsTab from './lib/CriticalDecisionsTab.svelte';
   import CriticalConstraintsTab from './lib/CriticalConstraintsTab.svelte';
+  import EmptyState from './lib/EmptyState.svelte';
+  import { SAMPLES } from '../samples/index.js';
 
   // AppVM is the root VM. Tabs and the toolbar continue to bind to
   // ScenarioVM (reached via app.scenario) — only app-shell concerns live
@@ -64,6 +66,14 @@
   function dismissError() {
     errorMessage = null;
   }
+
+  // First-launch hero: reactive to the scenario observable so the hero
+  // disappears the moment a scenario is loaded (regardless of how).
+  const scenarioStore = vmxToStore(vm, 'scenario');
+  function openSample(index: number) {
+    const sample = SAMPLES[index];
+    vm._browserOpen(sample.raw, sample.id + '.json');
+  }
 </script>
 
 <div class="app-shell">
@@ -71,7 +81,20 @@
   <TabStrip tabs={[...TABS]} active={activeTab} onSelect={(t) => (activeTab = t as Tab)} />
 
   <div class="tab-body">
-    {#if activeTab === 'Decisions'}
+    {#if $scenarioStore === undefined}
+      <!-- First-launch hero — dominates the tab body until a scenario is
+           loaded, regardless of which tab the user has selected. The
+           per-tab "no scenario" branches still exist as a fallback but
+           normally never render. -->
+      <EmptyState
+        variant="hero"
+        kicker="Welcome to GuideArch"
+        headline="Pick a software architecture, with fuzzy TOPSIS."
+        body="Model decisions, alternatives, weighted quality properties, and constraints. GuideArch ranks every feasible candidate, then shows which decisions move the result most and which constraints bind hardest. Start with a bundled sample to see it in action."
+        primary={{ label: 'Open Sample SAS', onClick: () => openSample(0) }}
+        secondary={{ label: 'Open Sample EDS', onClick: () => openSample(1) }}
+      />
+    {:else if activeTab === 'Decisions'}
       <DecisionsTab {vm} onError={showError} />
     {:else if activeTab === 'Alternatives'}
       <AlternativesTab {vm} onError={showError} />

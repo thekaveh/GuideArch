@@ -605,24 +605,67 @@
 
       </TabControl>
 
-      <!-- ── Empty state overlay — §8: centered CTA when no scenario loaded ─ -->
+      <!-- ── First-launch hero — §8: dominates the tab area until a scenario
+           loads. Background matches the page so the hero reads as the
+           primary canvas, not an overlay floating above blank tabs. -->
       <Grid IsVisible="{ReflectionBinding !Model.HasScenario}"
-            IsHitTestVisible="{ReflectionBinding !Model.HasScenario}">
+            IsHitTestVisible="{ReflectionBinding !Model.HasScenario}"
+            Background="{StaticResource BgPageBrush}">
         <StackPanel HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Spacing="16">
-          <TextBlock Text="No scenario loaded."
-                     FontSize="14"
-                     FontWeight="Medium"
-                     Foreground="{StaticResource TextSecondaryBrush}"
+                    Spacing="12"
+                    MaxWidth="560">
+
+          <!-- Three nested triangles — mirrors the TS EmptyState illustration
+               so users see the same visual identity across impls. Pure Path
+               so it themes via the accent brush. -->
+          <Canvas Width="120" Height="96" HorizontalAlignment="Center">
+            <Path Data="M10,78 L40,18 L70,78 Z"
+                  Stroke="{StaticResource AccentBrush}"
+                  StrokeThickness="1.4"
+                  Fill="{StaticResource AccentBrush}"
+                  Opacity="0.4" />
+            <Path Data="M40,78 L70,12 L100,78 Z"
+                  Stroke="{StaticResource AccentBrush}"
+                  StrokeThickness="1.4"
+                  Fill="{StaticResource AccentBrush}"
+                  Opacity="0.6" />
+            <Path Data="M70,78 L92,36 L114,78 Z"
+                  Stroke="{StaticResource AccentBrush}"
+                  StrokeThickness="1.4"
+                  Fill="{StaticResource AccentBrush}"
+                  Opacity="0.85" />
+            <Line StartPoint="6,80" EndPoint="118,80"
+                  Stroke="{StaticResource AccentBrush}"
+                  StrokeThickness="1"
+                  Opacity="0.35" />
+          </Canvas>
+
+          <TextBlock Text="WELCOME TO GUIDEARCH"
+                     FontSize="11"
+                     FontWeight="SemiBold"
+                     LetterSpacing="1.2"
+                     Foreground="{StaticResource AccentHoverBrush}"
                      HorizontalAlignment="Center" />
-          <TextBlock FontSize="13"
+
+          <TextBlock Text="Pick a software architecture, with fuzzy TOPSIS."
+                     FontSize="22"
+                     FontWeight="SemiBold"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     HorizontalAlignment="Center"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap" />
+
+          <TextBlock FontSize="14"
                      Foreground="{StaticResource TextMutedBrush}"
                      HorizontalAlignment="Center"
                      TextAlignment="Center"
                      TextWrapping="Wrap"
-                     MaxWidth="480"
-                     Text="Click Open Sample SAS in the toolbar to try the example, or New to start blank." />
+                     LineHeight="22"
+                     MaxWidth="520"
+                     Margin="0,4,0,12"
+                     Text="Model decisions, alternatives, weighted quality properties, and constraints. GuideArch ranks every feasible candidate, then shows which decisions move the result most and which constraints bind hardest. Start with a bundled sample to see it in action." />
+
           <StackPanel Orientation="Horizontal"
                       HorizontalAlignment="Center"
                       Spacing="8">
@@ -630,14 +673,8 @@
                     Classes="action-btn"
                     Click="OnOpenSampleSasClicked" />
             <Button Content="Open Sample EDS"
-                    Classes="action-btn"
+                    Classes="secondary"
                     Click="OnOpenSampleEdsClicked" />
-            <Button Content="New"
-                    Classes="secondary"
-                    Click="OnNewClicked" />
-            <Button Content="Open…"
-                    Classes="secondary"
-                    Click="OnOpenClicked" />
           </StackPanel>
         </StackPanel>
       </Grid>

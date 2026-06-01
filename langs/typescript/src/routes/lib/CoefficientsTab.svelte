@@ -3,6 +3,7 @@
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
   import FuzzyInput from './FuzzyInput.svelte';
+  import EmptyState from './EmptyState.svelte';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
@@ -46,13 +47,10 @@
       </div>
     </div>
   {:else if decisions.length === 0 || properties.length === 0}
-    <div class="empty">
-      <div class="empty-headline">Coefficient matrix is not ready.</div>
-      <div class="empty-body">
-        Add decisions, alternatives, and properties first — then the coefficient matrix will appear
-        here automatically.
-      </div>
-    </div>
+    <EmptyState
+      headline="Coefficient matrix is not ready"
+      body="The matrix needs at least one decision and one property. Add them on their tabs and the cells will populate here automatically."
+    />
   {:else}
     <div class="grid-wrap">
       <table class="coeff-table">

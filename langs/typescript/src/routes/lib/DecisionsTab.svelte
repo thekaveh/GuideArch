@@ -2,12 +2,21 @@
   import type { ScenarioVM } from '../../viewmodels/scenario-vm.js';
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
+  import EmptyState from './EmptyState.svelte';
+  import { SAMPLES } from '../../samples/index.js';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
 
   $: scenarioStore = vmxToStore(vm, 'scenario');
   $: decisions = $scenarioStore?.decisions ?? [];
+
+  // Hero-state CTA: load a sample. No dirty-discard prompt because the
+  // hero only renders when no scenario is loaded — there's nothing to lose.
+  function openSample(index: number) {
+    const sample = SAMPLES[index];
+    vm._browserOpen(sample.raw, sample.id + '.json');
+  }
 
   function handleAdd() {
     try {
@@ -47,22 +56,24 @@
 
 <section class="tab-content">
   {#if $scenarioStore === undefined}
-    <div class="empty">
-      <div class="empty-headline">No scenario loaded.</div>
-      <div class="empty-body">
-        Click <strong>Open Sample SAS</strong> in the toolbar to try the example, or click
-        <strong>New</strong> to create a blank scenario.
-      </div>
-    </div>
+    <EmptyState
+      variant="hero"
+      kicker="Welcome to GuideArch"
+      headline="Pick a software architecture, with fuzzy TOPSIS."
+      body="Model decisions, alternatives, weighted quality properties, and constraints — then see ranked candidates and which decisions move the result most. Start with a bundled sample to see it in action."
+      primary={{ label: 'Open Sample SAS', onClick: () => openSample(0) }}
+      secondary={{ label: 'Open Sample EDS', onClick: () => openSample(1) }}
+    />
   {:else}
     <div class="tab-toolbar">
       <button class="btn-add" on:click={handleAdd}>+ Add Decision</button>
     </div>
     {#if decisions.length === 0}
-      <div class="empty">
-        <div class="empty-headline">No decisions yet.</div>
-        <div class="empty-body">Click <strong>+ Add Decision</strong> above to create one.</div>
-      </div>
+      <EmptyState
+        headline="No decisions yet"
+        body="A scenario is a set of architectural decisions you need to make. Add your first one to begin laying out the decision space."
+        primary={{ label: '+ Add Decision', onClick: handleAdd }}
+      />
     {:else}
       <div class="table-wrap">
         <table>
@@ -133,36 +144,6 @@
 
   .btn-add:hover {
     background: var(--bg-surface-2);
-  }
-
-  /* §8 Empty state */
-  .empty {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    text-align: center;
-    padding: 32px;
-  }
-
-  .empty-headline {
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .empty-body {
-    color: var(--text-muted);
-    font-size: 13px;
-    max-width: 28rem;
-    line-height: 1.6;
-  }
-
-  .empty-body strong {
-    color: var(--text-secondary);
-    font-weight: 600;
   }
 
   .table-wrap {

@@ -2,6 +2,7 @@
   import type { ScenarioVM } from '../../viewmodels/scenario-vm.js';
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import { ScenarioMutationError } from '../../viewmodels/scenario-vm.js';
+  import EmptyState from './EmptyState.svelte';
 
   export let vm: ScenarioVM;
   export let onError: (msg: string) => void = () => {};
