@@ -162,10 +162,33 @@
 </script>
 
 <header class="toolbar">
-  <span class="app-name">GuideArch</span>
+  <div class="brand">
+    <!-- Three-triangle motif: tiny version of the EmptyState hero illustration
+         so the brand mark and the hero read as one identity. -->
+    <svg width="22" height="18" viewBox="0 0 120 96" fill="none" aria-hidden="true">
+      <path d="M10 78 L40 18 L70 78 Z" fill="currentColor" fill-opacity="0.35" />
+      <path d="M40 78 L70 12 L100 78 Z" fill="currentColor" fill-opacity="0.6" />
+      <path d="M70 78 L92 36 L114 78 Z" fill="currentColor" fill-opacity="0.95" />
+    </svg>
+    <span class="app-name">GuideArch</span>
+  </div>
+
   <div class="btn-group">
-    <button class="btn" on:click={handleNew}>New</button>
-    <button class="btn" on:click={handleOpenClick}>Open…</button>
+    <button class="btn" on:click={handleNew} title="New scenario">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+      </svg>
+      New
+    </button>
+    <button class="btn" on:click={handleOpenClick} title="Open scenario file">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+      </svg>
+      Open…
+    </button>
     <input
       type="file"
       accept=".json"
@@ -173,11 +196,39 @@
       on:change={handleFileChange}
       style="display:none"
     />
-    <button class="btn btn-sample" on:click={() => handleOpenSample(0)}>Open Sample SAS</button>
-    <button class="btn btn-sample" on:click={() => handleOpenSample(1)}>Open Sample EDS</button>
-    <button class="btn" disabled={!canSave} on:click={handleSave}>Save</button>
-    <button class="btn" disabled={!canSaveAs} on:click={handleSaveAs}>Save As…</button>
+    <button class="btn" disabled={!canSave} on:click={handleSave} title="Save scenario">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+        <polyline points="17 21 17 13 7 13 7 21" />
+        <polyline points="7 3 7 8 15 8" />
+      </svg>
+      Save
+    </button>
+    <button class="btn" disabled={!canSaveAs} on:click={handleSaveAs} title="Save as new file">
+      Save As…
+    </button>
   </div>
+
+  <div class="separator" aria-hidden="true"></div>
+
+  <div class="btn-group">
+    <button class="btn btn-sample" on:click={() => handleOpenSample(0)}
+      title="Service-Oriented Architecture — 10 decisions, 25 alternatives, 7 properties">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 18V5l12-2v13" />
+        <circle cx="6" cy="18" r="3" />
+        <circle cx="18" cy="16" r="3" />
+      </svg>
+      Sample SAS
+    </button>
+    <button class="btn btn-sample" on:click={() => handleOpenSample(1)}
+      title="Enterprise Decision Space — same shape, different domain">
+      Sample EDS
+    </button>
+  </div>
+
   <span class="spacer"></span>
   <button
     class="btn-icon"
@@ -219,27 +270,45 @@
     flex-shrink: 0;
   }
 
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent);
+    margin-right: 12px;
+  }
+
   .app-name {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--accent-hover);
-    letter-spacing: 0.03em;
-    margin-right: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-primary);
+    letter-spacing: 0.01em;
+  }
+
+  .separator {
+    width: 1px;
+    height: 24px;
+    background: var(--border-subtle);
+    margin: 0 4px;
+    flex-shrink: 0;
   }
 
   .btn-group {
     display: flex;
-    gap: 8px;
+    gap: 4px;
   }
 
-  /* Ghost button — §5.1 */
+  /* Ghost button — §5.1 — icon + label */
   .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 0 12px;
     height: 32px;
     background: transparent;
     color: var(--text-secondary);
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;

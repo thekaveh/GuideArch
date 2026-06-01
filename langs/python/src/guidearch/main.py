@@ -1562,9 +1562,23 @@ def index() -> None:
         # ── Toolbar (§6: 56px tall, 24px h-padding, ghost buttons) ─────────
         with ui.row().classes(
             "guidearch-toolbar w-full items-center "
-            "bg-[var(--bg-page)] border-b border-[var(--border-subtle)] gap-2"
+            "bg-[var(--bg-page)] border-b border-[var(--border-subtle)] gap-1"
         ):
-            ui.label("GuideArch").classes("text-xl font-bold text-[var(--accent)] mr-4")
+            # Brand: tiny three-triangle motif + name. Matches the TS toolbar
+            # and the C# brand block so the apps read as one product.
+            _brand_svg = (
+                '<svg width="22" height="18" viewBox="0 0 24 18" fill="none" '
+                'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+                '<path d="M2 16 L8 4 L14 16 Z" fill="#8b5cf6" fill-opacity="0.35"/>'
+                '<path d="M8 16 L13 2 L18 16 Z" fill="#8b5cf6" fill-opacity="0.6"/>'
+                '<path d="M13 16 L18 7 L22 16 Z" fill="#8b5cf6" fill-opacity="0.95"/>'
+                "</svg>"
+            )
+            with ui.row().classes("items-center gap-2 mr-3"):
+                ui.html(_brand_svg)
+                ui.label("GuideArch").classes(
+                    "text-base font-bold text-[var(--text-primary)] tracking-tight"
+                )
 
             def _do_new_guarded() -> None:
                 was_dirty = vm.is_dirty
@@ -1603,26 +1617,6 @@ def index() -> None:
                     "flat color=white"
                 )
 
-            from guidearch.samples import SAMPLES as _SAMPLES
-
-            for _sample in _SAMPLES:
-                _sample_path = str(_sample["path"])
-                _sample_label = str(_sample["label"]).split(" — ")[0]  # "SAS" or "EDS"
-
-                def _open_sample_guarded(p: str = _sample_path) -> None:
-                    was_dirty = vm.is_dirty
-                    vm.open_cmd.execute(p)
-                    # Only stamp when the open actually succeeded — a load
-                    # failure leaves is_dirty at True (open_cmd's catch path).
-                    if was_dirty and not vm.is_dirty:
-                        _stamp_discard_warning("Open Sample")
-
-                ui.button(
-                    f"Open Sample {_sample_label}",
-                    icon="science",
-                    on_click=_open_sample_guarded,
-                ).props("flat color=primary")
-
             # Web-mode Save = anchor-download, not server-side write. Mirrors
             # the TS Toolbar.handleSave: a user-clicked Save should never
             # write to the NiceGUI host's disk (multi-user deploys would
@@ -1659,6 +1653,29 @@ def index() -> None:
                     icon="save_as",
                     on_click=lambda: _do_save_browser(vm),
                 ).props("flat color=white")
+
+            # Vertical separator between File and Sample groups — matches
+            # the TS and C# toolbar grouping for cross-impl visual identity.
+            ui.element("div").classes("self-center h-6 w-px bg-[var(--border-subtle)] mx-2")
+
+            # Sample loaders group
+            from guidearch.samples import SAMPLES as _SAMPLES
+
+            for _sample in _SAMPLES:
+                _sample_path = str(_sample["path"])
+                _sample_label = str(_sample["label"]).split(" — ")[0]  # "SAS" or "EDS"
+
+                def _open_sample_guarded(p: str = _sample_path) -> None:
+                    was_dirty = vm.is_dirty
+                    vm.open_cmd.execute(p)
+                    if was_dirty and not vm.is_dirty:
+                        _stamp_discard_warning("Open Sample")
+
+                ui.button(
+                    f"Sample {_sample_label}",
+                    icon="science",
+                    on_click=_open_sample_guarded,
+                ).props("flat color=primary")
 
             ui.space()
 
