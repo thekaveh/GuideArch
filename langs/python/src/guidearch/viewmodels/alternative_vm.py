@@ -1,6 +1,6 @@
 """AlternativeVM — wraps an AlternativeM for the view layer.
 
-Per spec/viewmodels.md §4.2:
+Per spec/viewmodels.md §5.2:
   - Observable: id (read-only), decisionId (read-write), name (read-write).
   - Changing decisionId triggers a solve.
   - The solve trigger is handled by ScenarioVM subscribing to this VM's hub.

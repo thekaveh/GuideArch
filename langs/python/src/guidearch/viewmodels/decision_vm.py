@@ -1,6 +1,6 @@
 """DecisionVM — wraps a DecisionM for the view layer.
 
-Per spec/viewmodels.md §4.1:
+Per spec/viewmodels.md §5.1:
   - Observable: id (read-only), name (read-write).
   - Mutating name updates the underlying ScenarioM.decisions[i].name.
   - Does NOT trigger a solve.

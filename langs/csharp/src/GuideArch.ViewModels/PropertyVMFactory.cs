@@ -8,8 +8,8 @@ namespace GuideArch.ViewModels;
 /// Factory for PropertyVM — wraps a <see cref="PropertyM"/>.
 /// Observable: <c>Id</c> (read-only), <c>Name</c> (read-write),
 /// <c>Kind</c> (read-write), <c>Weight</c> (read-write).
-/// Changing <c>Kind</c> or <c>Weight</c> triggers a solve (spec §4.3).
-/// Per spec/viewmodels.md §4.3.
+/// Changing <c>Kind</c> or <c>Weight</c> triggers a solve (spec §5.3).
+/// Per spec/viewmodels.md §5.3.
 /// </summary>
 public static class PropertyVMFactory
 {

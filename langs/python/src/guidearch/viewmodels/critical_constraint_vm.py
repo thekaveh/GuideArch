@@ -1,6 +1,6 @@
 """CriticalConstraintVM — read-only wrapper for a CriticalConstraintM result.
 
-Per spec/viewmodels.md §4.6: result VMs are read-only, no commands.
+Per spec/viewmodels.md §5.6: result VMs are read-only, no commands.
 """
 
 from __future__ import annotations

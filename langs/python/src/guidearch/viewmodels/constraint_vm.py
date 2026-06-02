@@ -1,6 +1,6 @@
 """Constraint VMs — wraps ThresholdConstraint, DependencyConstraint, ConflictConstraint.
 
-Per spec/viewmodels.md §4.5:
+Per spec/viewmodels.md §5.5:
   - Three flavors, each ComponentVM<XxxConstraint>.
   - Edits trigger a solve.
 """

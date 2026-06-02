@@ -1,6 +1,6 @@
 """CoefficientVM — wraps a CoefficientM (one cell in the alt x property grid).
 
-Per spec/viewmodels.md §4.4:
+Per spec/viewmodels.md §5.4:
   - Flat list CoefficientCellVM[] indexed by (alternativeId, propertyId).
   - Each cell exposes lower, modal, upper as read-write doubles.
   - Editing any cell triggers a solve.

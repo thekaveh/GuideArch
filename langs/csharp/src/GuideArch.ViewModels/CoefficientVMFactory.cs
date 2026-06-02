@@ -7,8 +7,8 @@ namespace GuideArch.ViewModels;
 /// <summary>
 /// Factory for CoefficientVM — wraps a <see cref="CoefficientM"/>.
 /// Exposes <c>Lower</c>, <c>Modal</c>, <c>Upper</c> as read-write doubles.
-/// Editing any cell triggers a solve (spec §4.4).
-/// Per spec/viewmodels.md §4.4.
+/// Editing any cell triggers a solve (spec §5.4).
+/// Per spec/viewmodels.md §5.4.
 /// </summary>
 public static class CoefficientVMFactory
 {

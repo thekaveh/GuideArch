@@ -204,7 +204,7 @@
                 VerticalAlignment="Center"
                 ToolTip.Tip="{ReflectionBinding Model.Warnings[0]}"
                 IsVisible="{ReflectionBinding !Model.Warnings.IsEmpty}">
-          <TextBlock Text="⚠ warning"
+          <TextBlock Text="{ReflectionBinding Model.Warnings.Length, StringFormat=⚠ {0} warning(s)}"
                      FontSize="11"
                      FontWeight="Medium"
                      Foreground="{StaticResource DangerBrush}" />

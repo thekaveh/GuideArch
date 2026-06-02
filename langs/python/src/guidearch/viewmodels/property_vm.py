@@ -1,6 +1,6 @@
 """PropertyVM — wraps a PropertyM for the view layer.
 
-Per spec/viewmodels.md §4.3:
+Per spec/viewmodels.md §5.3:
   - Observable: id (read-only), name (read-write), kind (read-write), weight (read-write).
   - Changing kind or weight triggers a solve.
 """
