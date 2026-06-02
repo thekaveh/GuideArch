@@ -88,16 +88,16 @@
                 Background="{StaticResource BorderSubtleBrush}"
                 Margin="6,0" />
 
-        <!-- Sample loaders group -->
+        <!-- Sample loaders group — accent CTAs per spec/editors.md §1 -->
         <Button Name="BtnOpenSampleSas"
                 Content="Sample SAS"
                 ToolTip.Tip="Load the bundled SAS (Service-Oriented Architecture) sample"
-                Classes="toolbar-btn"
+                Classes="action-btn"
                 Click="OnOpenSampleSasClicked" />
         <Button Name="BtnOpenSampleEds"
                 Content="Sample EDS"
                 ToolTip.Tip="Load the bundled EDS (Enterprise Decision Space) sample"
-                Classes="toolbar-btn"
+                Classes="action-btn"
                 Click="OnOpenSampleEdsClicked" />
 
         <!-- Flexible spacer -->
@@ -119,11 +119,11 @@
                      VerticalAlignment="Center" />
         </Button>
 
-        <!-- Solve -->
+        <!-- Solve — primary accent button per spec/editors.md §1 -->
         <Button Name="BtnSolve"
                 Content="Solve"
                 ToolTip.Tip="Re-run TOPSIS"
-                Classes="toolbar-btn"
+                Classes="action-btn"
                 Click="OnSolveClicked"
                 IsEnabled="{ReflectionBinding Model.HasScenario}" />
 
