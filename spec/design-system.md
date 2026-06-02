@@ -237,7 +237,7 @@ Shown when no scenario is loaded. Dominates the tab body regardless of which tab
 
 - Centered vertically + horizontally in the available area.
 - 120×96 three-triangle illustration (brand identity, §6.2) above the text block.
-- Uppercase kicker `"Welcome to GuideArch"` in `accent-hover` (11px / 600 / 0.08em letter-spacing). In TS and Python the kicker is data-pristine ("Welcome to GuideArch") and CSS uppercases it via `text-transform: uppercase`; in C# the text is currently baked uppercase as `"WELCOME TO GUIDEARCH"` because Avalonia `TextBlock` has no `text-transform` analogue — the rendered output matches.
+- Uppercase kicker `"Welcome to GuideArch"` in `accent-hover` (11px / 600 / 0.08em letter-spacing). All three impls keep the kicker data pristine ("Welcome to GuideArch") and uppercase it at render time: TS and Python via CSS `text-transform: uppercase`; C# via a `ToUpperConverter` (`langs/csharp/src/GuideArch.View/Converters.cs`) since Avalonia `TextBlock` has no `text-transform` analogue. Uppercasing uses invariant culture to avoid the Turkish dotted-I/dotless-i mapping breaking the brand string on Turkish locales.
 - Headline (22px / 600 / `text-primary`): `"Pick a software architecture, with fuzzy TOPSIS."`
 - Body (14px / `text-muted`, max 36rem, line-height ~1.55): explains what the app does and points the user at the sample CTAs.
 - Two primary CTAs: `Open Sample SAS` (accent fill) and `Open Sample EDS` (secondary).

@@ -30,3 +30,27 @@ public sealed class StringJoinConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+/// <summary>
+/// Uppercases a string value at bind time using the **invariant** culture
+/// (not the system culture — the Turkish dotted-I / dotless-i case mapping
+/// would otherwise scramble the brand kicker on Turkish-locale machines).
+/// Used by the first-launch hero kicker so the C# side keeps the data
+/// pristine ("Welcome to GuideArch") while rendering as "WELCOME TO
+/// GUIDEARCH" — matching the TS/Python impls where CSS
+/// `text-transform: uppercase` does the same job at render time. Avalonia
+/// `TextBlock` has no analogous text-transform property, hence the
+/// converter.
+/// </summary>
+public sealed class ToUpperConverter : IValueConverter
+{
+    public static readonly ToUpperConverter Instance = new();
+
+    public ToUpperConverter() { }
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is string s ? s.ToUpperInvariant() : value?.ToString();
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
