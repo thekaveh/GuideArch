@@ -888,24 +888,24 @@
                     MaxWidth="560">
 
           <!-- Three nested triangles — mirrors the TS EmptyState illustration
-               so users see the same visual identity across impls. Pure Path
-               so it themes via the accent brush. -->
+               so users see the same visual identity across impls. Fill uses
+               three accent tints (0.08 / 0.16 / 0.24) defined in Colors.axaml
+               to match TS EmptyState.svelte fill-opacity values exactly. The
+               stroke stays at the full accent brush so the triangle outlines
+               remain readable against the page background. -->
           <Canvas Width="120" Height="96" HorizontalAlignment="Center">
             <Path Data="M10,78 L40,18 L70,78 Z"
                   Stroke="{StaticResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentBrush}"
-                  Opacity="0.4" />
+                  Fill="{StaticResource AccentFillFaintest}" />
             <Path Data="M40,78 L70,12 L100,78 Z"
                   Stroke="{StaticResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentBrush}"
-                  Opacity="0.6" />
+                  Fill="{StaticResource AccentFillFainter}" />
             <Path Data="M70,78 L92,36 L114,78 Z"
                   Stroke="{StaticResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentBrush}"
-                  Opacity="0.85" />
+                  Fill="{StaticResource AccentFillFaint}" />
             <Line StartPoint="6,80" EndPoint="118,80"
                   Stroke="{StaticResource AccentBrush}"
                   StrokeThickness="1"

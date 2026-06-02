@@ -10,16 +10,27 @@ The M2 skeleton lets a user OPEN a scenario and SEE the resulting ranked candida
 
 A persistent app shell hosts:
 
-1. **Toolbar (top)** — buttons in this order:
-   - `New` — clears scenario; `ScenarioVM.NewCmd`.
-   - `Open…` — file picker; `OpenCmd`. v1.0 uses browser-mode UX (FileReader in TS, `ui.upload` in Python web mode, `tkinter` in Python native) — see §3 for per-impl detail.
-   - `Open Sample SAS` / `Open Sample EDS` — load one of the two bundled scenarios; convenience entry points for new users (see `spec/design-system.md` §8 / README §5.5).
-   - `Save` — disabled if `filePath` undefined; `SaveCmd`.
-   - `Save As…` — file picker; `SaveAsCmd`. Same browser-mode caveat as Open.
-   - A flexible spacer.
-   - `Solve` — explicitly re-runs `SolveCmd` (useful after import).
-2. **Tab strip (left or top)** — eight tabs in order: `Decisions`, `Alternatives`, `Properties`, `Coefficients`, `Constraints`, `Results`, `Critical Decisions`, `Critical Constraints`. The last two were added in M4 with the analysis surface and ship in v1.0.
-3. **Status bar (bottom)** — scenario name · `n candidates` · last error/warning (if any).
+1. **Toolbar (top, 56px tall)** — left-to-right:
+   - **Brand mark + wordmark** — the three-triangle motif (22×18) followed by "GuideArch" in 15px/700-weight. Same SVG geometry across impls (see `spec/design-system.md` §6.1).
+   - **File group**: `New`, `Open…`, `Save`, `Save As…` (`Save` disabled if `filePath` undefined; `Save As…` requires a loaded scenario).
+   - 1px vertical separator.
+   - **Sample group**: `Sample SAS`, `Sample EDS` — accent-styled CTAs that load one of the two bundled scenarios. Convenience entry points for new users (see `spec/design-system.md` §8.1 / README §5.5).
+   - Flexible spacer.
+   - **Theme toggle** — 32×32 icon button that flips `AppVM.theme` between `"dark"` and `"light"`. Icon shows the *target* theme (sun while dark, moon while light) — same convention as macOS.
+   - **Solve** — primary accent button. Explicitly re-runs `SolveCmd` (useful after import).
+2. **Tab strip (top, 40px tall)** — eight tabs grouped into two phases of the workflow, each prefixed with a 14px icon:
+   - **Author group**: `Decisions`, `Alternatives`, `Properties`, `Coefficients`, `Constraints` — these author the scenario.
+   - **Analysis group**: `Results`, `Critical Decisions`, `Critical Constraints` — these read solved state.
+
+   TS renders an `Author` / `Analysis` kicker label and a 1px divider between groups. C# (`TabControl`) and Python (Quasar `QTabs`) don't natively support separators between tab items, so the icon set carries the grouping work visually (the Analysis tabs use target / shield icons that read distinctly from the Author icons). The last three tabs (Results, Critical Decisions, Critical Constraints) were added in M4 with the analysis surface and ship in v1.0.
+3. **Status bar (bottom, 32px tall)** — segments rendered left-to-right; chips align right:
+   - Scenario name (accent color, semibold).
+   - File path basename (monospace, muted), full path on hover. Hidden when `filePath` is undefined.
+   - Status text (12px, secondary color) — e.g. `"Solved: 1336 candidates"`.
+   - Flexible spacer.
+   - Candidate count chip (info-blue) — `"{n} candidate(s)"`. Hidden when no scenario is loaded.
+   - Unsaved chip (warning-yellow) — `"unsaved"`. Visible when `isDirty`.
+   - Warning chip (danger-red) — `"⚠ {n} warning(s)"`, full warning list on hover. Hidden when `warnings` is empty.
 
 ## 2. Per-tab editors
 
@@ -135,7 +146,7 @@ CI conformance is unchanged from M2 (M1 numerical conformance is the gate).
 - Monospace font for IDs and numeric cells; system sans-serif for names and labels.
 - Tab strip uses standard control-library tab widgets per platform.
 - Tables show ~30 rows then scroll.
-- The Coefficients grid is wider than the viewport for any non-trivial scenario; horizontal scrolling is expected. Sticky decision-group row headers, sticky property-column headers.
+- The Coefficients grid uses **flex columns**: the alternative-name column is fixed at ~12rem (read first), and each property column flexes to share the remaining canvas width above a per-column floor (~9rem). Horizontal scroll only appears when `propCount × min-width` exceeds the canvas — typical SAS/EDS layouts (7 properties) fit a 1280px window without scrolling, while wider scenarios still degrade gracefully into a scrolling matrix. Sticky decision-group row headers, sticky property-column headers.
 
 ## 8. Out of scope for M3
 

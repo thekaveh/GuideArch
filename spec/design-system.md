@@ -8,7 +8,7 @@ The M1–M4 UIs were functional but visually unpolished. This spec defines the d
 
 - **Professional**, not playful. The audience is software architects evaluating significant technology decisions.
 - **Dense but not cramped.** Information per screen is high (lots of decisions, alternatives, properties), so we use compact controls and a tight type scale.
-- **Confident dark theme.** Light theme is deferred to v1.x.
+- **Confident dark theme** as the default. A light theme is available via the toolbar's theme-toggle button (`AppVM.setTheme`, persisted per impl — see `spec/viewmodels.md` §3.3); high-contrast and per-platform OS-follow variants remain deferred.
 - **Quiet color**. Color carries meaning (status, criticality, fuzzy axis), not decoration.
 
 ## 2. Color tokens
@@ -139,13 +139,88 @@ Typical mapping:
 - Axis labels: `text-secondary`, 12px.
 - Grid lines: `border-subtle` at 50% alpha.
 - Bars / lines: `accent`; fuzzy-decomposition triangles use the three fuzzy-axis tokens.
+- Top-10 comparison polylines (Chart C) use the shared Tableau 10-color palette defined in `spec/charts.md` §4.
+
+### 5.8 EmptyState
+
+A reusable empty-state block with two variants:
+
+- **Hero** (first-launch / dominant empty): centered vertically + horizontally; a 120×96 three-triangle illustration (see §6.2 brand identity), an uppercase kicker (`accent-hover`, 11px / 600 / 0.08em letter-spacing), a 22px / 600 headline (`text-primary`), a 14px body (`text-muted`, max 36rem), and one or two CTA buttons (Primary + optional Secondary).
+- **Compact** (section empty once a scenario is loaded): smaller inline panel — 14px headline (`text-primary`), 13px body (`text-muted`), optional primary CTA. No illustration, no kicker.
+
+The same component services both variants in TS (`EmptyState.svelte`) and Python (`_render_empty_state(hero=...)`); C# renders the hero inline in `MainWindow.axaml` for first-launch and uses ad-hoc Borders for compact empties.
+
+### 5.9 SectionHeader
+
+A title + one-line subtitle + optional primary action, rendered at the top of every editor tab body (Decisions / Alternatives / Properties / Coefficients / Constraints) and at the top of Results.
+
+- Title: 16px / 600 / `text-primary` / `letter-spacing: -0.01em`.
+- Subtitle (optional): 12px / `text-muted`, sits ~2px under the title.
+- Action (optional): accent-filled primary button on the right.
+- Bottom border: 1px `border-subtle`.
+- Padding: 16/24/12/24 (t/r/b/l).
+
+The headline copy for each tab is identical across all three impls; see `langs/typescript/src/routes/lib/*Tab.svelte` for the canonical strings.
+
+### 5.10 ConfirmDialog (TypeScript)
+
+A modal styled to match the design language for delete-confirmation and discard-unsaved-changes prompts, replacing the browser's native `confirm()`. Avalonia builds equivalent dialogs ad-hoc in code-behind; NiceGUI uses `ui.dialog()` — both fit their respective platform idioms, so the component is TS-only.
+
+- Backdrop: full-screen 65% black scrim, 80 ms ease-out fade-in.
+- Card: `bg-surface-3`, 1px `border-strong`, 8px radius, 20/24px padding, max-width 28rem, drop-shadow.
+- Title row: icon + 15px / 600 / `text-primary` headline. Icon is a triangle-alert (danger color) for destructive prompts, info-circle (accent-hover) otherwise.
+- Body: 13px / `text-secondary`, line-height 1.55, word-break.
+- Buttons: right-aligned. Cancel = ghost. Confirm = accent-filled (or danger-filled when `destructive: true`).
+- Keyboard: Esc cancels, Enter confirms.
 
 ## 6. Layout
 
 - **App shell**: `bg-page` everywhere. 1px `border-subtle` separates toolbar / tab strip / main / status bar.
-- **Toolbar**: 56px tall, 24px horizontal padding, ghost buttons.
-- **Status bar**: 32px tall, 24px horizontal padding, 12px text in `text-secondary`.
 - **Main pane**: 24px padding around content. Vertical scroll inside tab body, not on the page.
+
+### 6.1 Toolbar
+
+56px tall, 24px horizontal padding, left-to-right composition:
+
+- **Brand**: a 22×18 three-triangle motif (the same geometry as the EmptyState hero illustration, see §6.2) in `accent` color, followed by "GuideArch" in 15px / 700 / `text-primary`. 12px right margin separates the brand block from the next group.
+- **File group**: New, Open…, Save, Save As… — ghost buttons with 14×14 inline-SVG icons (TS only; C# is text-only, Python uses Material icons via Quasar). 4px gap inside the group.
+- **Vertical separator**: 1px / `border-subtle`, 24px tall, 6px horizontal margin.
+- **Sample group**: Sample SAS, Sample EDS — accent-styled to highlight the entry points for new users.
+- Flexible spacer.
+- **Theme toggle**: 32×32 ghost icon button. Icon shows the *target* theme (sun while in dark, moon while in light).
+- **Solve**: primary accent button on the right end.
+
+### 6.2 Brand identity — three-triangle motif
+
+The brand mark is a stack of three triangles of increasing density, suggesting nested decisions converging on a result. Used in three places:
+
+| Surface | Size | Fill |
+|---|---|---|
+| First-launch hero illustration (`EmptyState` hero variant) | 120×96 | `accent` color at fill-opacities 0.08 / 0.16 / 0.24, full stroke |
+| Toolbar wordmark | 22×18 | `accent` color at fill-opacities 0.35 / 0.60 / 0.95 |
+| Tab favicons / window icons | impl-specific | impl-specific |
+
+Path geometry is the same across impls (see `langs/typescript/src/routes/lib/EmptyState.svelte` and `Toolbar.svelte` for the canonical SVG). C# uses Avalonia `Path` with matching geometry and an `AccentFillFaintest`/`AccentFillFainter`/`AccentFillFaint` brush stack to match the hero opacity values exactly. Python embeds the SVG via `ui.html`.
+
+### 6.3 Status bar
+
+32px tall, 24px horizontal padding, 12px text in `text-secondary`. Renders structured segments rather than a single string. From left to right:
+
+| Segment | Style | Visibility |
+|---|---|---|
+| Scenario name | `accent-hover`, 12px / 600 | When a scenario is loaded |
+| File path basename | `text-muted`, 11px / mono, ellipsis if > 24rem, full path in tooltip | When `filePath` is set |
+| Status text | `text-secondary`, 12px | Always |
+| (flexible spacer) | | |
+| Candidate count chip | info-blue chip — `"{n} candidate(s)"`, tabular numerics | When a scenario is loaded and `candidates` is non-empty |
+| Unsaved chip | warning-yellow chip — `"unsaved"` | When `isDirty` |
+| Warning chip | danger-red chip — `"⚠ {n} warning(s)"`, full list in tooltip | When `warnings` is non-empty |
+
+The dirty and warning chips use **different** semantic colors (warning vs. danger) so they distinguish at a glance — an earlier revision colored both with the warning palette and conflated them.
+
+### 6.4 Right-rail charts (Results tab)
+
+Per `spec/charts.md` §1, the Results tab's right pane is sub-tabbed with three modes (`Ranking` / `Profile` / `Compare`). Sub-tab strip lives flush at the top of the right pane (40px tall, identical typography to the main tab strip's inactive state but with a single 2px accent indicator and rounded background), and only the active chart is mounted — preserving plot state across switches.
 
 ## 7. Motion
 
@@ -154,11 +229,27 @@ Typical mapping:
 
 ## 8. Empty states
 
-When a tab renders with no data:
+Two variants, both realized by the `EmptyState` component (§5.8):
 
-- Center the empty state vertically in the available area.
-- 14px `text-secondary` headline; 13px `text-muted` body.
-- Always provide a primary CTA: e.g. "Click **Open Sample SAS** in the toolbar to try the example."
+### 8.1 First-launch hero (dominant)
+
+Shown when no scenario is loaded. Dominates the tab body regardless of which tab the user landed on first, so the user always sees the same welcome page.
+
+- Centered vertically + horizontally in the available area.
+- 120×96 three-triangle illustration (brand identity, §6.2) above the text block.
+- Uppercase kicker `"Welcome to GuideArch"` in `accent-hover` (11px / 600 / 0.08em letter-spacing). In TS and Python the kicker is data-pristine ("Welcome to GuideArch") and CSS uppercases it via `text-transform: uppercase`; in C# the text is currently baked uppercase as `"WELCOME TO GUIDEARCH"` because Avalonia `TextBlock` has no `text-transform` analogue — the rendered output matches.
+- Headline (22px / 600 / `text-primary`): `"Pick a software architecture, with fuzzy TOPSIS."`
+- Body (14px / `text-muted`, max 36rem, line-height ~1.55): explains what the app does and points the user at the sample CTAs.
+- Two primary CTAs: `Open Sample SAS` (accent fill) and `Open Sample EDS` (secondary).
+
+### 8.2 Compact section empty (subordinate)
+
+Shown when a scenario IS loaded but a section has no rows yet (e.g. Critical Decisions / Critical Constraints with zero entries, Coefficients matrix without alternatives or properties, etc.).
+
+- Centered vertically in the available area.
+- No illustration, no kicker.
+- 14px `text-primary` headline; 13px `text-muted` body.
+- Optional primary CTA — e.g. `+ Add Property` on a Properties tab with zero rows.
 
 ## 9. Per-impl realization notes
 
@@ -168,7 +259,7 @@ When a tab renders with no data:
 
 ## 10. Out of scope for v1.0.x
 
-- Light theme.
 - High-contrast accessibility theme.
+- OS-follow theme variant (`prefers-color-scheme`).
 - Localized typography (e.g. for RTL languages).
 - Animated transitions between tabs.

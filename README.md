@@ -30,9 +30,9 @@ Read most-to-least essential. Each link includes when to use it.
 
 - **[`spec/`](spec/README.md)** — the language-neutral source of truth that every implementation must satisfy. Contents:
   - **[`spec/algorithms/topsis.md`](spec/algorithms/topsis.md)** — the canonical TOPSIS pipeline with magic-number table and tie-break rule. *(M1)*
-  - **[`spec/algorithms/critical-decisions.md`](spec/algorithms/critical-decisions.md)**, **[`critical-constraints.md`](spec/algorithms/critical-constraints.md)** — reference cards. *(M1)*
+  - **[`spec/algorithms/critical-decisions.md`](spec/algorithms/critical-decisions.md)**, **[`spec/algorithms/critical-constraints.md`](spec/algorithms/critical-constraints.md)** — reference cards. *(M1)*
   - **[`spec/domain/scenario.schema.json`](spec/domain/scenario.schema.json)** — JSON Schema 2020-12 for the input format. *(M1)*
-  - **[`spec/domain/glossary.md`](spec/domain/glossary.md)**, **[`invariants.md`](spec/domain/invariants.md)** — vocabulary and load-time validation rules. *(M1)*
+  - **[`spec/domain/glossary.md`](spec/domain/glossary.md)**, **[`spec/domain/invariants.md`](spec/domain/invariants.md)** — vocabulary and load-time validation rules. *(M1)*
   - **[`spec/viewmodels.md`](spec/viewmodels.md)** — shared ViewModel tree shape: command names, observable property names, dirty-tracking, and re-solve trigger lists every impl mirrors. *(M2)*
   - **[`spec/editors.md`](spec/editors.md)** — editor semantics: cascade rules for Delete (decision → alternatives → coefficients → constraints), add-with-defaults behavior, validation timing. *(M3)*
   - **[`spec/charts.md`](spec/charts.md)** — chart contracts: fuzzy-decomposition triangle layout, axis/series conventions, color tokens. *(M4)*
@@ -66,7 +66,6 @@ langs/typescript/    TS + Tauri 2 + Svelte 5 implementation
 langs/csharp/        C# + Avalonia 12 implementation
 langs/python/        Python + NiceGUI 3.x implementation
 tools/               cross-cutting scripts (VMx mode switch, legacy XML import)
-docs/                design specs and milestone plans
 .github/             CI workflows, issue/PR templates, dependabot config
 ```
 
