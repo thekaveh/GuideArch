@@ -121,7 +121,7 @@ The M2 `OpenCmd`/`SaveCmd`/`NewCmd` are already wired in the VM. M3 connects the
 
 ## 4. Undo/redo
 
-**Deferred to v1.1 per design spec §14.** M3 does NOT implement undo.
+**Deferred to v1.1.** M3 does NOT implement undo. The original cross-reference was to a pre-implementation design doc (`docs/design/`) that has since been removed from the repository per the project's no-pre-impl-spec-docs policy; undo/redo lands when v1.1 work begins.
 
 ## 5. Validation feedback
 
