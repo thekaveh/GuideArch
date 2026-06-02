@@ -1669,8 +1669,12 @@ def index() -> None:
         ):
             # Brand: tiny three-triangle motif + name. Matches the TS toolbar
             # and the C# brand block so the apps read as one product.
+            # 22x18 viewBox matches the C# Canvas and TS toolbar SVG so the
+            # brand mark renders byte-identically across impls (spec
+            # /design-system.md §6.2). Earlier this used a 24x18 viewBox
+            # which left a 2px gap on the right.
             _brand_svg = (
-                '<svg width="22" height="18" viewBox="0 0 24 18" fill="none" '
+                '<svg width="22" height="18" viewBox="0 0 22 18" fill="none" '
                 'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
                 '<path d="M2 16 L8 4 L14 16 Z" fill="#8b5cf6" fill-opacity="0.35"/>'
                 '<path d="M8 16 L13 2 L18 16 Z" fill="#8b5cf6" fill-opacity="0.6"/>'

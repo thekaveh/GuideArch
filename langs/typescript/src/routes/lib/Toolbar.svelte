@@ -170,12 +170,16 @@
 
 <header class="toolbar">
   <div class="brand">
-    <!-- Three-triangle motif: tiny version of the EmptyState hero illustration
-         so the brand mark and the hero read as one identity. -->
-    <svg width="22" height="18" viewBox="0 0 120 96" fill="none" aria-hidden="true">
-      <path d="M10 78 L40 18 L70 78 Z" fill="currentColor" fill-opacity="0.35" />
-      <path d="M40 78 L70 12 L100 78 Z" fill="currentColor" fill-opacity="0.6" />
-      <path d="M70 78 L92 36 L114 78 Z" fill="currentColor" fill-opacity="0.95" />
+    <!-- Three-triangle motif at the brand size (22×18). The canonical path
+         data for this size lives in the C# Avalonia Canvas at the same
+         pixel scale; we match it here so the toolbar brand mark renders
+         byte-identically across TS / C# / Python (spec/design-system.md
+         §6.2). The hero variant in EmptyState.svelte uses a larger
+         120×96 coordinate space at a proportionally similar shape. -->
+    <svg width="22" height="18" viewBox="0 0 22 18" fill="none" aria-hidden="true">
+      <path d="M2 16 L8 4 L14 16 Z" fill="currentColor" fill-opacity="0.35" />
+      <path d="M8 16 L13 2 L18 16 Z" fill="currentColor" fill-opacity="0.6" />
+      <path d="M13 16 L18 7 L22 16 Z" fill="currentColor" fill-opacity="0.95" />
     </svg>
     <span class="app-name">GuideArch</span>
   </div>
