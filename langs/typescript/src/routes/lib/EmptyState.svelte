@@ -170,7 +170,9 @@
     font-weight: 500;
     cursor: pointer;
     border: 1px solid transparent;
-    transition: background-color 80ms ease-out, border-color 80ms ease-out;
+    transition:
+      background-color 80ms ease-out,
+      border-color 80ms ease-out;
   }
 
   .btn-primary {

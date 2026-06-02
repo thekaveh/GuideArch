@@ -24,7 +24,7 @@
   async function handleDelete(id: string, name: string) {
     const ok = await confirmDialog({
       title: `Delete property "${name}"?`,
-      body: 'This also removes the property\'s coefficients across every alternative and any threshold constraints that reference it.',
+      body: "This also removes the property's coefficients across every alternative and any threshold constraints that reference it.",
       confirmLabel: 'Delete property',
       destructive: true,
     });

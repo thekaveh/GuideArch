@@ -30,7 +30,9 @@
   <span class="status-text">{$statusStore}</span>
   <span class="spacer"></span>
   {#if $scenarioStore !== undefined && $candidatesStore.length > 0}
-    <span class="info-chip">{$candidatesStore.length} candidate{$candidatesStore.length !== 1 ? 's' : ''}</span>
+    <span class="info-chip"
+      >{$candidatesStore.length} candidate{$candidatesStore.length !== 1 ? 's' : ''}</span
+    >
   {/if}
   {#if $isDirtyStore}
     <span class="dirty-chip">unsaved</span>

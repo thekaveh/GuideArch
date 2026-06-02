@@ -32,7 +32,7 @@
   async function handleDelete(id: string, name: string) {
     const ok = await confirmDialog({
       title: `Delete decision "${name}"?`,
-      body: 'This cascades into all the decision\'s alternatives, coefficients, and any constraints that reference them. The deletion is permanent.',
+      body: "This cascades into all the decision's alternatives, coefficients, and any constraints that reference them. The deletion is permanent.",
       confirmLabel: 'Delete decision',
       destructive: true,
     });

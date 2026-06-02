@@ -20,11 +20,7 @@
 
   // Y axis = modal value. Scale on the highest observed modal across all
   // series, with a small floor so an empty/all-zero series doesn't blow up.
-  $: maxY =
-    series.reduce(
-      (m, s) => s.points.reduce((mm, p) => Math.max(mm, p.modal), m),
-      0,
-    ) || 1;
+  $: maxY = series.reduce((m, s) => s.points.reduce((mm, p) => Math.max(mm, p.modal), m), 0) || 1;
   // X axis = property index, 0..N-1. One slot per property.
   $: xCount = Math.max(1, propertyNames.length);
 
@@ -174,7 +170,9 @@
 
   .line {
     cursor: pointer;
-    transition: stroke-width 80ms ease-out, stroke-opacity 80ms ease-out;
+    transition:
+      stroke-width 80ms ease-out,
+      stroke-opacity 80ms ease-out;
   }
 
   .line:hover {

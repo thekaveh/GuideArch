@@ -29,7 +29,7 @@
   async function handleDelete(id: string, name: string) {
     const ok = await confirmDialog({
       title: `Delete alternative "${name}"?`,
-      body: 'This also removes the alternative\'s coefficients and any dependency or conflict constraints that reference it.',
+      body: "This also removes the alternative's coefficients and any dependency or conflict constraints that reference it.",
       confirmLabel: 'Delete alternative',
       destructive: true,
     });

@@ -139,9 +139,7 @@
             />
           {:else if activeRightTab === 'profile'}
             <div class="chart-title">
-              Fuzzy Profile{selectedCandidate !== null
-                ? ` — Rank ${selectedCandidate.rank}`
-                : ''}
+              Fuzzy Profile{selectedCandidate !== null ? ` — Rank ${selectedCandidate.rank}` : ''}
             </div>
             <FuzzyTriangleChart series={triangleSeries} />
           {:else}
@@ -244,7 +242,9 @@
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 80ms ease-out, color 80ms ease-out;
+    transition:
+      background-color 80ms ease-out,
+      color 80ms ease-out;
   }
 
   .right-tab:hover {
