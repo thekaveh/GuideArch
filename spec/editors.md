@@ -2,7 +2,7 @@
 
 **Status:** Authoritative. All three impls must realize this UI contract.
 
-The M2 skeleton lets a user OPEN a scenario and SEE the resulting ranked candidates. M3 lets them EDIT scenarios in-place. Editing any field that the spec §3.3 (in `viewmodels.md`) marks "triggers solve" must re-run TOPSIS and update the candidates table live.
+The M2 skeleton lets a user OPEN a scenario and SEE the resulting ranked candidates. M3 lets them EDIT scenarios in-place. Editing any field that the spec §4.3 (in `viewmodels.md`) marks "triggers solve" must re-run TOPSIS and update the candidates table live.
 
 > **v1.0 status:** all three impls re-solve **synchronously** on each mutation. At SAS/EDS scale (≤ 25 alternatives × 7 properties) this is ≪ 10 ms per call and below human perception. The 100 ms-debounce design noted in earlier drafts is deferred to v1.1; if and when a scenario size makes synchronous resolve perceptible, the debounce lands in the view adapter layer, not the VM.
 

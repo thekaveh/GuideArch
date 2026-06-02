@@ -8,8 +8,8 @@ M3 gave editors. M4 gives the architect the *insight* views: ranked-candidates s
 
 Extend the M3 tab strip with two more tabs after `Results`:
 
-- **Critical Decisions** — table view of `criticalDecisions` (see `spec/viewmodels.md` §3.1)
-- **Critical Constraints** — table view of `criticalConstraints` (see `spec/viewmodels.md` §3.1)
+- **Critical Decisions** — table view of `criticalDecisions` (see `spec/viewmodels.md` §4.1)
+- **Critical Constraints** — table view of `criticalConstraints` (see `spec/viewmodels.md` §4.1)
 
 And **upgrade the `Results` tab** to a split pane:
 
