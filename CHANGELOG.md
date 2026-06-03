@@ -39,6 +39,32 @@ behavior change a user-facing release note would call out.
 - `spec.yml` validates conformance scenarios against the schema and
   gates the TS-bundled schema copy against the canonical file.
 - Python smoke test polls instead of `sleep 5 && curl` (was flaky).
+- New `.editorconfig` at repo root forces LF line endings and consistent
+  indent across platforms so `dotnet format --verify-no-changes` agrees
+  with Windows runners (previously every line scored as a whitespace
+  violation; `.gitattributes` already forces `*.cs eol=lf` on checkout).
+- `typescript.yml` builds VMx-TS `dist/` before `pnpm install` — the
+  submodule's `.gitignore` excludes `dist/`, so without this step a
+  fresh CI checkout left svelte-check resolving `vmx` exports as
+  `unknown` and cascading into ~164 type errors.
+- `release.yml`: hoisted `secrets.PYPI_API_TOKEN` to a job-level `env:`.
+  Step-level `if:` cannot reference `secrets.*` (validation error
+  `"Unrecognized named-value: 'secrets'"`), which was creating phantom
+  failed runs on every push to `main`.
+- `release.yml`: added a `concurrency` group with
+  `cancel-in-progress: false` so two close tag pushes serialize through
+  the Tauri / PyPI / GHCR upload phases instead of racing.
+
+### Refactored
+- C# `Program.cs` no longer starts with a UTF-8 BOM, and
+  `App.axaml.cs` ends with a trailing newline — both surfaced by the
+  new `.editorconfig` strict-format checks.
+- TypeScript: `AppVM`, `AppState`, `AppMode`, `MakeAppVmOptions`,
+  `makeAppVm`, `KNOWN_THEMES`, and `DEFAULT_THEME` are now re-exported
+  from `viewmodels/index.ts` for API symmetry with the other VMs.
+- Python: removed unused `_status_text()` flat-string status assembler;
+  the structured `_render_statusbar()` (segment-for-segment parity
+  with the TS and C# bars) is the sole renderer.
 
 ### Docs
 - README, SECURITY, `spec/README`, `CONTRIBUTING`, and all per-impl

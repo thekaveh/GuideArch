@@ -158,10 +158,12 @@ cd langs/typescript && pnpm conformance
 Each impl ships VM-layer integration tests (load scenario → exercise ViewModel → assert results — no UI mounted) that prove MVVM separation works.
 
 ```bash
-cd langs/python     && uv run pytest tests/ -q
+cd langs/python     && uv sync --all-extras && uv run pytest tests/ -q
 cd langs/csharp     && dotnet test --nologo
 cd langs/typescript && pnpm test
 ```
+
+The Python `--all-extras` flag installs the `dev` group (`pytest`, `mypy`, `ruff`); the bare `uv sync` used in §5.4 is the runtime-only path.
 
 ### 5.8 Troubleshooting
 
