@@ -1,0 +1,31 @@
+# EditorConfig — https://editorconfig.org
+#
+# Force LF line endings everywhere so `dotnet format --verify-no-changes`
+# on Windows runners agrees with the LF-checked-out files (`.gitattributes`
+# forces `*.cs` `eol=lf`). Without this, `dotnet format` on Windows
+# computes the platform-native EOL (CRLF) as the canonical target and
+# reports every line as a whitespace error — what the CI was doing.
+
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+trim_trailing_whitespace = true
+
+# C# / VB / project file indentation matches the rest of the .NET
+# ecosystem default (4 spaces).
+[*.{cs,vb,csproj,sln,props,targets}]
+indent_style = space
+indent_size = 4
+
+# Everything else uses 2-space indent, matching the TS / Python / YAML
+# conventions already in use.
+[*.{ts,tsx,js,svelte,json,yml,yaml,md,toml,py}]
+indent_style = space
+indent_size = 2
+
+# Makefile + Go convention.
+[Makefile]
+indent_style = tab

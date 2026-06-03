@@ -157,6 +157,15 @@ jobs:
     defaults:
       run:
         working-directory: langs/python
+    env:
+      # Pulling the secret into a job-level env var is the canonical way
+      # to gate a step on a secret's presence. The GitHub Actions YAML
+      # validator rejects `secrets.X` references inside step-level `if:`
+      # expressions ("Unrecognized named-value: 'secrets'"), so we hoist
+      # the lookup to job scope here and let the step compare `env.X`
+      # instead. (Step-level `env:` is applied AFTER the step's `if:`
+      # is evaluated; only job-level `env:` is in scope for the gate.)
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -183,15 +192,8 @@ jobs:
       # PYPI_API_TOKEN is configured. spec/release.md §1.3 promises this
       # path; without an explicit publish step the wheel + sdist would only
       # ship via the GitHub release attachments.
-      #
-      # NB: must reference `secrets.PYPI_API_TOKEN` directly in the if:
-      # condition. Step-level env: is applied AFTER the if: is evaluated,
-      # so `env.PYPI_API_TOKEN` would always be empty at the gate — the
-      # same trap we documented on the GHCR login step.
       - name: Publish to PyPI
-        if: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.PYPI_API_TOKEN != '' }}
-        env:
-          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        if: ${{ startsWith(github.ref, 'refs/tags/v') && env.PYPI_API_TOKEN != '' }}
         run: |
           pip install --quiet twine
           twine upload --non-interactive --skip-existing \
