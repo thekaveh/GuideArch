@@ -55,6 +55,20 @@ jobs:
             build-essential curl wget file libxdo-dev libssl-dev \
             libayatana-appindicator3-dev librsvg2-dev
 
+      # VMx-TS's package.json exports point at ./dist/index.{js,d.ts} but
+      # its own .gitignore excludes dist/. A fresh submodule checkout has
+      # no compiled output, so pnpm copies a dist-less package into its
+      # .pnpm store and `pnpm check` (svelte-check) then resolves every
+      # vmx export as `unknown` — cascading into 164 type errors across
+      # src/viewmodels/, src/view/adapters/, and tests. Build VMx upstream
+      # of the GuideArch pnpm install to populate the dist/ that pnpm
+      # picks up. VMx uses npm + tsup; the build takes ~1.2 s.
+      - name: Build VMx-TS dist
+        working-directory: vendor/vmx/langs/typescript
+        run: |
+          npm ci
+          npm run build
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
