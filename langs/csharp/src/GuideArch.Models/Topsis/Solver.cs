@@ -158,7 +158,12 @@ public static class Solver
             double mp = M[p.Id];
             if (mp == 0.0)
             {
-                // Invariant 10.1: degenerate — skip
+                // Invariant 10.1: degenerate — emit warning, skip. Parity
+                // with Python (warnings.warn) and TS (console.warn) both of
+                // which land on stderr; same message format for log-scrapers
+                // that look across impls.
+                Console.Error.WriteLine(
+                    $"Property '{p.Id}' has M=0; skipping to avoid division by zero");
                 continue;
             }
             double sign = p.Kind == PropertyKind.Min ? 1.0 : -1.0;
