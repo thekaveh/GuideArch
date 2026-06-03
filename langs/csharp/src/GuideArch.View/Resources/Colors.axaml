@@ -61,6 +61,14 @@
   <SolidColorBrush x:Key="DangerMutedBrush" Color="{StaticResource DangerColor}" Opacity="0.14" />
   <SolidColorBrush x:Key="InfoMutedBrush" Color="{StaticResource InfoColor}" Opacity="0.14" />
 
+  <!-- Hero illustration fills — three subtle accent tints stacking front-to-back.
+       Match the TS EmptyState.svelte fill-opacity values (0.08, 0.16, 0.24) so
+       the first-launch hero reads identically across impls. The stroke stays
+       at full AccentBrush so the triangle outlines remain visible. -->
+  <SolidColorBrush x:Key="AccentFillFaintest" Color="{StaticResource AccentColor}" Opacity="0.08" />
+  <SolidColorBrush x:Key="AccentFillFainter"  Color="{StaticResource AccentColor}" Opacity="0.16" />
+  <SolidColorBrush x:Key="AccentFillFaint"    Color="{StaticResource AccentColor}" Opacity="0.24" />
+
   <!-- §2.5 Fuzzy axes (charts) -->
   <Color x:Key="FuzzyPositiveColor">#34d399</Color>
   <Color x:Key="FuzzyAverageColor">#fbbf24</Color>

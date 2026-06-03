@@ -17,6 +17,7 @@
 
   <Window.Resources>
     <local:StringJoinConverter x:Key="StringJoin" />
+    <local:ToUpperConverter x:Key="ToUpper" />
   </Window.Resources>
 
   <DockPanel>
@@ -88,16 +89,16 @@
                 Background="{StaticResource BorderSubtleBrush}"
                 Margin="6,0" />
 
-        <!-- Sample loaders group -->
+        <!-- Sample loaders group — accent CTAs per spec/editors.md §1 -->
         <Button Name="BtnOpenSampleSas"
                 Content="Sample SAS"
                 ToolTip.Tip="Load the bundled SAS (Service-Oriented Architecture) sample"
-                Classes="toolbar-btn"
+                Classes="action-btn"
                 Click="OnOpenSampleSasClicked" />
         <Button Name="BtnOpenSampleEds"
                 Content="Sample EDS"
                 ToolTip.Tip="Load the bundled EDS (Enterprise Decision Space) sample"
-                Classes="toolbar-btn"
+                Classes="action-btn"
                 Click="OnOpenSampleEdsClicked" />
 
         <!-- Flexible spacer -->
@@ -119,11 +120,11 @@
                      VerticalAlignment="Center" />
         </Button>
 
-        <!-- Solve -->
+        <!-- Solve — primary accent button per spec/editors.md §1 -->
         <Button Name="BtnSolve"
                 Content="Solve"
                 ToolTip.Tip="Re-run TOPSIS"
-                Classes="toolbar-btn"
+                Classes="action-btn"
                 Click="OnSolveClicked"
                 IsEnabled="{ReflectionBinding Model.HasScenario}" />
 
@@ -204,7 +205,7 @@
                 VerticalAlignment="Center"
                 ToolTip.Tip="{ReflectionBinding Model.Warnings[0]}"
                 IsVisible="{ReflectionBinding !Model.Warnings.IsEmpty}">
-          <TextBlock Text="⚠ warning"
+          <TextBlock Text="{ReflectionBinding Model.Warnings.Length, StringFormat=⚠ {0} warning(s)}"
                      FontSize="11"
                      FontWeight="Medium"
                      Foreground="{StaticResource DangerBrush}" />
@@ -888,31 +889,35 @@
                     MaxWidth="560">
 
           <!-- Three nested triangles — mirrors the TS EmptyState illustration
-               so users see the same visual identity across impls. Pure Path
-               so it themes via the accent brush. -->
+               so users see the same visual identity across impls. Fill uses
+               three accent tints (0.08 / 0.16 / 0.24) defined in Colors.axaml
+               to match TS EmptyState.svelte fill-opacity values exactly. The
+               stroke stays at the full accent brush so the triangle outlines
+               remain readable against the page background. -->
           <Canvas Width="120" Height="96" HorizontalAlignment="Center">
             <Path Data="M10,78 L40,18 L70,78 Z"
                   Stroke="{StaticResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentBrush}"
-                  Opacity="0.4" />
+                  Fill="{StaticResource AccentFillFaintest}" />
             <Path Data="M40,78 L70,12 L100,78 Z"
                   Stroke="{StaticResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentBrush}"
-                  Opacity="0.6" />
+                  Fill="{StaticResource AccentFillFainter}" />
             <Path Data="M70,78 L92,36 L114,78 Z"
                   Stroke="{StaticResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentBrush}"
-                  Opacity="0.85" />
+                  Fill="{StaticResource AccentFillFaint}" />
             <Line StartPoint="6,80" EndPoint="118,80"
                   Stroke="{StaticResource AccentBrush}"
                   StrokeThickness="1"
                   Opacity="0.35" />
           </Canvas>
 
-          <TextBlock Text="WELCOME TO GUIDEARCH"
+          <!-- Kicker data is pristine "Welcome to GuideArch" (matches TS and
+               Python) and the ToUpper converter renders it as the all-caps
+               styling at bind time. Avalonia TextBlock has no native
+               text-transform analogue, so the converter stands in. -->
+          <TextBlock Text="{Binding Source='Welcome to GuideArch', Converter={StaticResource ToUpper}}"
                      FontSize="11"
                      FontWeight="SemiBold"
                      LetterSpacing="1.2"

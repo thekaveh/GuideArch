@@ -7,7 +7,7 @@ namespace GuideArch.ViewModels;
 /// <summary>
 /// Factory for CriticalConstraintVM — read-only result wrapper for a
 /// <see cref="CriticalConstraintM"/>. No commands. No mutation paths.
-/// Per spec/viewmodels.md §4.6.
+/// Per spec/viewmodels.md §5.6.
 /// </summary>
 public static class CriticalConstraintVMFactory
 {

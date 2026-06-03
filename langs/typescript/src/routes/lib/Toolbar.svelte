@@ -170,28 +170,50 @@
 
 <header class="toolbar">
   <div class="brand">
-    <!-- Three-triangle motif: tiny version of the EmptyState hero illustration
-         so the brand mark and the hero read as one identity. -->
-    <svg width="22" height="18" viewBox="0 0 120 96" fill="none" aria-hidden="true">
-      <path d="M10 78 L40 18 L70 78 Z" fill="currentColor" fill-opacity="0.35" />
-      <path d="M40 78 L70 12 L100 78 Z" fill="currentColor" fill-opacity="0.6" />
-      <path d="M70 78 L92 36 L114 78 Z" fill="currentColor" fill-opacity="0.95" />
+    <!-- Three-triangle motif at the brand size (22×18). The canonical path
+         data for this size lives in the C# Avalonia Canvas at the same
+         pixel scale; we match it here so the toolbar brand mark renders
+         byte-identically across TS / C# / Python (spec/design-system.md
+         §6.2). The hero variant in EmptyState.svelte uses a larger
+         120×96 coordinate space at a proportionally similar shape. -->
+    <svg width="22" height="18" viewBox="0 0 22 18" fill="none" aria-hidden="true">
+      <path d="M2 16 L8 4 L14 16 Z" fill="currentColor" fill-opacity="0.35" />
+      <path d="M8 16 L13 2 L18 16 Z" fill="currentColor" fill-opacity="0.6" />
+      <path d="M13 16 L18 7 L22 16 Z" fill="currentColor" fill-opacity="0.95" />
     </svg>
     <span class="app-name">GuideArch</span>
   </div>
 
   <div class="btn-group">
     <button class="btn" on:click={handleNew} title="New scenario">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
         <polyline points="14 2 14 8 20 8" />
       </svg>
       New
     </button>
     <button class="btn" on:click={handleOpenClick} title="Open scenario file">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
       </svg>
       Open…
@@ -204,8 +226,17 @@
       style="display:none"
     />
     <button class="btn" disabled={!canSave} on:click={handleSave} title="Save scenario">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
         <polyline points="17 21 17 13 7 13 7 21" />
         <polyline points="7 3 7 8 15 8" />
@@ -220,18 +251,33 @@
   <div class="separator" aria-hidden="true"></div>
 
   <div class="btn-group">
-    <button class="btn btn-sample" on:click={() => handleOpenSample(0)}
-      title="Service-Oriented Architecture — 10 decisions, 25 alternatives, 7 properties">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <button
+      class="btn btn-sample"
+      on:click={() => handleOpenSample(0)}
+      title="Service-Oriented Architecture — 10 decisions, 25 alternatives, 7 properties"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
         <path d="M9 18V5l12-2v13" />
         <circle cx="6" cy="18" r="3" />
         <circle cx="18" cy="16" r="3" />
       </svg>
       Sample SAS
     </button>
-    <button class="btn btn-sample" on:click={() => handleOpenSample(1)}
-      title="Enterprise Decision Space — same shape, different domain">
+    <button
+      class="btn btn-sample"
+      on:click={() => handleOpenSample(1)}
+      title="Enterprise Decision Space — same shape, different domain"
+    >
       Sample EDS
     </button>
   </div>
@@ -246,15 +292,35 @@
   >
     {#if $themeStore === 'dark'}
       <!-- Sun: clicking will switch to light -->
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
         <circle cx="12" cy="12" r="4" />
-        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        <path
+          d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+        />
       </svg>
     {:else}
       <!-- Moon: clicking will switch to dark -->
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
       </svg>
     {/if}
@@ -366,7 +432,10 @@
     border: 1px solid var(--border-subtle);
     border-radius: 6px;
     cursor: pointer;
-    transition: background-color 80ms ease-out, color 80ms ease-out, border-color 80ms ease-out;
+    transition:
+      background-color 80ms ease-out,
+      color 80ms ease-out,
+      border-color 80ms ease-out;
   }
 
   .btn-icon:hover {

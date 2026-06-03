@@ -6,8 +6,8 @@ namespace GuideArch.ViewModels;
 
 /// <summary>
 /// Factory for ConstraintVM — wraps a <see cref="ConstraintM"/> (any flavor).
-/// Edits trigger a solve (spec §4.5).
-/// Per spec/viewmodels.md §4.5.
+/// Edits trigger a solve (spec §5.5).
+/// Per spec/viewmodels.md §5.5.
 /// </summary>
 public static class ConstraintVMFactory
 {

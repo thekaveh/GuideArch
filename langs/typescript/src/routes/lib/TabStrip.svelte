@@ -6,7 +6,13 @@
   // Logical grouping: the first five tabs are AUTHOR tabs (edit the scenario);
   // the last three are ANALYSIS tabs (read solved state). Render a divider
   // between them so the workflow shape is legible at a glance.
-  const AUTHORING = new Set(['Decisions', 'Alternatives', 'Properties', 'Coefficients', 'Constraints']);
+  const AUTHORING = new Set([
+    'Decisions',
+    'Alternatives',
+    'Properties',
+    'Coefficients',
+    'Constraints',
+  ]);
 
   // Lucide-style 14px icons, one per tab. Stored as path data so each tab
   // button stays a single button element. Same icon assignments are

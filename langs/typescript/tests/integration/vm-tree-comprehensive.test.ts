@@ -325,7 +325,7 @@ describe('§3 ScenarioVM observable properties (spec §3.1)', () => {
   });
 });
 
-describe('§3 DecisionVM observable properties (spec §4.1)', () => {
+describe('§3 DecisionVM observable properties (spec §5.1)', () => {
   const hub = new MessageHub();
 
   it('id is read-only in the model', () => {
@@ -351,7 +351,7 @@ describe('§3 DecisionVM observable properties (spec §4.1)', () => {
   });
 });
 
-describe('§3 AlternativeVM observable properties (spec §4.2)', () => {
+describe('§3 AlternativeVM observable properties (spec §5.2)', () => {
   const hub = new MessageHub();
 
   it('id is in model', () => {
@@ -390,7 +390,7 @@ describe('§3 AlternativeVM observable properties (spec §4.2)', () => {
   });
 });
 
-describe('§3 PropertyVM observable properties (spec §4.3)', () => {
+describe('§3 PropertyVM observable properties (spec §5.3)', () => {
   const hub = new MessageHub();
 
   it('id is in model', () => {
@@ -444,7 +444,7 @@ describe('§3 PropertyVM observable properties (spec §4.3)', () => {
   });
 });
 
-describe('§3 CoefficientVM observable properties (spec §4.4)', () => {
+describe('§3 CoefficientVM observable properties (spec §5.4)', () => {
   const hub = new MessageHub();
 
   it('model has alternativeId, propertyId, and value with lower/modal/upper', () => {
@@ -471,7 +471,7 @@ describe('§3 CoefficientVM observable properties (spec §4.4)', () => {
   });
 });
 
-describe('§3 ConstraintVM observable properties (spec §4.5)', () => {
+describe('§3 ConstraintVM observable properties (spec §5.5)', () => {
   const hub = new MessageHub();
 
   it('threshold constraint model has kind, propertyId', () => {
@@ -938,11 +938,11 @@ describe('§6 Solve-trigger matrix (spec §3.3)', () => {
 });
 
 // ============================================================================
-// §7 RESULT VMs READ-ONLY — spec §4.6
+// §7 RESULT VMs READ-ONLY — spec §5.6
 // CandidateVM, CriticalDecisionVM, CriticalConstraintVM have no mutation methods
 // ============================================================================
 
-describe('§7 Result VMs are read-only (spec §4.6)', () => {
+describe('§7 Result VMs are read-only (spec §5.6)', () => {
   it('CandidateVM has no addX / updateX / deleteX methods', () => {
     const vm = makeCandidateVm({
       alternativeIds: ['a1'],

@@ -7,7 +7,7 @@ namespace GuideArch.ViewModels;
 /// <summary>
 /// Factory for DecisionVM — wraps a <see cref="DecisionM"/>.
 /// Observable: <c>Id</c> (read-only), <c>Name</c> (read-write).
-/// Per spec/viewmodels.md §4.1.
+/// Per spec/viewmodels.md §5.1.
 /// </summary>
 public static class DecisionVMFactory
 {

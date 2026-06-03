@@ -1,6 +1,6 @@
 """CandidateVM — read-only wrapper for a CandidateM result.
 
-Per spec/viewmodels.md §4.6: result VMs are read-only, no commands, no
+Per spec/viewmodels.md §5.6: result VMs are read-only, no commands, no
 mutation paths.
 """
 
