@@ -6,6 +6,15 @@ on:
       - 'v*.*.*'
   workflow_dispatch:
 
+# Serialize releases per workflow. cancel-in-progress is false because a
+# release in flight is partially observable (Tauri artifacts uploaded but
+# PyPI not yet, a draft release tag created on GitHub, etc.) — cancelling
+# mid-stream leaves the world in a half-published state. If two tag pushes
+# arrive in quick succession we want the second to wait, not pre-empt.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   packages: write

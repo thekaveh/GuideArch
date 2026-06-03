@@ -38,7 +38,7 @@
     <span class="dirty-chip">unsaved</span>
   {/if}
   {#if $warningsStore.length > 0}
-    <span class="warn-chip" title={$warningsStore.join('\n')}>
+    <span class="warn-chip" title={$warningsStore.join('\n')} aria-live="polite" aria-atomic="true">
       ⚠ {$warningsStore.length} warning{$warningsStore.length !== 1 ? 's' : ''}
     </span>
   {/if}

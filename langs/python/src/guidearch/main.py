@@ -285,19 +285,6 @@ def _render_empty_state(
 # ---------------------------------------------------------------------------
 
 
-def _status_text(vm: ScenarioVM) -> str:
-    """Legacy fallback for places that still want a flat string."""
-    parts: list[str] = []
-    if vm.scenario:
-        parts.append(vm.scenario.name)
-    parts.append(vm.status)
-    if vm.warnings:
-        parts.append(f"({len(vm.warnings)} warning(s))")
-    if vm.is_dirty:
-        parts.append("[unsaved]")
-    return "  ·  ".join(parts)
-
-
 def _render_statusbar(vm: ScenarioVM) -> None:
     """Render the structured status-bar row in the current container.
 
