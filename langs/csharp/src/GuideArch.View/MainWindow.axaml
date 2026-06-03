@@ -16,7 +16,6 @@
   -->
 
   <Window.Resources>
-    <local:StringJoinConverter x:Key="StringJoin" />
     <local:ToUpperConverter x:Key="ToUpper" />
   </Window.Resources>
 
