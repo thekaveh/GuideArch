@@ -71,9 +71,14 @@
         <button class="btn-cancel" on:click={() => decide(false)}>
           {$confirmRequest.cancelLabel ?? 'Cancel'}
         </button>
+        <!-- autofocus is the WCAG-recommended pattern for alertdialog: focus
+             moves to the primary action on open so keyboard users don't have
+             to Tab from the invoker. -->
+        <!-- svelte-ignore a11y_autofocus -->
         <button
           class="btn-confirm"
           class:destructive={$confirmRequest.destructive}
+          autofocus
           on:click={() => decide(true)}
         >
           {$confirmRequest.confirmLabel ?? 'Confirm'}

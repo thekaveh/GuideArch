@@ -134,7 +134,10 @@
       <h2 class="modal-title">Error</h2>
       <p class="modal-body">{errorMessage}</p>
       <div class="modal-actions">
-        <button class="btn-ok" on:click={dismissError}>OK</button>
+        <!-- autofocus the OK button so Enter/Space immediately
+             acknowledges the error (WCAG alertdialog pattern). -->
+        <!-- svelte-ignore a11y_autofocus -->
+        <button class="btn-ok" autofocus on:click={dismissError}>OK</button>
       </div>
     </div>
   </div>

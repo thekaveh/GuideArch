@@ -53,10 +53,10 @@
   {#each tabs as tab, i (tab)}
     {#if i === dividerBefore && dividerBefore > 0}
       <span class="group-divider" aria-hidden="true"></span>
-      <span class="group-label">Analysis</span>
+      <span class="group-label" role="heading" aria-level="3">Analysis</span>
     {/if}
     {#if i === 0}
-      <span class="group-label">Author</span>
+      <span class="group-label" role="heading" aria-level="3">Author</span>
     {/if}
     <button class="tab-btn" class:active={tab === active} on:click={() => onSelect(tab)}>
       <svg
