@@ -1,6 +1,9 @@
 /**
  * ViewModel layer — public re-exports.
  */
+export type { AppState, AppVM, AppMode, MakeAppVmOptions } from './app-vm.js';
+export { makeAppVm, KNOWN_THEMES, DEFAULT_THEME } from './app-vm.js';
+
 export type { ScenarioState, ScenarioVM } from './scenario-vm.js';
 export { makeScenarioVm, ScenarioMutationError } from './scenario-vm.js';
 
