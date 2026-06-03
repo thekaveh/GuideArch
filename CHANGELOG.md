@@ -65,6 +65,22 @@ behavior change a user-facing release note would call out.
 - Python: removed unused `_status_text()` flat-string status assembler;
   the structured `_render_statusbar()` (segment-for-segment parity
   with the TS and C# bars) is the sole renderer.
+- C#: removed unused `StringJoinConverter` (declared in `Converters.cs`
+  and registered in `MainWindow.axaml`'s `Window.Resources`, but no
+  binding ever referenced the `StringJoin` key). The class was a
+  speculative future-DataGrid helper; if a v1.1 surface needs it, one
+  commit reintroduces it.
+- TypeScript Svelte view: a11y nudges — `ConfirmDialog` and the error
+  modal autofocus their primary action so keyboard users can confirm
+  with Enter/Space without tabbing; the status-bar warning chip is
+  wrapped in `aria-live="polite"` `aria-atomic="true"` so the count is
+  announced when it changes; the tab strip's `Author` / `Analysis`
+  group labels carry `role="heading"` `aria-level="3"` so screen
+  readers can jump between the two groups.
+- C# `Solver.AltContribution` now emits `Console.Error.WriteLine` when
+  a per-property normalizer is zero, with the same message text as the
+  Python `warnings.warn` and TS `console.warn` (invariants.md §10.1).
+  Previously C# was the only impl that skipped the property silently.
 
 ### Docs
 - README, SECURITY, `spec/README`, `CONTRIBUTING`, and all per-impl
