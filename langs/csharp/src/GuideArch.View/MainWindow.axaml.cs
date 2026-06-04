@@ -1,8 +1,10 @@
+using System;
 using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using GuideArch.Models;
 using GuideArch.ViewModels;
 using ScottPlot;
@@ -51,6 +53,15 @@ public partial class MainWindow : Window
     private ScenarioM? _lastScenarioRef = null;
     private int _lastCandidateCount = -1;
     private int? _lastSelectedIndex = -2; // sentinel "not yet rendered"
+
+    // Coalesces rapid selection clicks into a single chart redraw cycle.
+    // Charts B and C both Clear() + add new line series + Refresh() on every
+    // selection change; without coalescing, holding the arrow key in the
+    // ResultsGrid or click-storming the rows queues a render per click and
+    // the visible canvases strobe. The 30ms window is fast enough to feel
+    // immediate but lossy enough that the user never sees an in-between
+    // frame on a fast scroll.
+    private DispatcherTimer? _chartRefreshTimer;
 
     public MainWindow()
     {
@@ -223,13 +234,30 @@ public partial class MainWindow : Window
         // Chart A (ranked bar) only depends on the candidates set; selection
         // doesn't change its bars. Charts B (fuzzy triangle of selected) and
         // C (top-10 polyline with selected highlighted) do depend on
-        // selection, so they re-render either way.
+        // selection — but coalesce rapid clicks via _chartRefreshTimer rather
+        // than re-rendering both canvases per event.
         if (candidatesChanged) RenderChartA(state);
-        RenderChartB(state);
-        RenderChartC(state);
+        ScheduleChartBcRefresh();
 
         // Sync the candidates DataGrid selection row.
         SyncResultsGridSelection(state);
+    }
+
+    private void ScheduleChartBcRefresh()
+    {
+        if (_chartRefreshTimer is null)
+        {
+            _chartRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(30) };
+            _chartRefreshTimer.Tick += (_, _) =>
+            {
+                _chartRefreshTimer.Stop();
+                var s = _vm.Model;
+                RenderChartB(s);
+                RenderChartC(s);
+            };
+        }
+        if (!_chartRefreshTimer.IsEnabled)
+            _chartRefreshTimer.Start();
     }
 
     // -----------------------------------------------------------------------
@@ -402,66 +430,49 @@ public partial class MainWindow : Window
                         Padding = new Avalonia.Thickness(4, 0, 4, 0)
                     };
 
-                    // L · M · U inputs — three editable TextBoxes mirroring the
-                    // Python + TS coefficient cells (each impl commits on blur
-                    // via UpdateCoefficient). The dots in between are static
-                    // separators. Closure captures `cell` so the LostFocus
-                    // handler always sees the canonical values to compare
-                    // against on parse failure (we revert to the last accepted
-                    // values rather than letting the user keep garbage typed in).
+                    // L · M · U — three click-to-edit slots. Visible state is
+                    // a TextBlock (so the cell reads identically to before the
+                    // editing landed); clicking the slot swaps it for a TextBox
+                    // that's focused and selected, ready to type. Enter or blur
+                    // commits, Escape cancels. Each slot only ever edits its
+                    // own vertex of the fuzzy triple — the other two are taken
+                    // from the captured `cell` snapshot, which is fine because
+                    // any commit causes a matrix rebuild that re-snapshots all
+                    // three values into the next pass of editors.
+                    //
+                    // The commit itself is deferred via Dispatcher.UIThread.Post.
+                    // Mutator.UpdateCoefficient triggers a synchronous re-solve
+                    // and an OnStateChanged callback that tears down this very
+                    // Border tree; running that destruction inside the TextBox's
+                    // own LostFocus / KeyDown handler is what was crashing on
+                    // the user's machine. Posting it makes Avalonia finish
+                    // unwinding the focus / key-event call stack first.
                     var cellContent = new StackPanel
                     {
                         Orientation = AvaOrientation.Horizontal,
                         Spacing = 3,
-                        VerticalAlignment = AvaVertAlign.Center
+                        VerticalAlignment = AvaVertAlign.Center,
+                        HorizontalAlignment = AvaHorizAlign.Center,
                     };
 
-                    var lBox = MakeFuzzyInput(cell.Lower, textMuted, monoFont);
-                    cellContent.Children.Add(lBox);
-                    cellContent.Children.Add(MakeDotSeparator(textMuted));
-                    var mBox = MakeFuzzyInput(cell.Modal, textPrimary, monoFont);
-                    cellContent.Children.Add(mBox);
-                    cellContent.Children.Add(MakeDotSeparator(textMuted));
-                    var uBox = MakeFuzzyInput(cell.Upper, textMuted, monoFont);
-                    cellContent.Children.Add(uBox);
-
                     var capturedCell = cell;
-                    void Commit(object? _, RoutedEventArgs _2)
-                    {
-                        if (!double.TryParse(lBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var l) ||
-                            !double.TryParse(mBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var m) ||
-                            !double.TryParse(uBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var u))
-                        {
-                            // Unparseable input — revert to the last accepted values
-                            // (matches Python's ui.notify-on-error + Svelte's reset).
-                            lBox.Text = $"{capturedCell.Lower:F3}";
-                            mBox.Text = $"{capturedCell.Modal:F3}";
-                            uBox.Text = $"{capturedCell.Upper:F3}";
-                            return;
-                        }
-                        // No-op: just tabbing through cells without editing
-                        // shouldn't trigger a solve + matrix rebuild on every
-                        // box that loses focus. We compare against the cell's
-                        // canonical values rather than tracking dirty bits.
-                        if (l == capturedCell.Lower && m == capturedCell.Modal && u == capturedCell.Upper)
-                            return;
-                        try
-                        {
-                            Mutator.UpdateCoefficient(capturedCell.AlternativeId, capturedCell.PropertyId, l, m, u);
-                        }
-                        catch (ScenarioMutationException ex)
-                        {
-                            // Domain-rule violation (e.g. ordering) — surface the
-                            // message via StampDiscardWarning and revert.
-                            StampDiscardWarning(ex.Message);
-                            lBox.Text = $"{capturedCell.Lower:F3}";
-                            mBox.Text = $"{capturedCell.Modal:F3}";
-                            uBox.Text = $"{capturedCell.Upper:F3}";
-                        }
-                    }
-                    lBox.LostFocus += Commit;
-                    mBox.LostFocus += Commit;
-                    uBox.LostFocus += Commit;
+                    cellContent.Children.Add(MakeEditableValueSlot(
+                        cell.Lower, textMuted, monoFont,
+                        newL => CommitCoefficient(
+                            capturedCell.AlternativeId, capturedCell.PropertyId,
+                            newL, capturedCell.Modal, capturedCell.Upper)));
+                    cellContent.Children.Add(MakeDotSeparator(textMuted));
+                    cellContent.Children.Add(MakeEditableValueSlot(
+                        cell.Modal, textPrimary, monoFont,
+                        newM => CommitCoefficient(
+                            capturedCell.AlternativeId, capturedCell.PropertyId,
+                            capturedCell.Lower, newM, capturedCell.Upper)));
+                    cellContent.Children.Add(MakeDotSeparator(textMuted));
+                    cellContent.Children.Add(MakeEditableValueSlot(
+                        cell.Upper, textMuted, monoFont,
+                        newU => CommitCoefficient(
+                            capturedCell.AlternativeId, capturedCell.PropertyId,
+                            capturedCell.Lower, capturedCell.Modal, newU)));
 
                     cellBorder.Child = cellContent;
                     Grid.SetColumn(cellBorder, p + 1);
@@ -475,32 +486,6 @@ public partial class MainWindow : Window
         CoefficientsContent.Content = root;
     }
 
-    private static TextBlock MakeFuzzyLabel(double value, AvaBrush fg, AvaFontFamily ff) =>
-        new TextBlock
-        {
-            Text = $"{value:F3}",
-            FontSize = 11,
-            FontFamily = ff,
-            Foreground = fg,
-            VerticalAlignment = AvaVertAlign.Center
-        };
-
-    private static TextBox MakeFuzzyInput(double value, AvaBrush fg, AvaFontFamily ff) =>
-        new TextBox
-        {
-            Text = $"{value:F3}",
-            FontSize = 11,
-            FontFamily = ff,
-            Foreground = fg,
-            VerticalAlignment = AvaVertAlign.Center,
-            HorizontalAlignment = AvaHorizAlign.Center,
-            // ~5 chars at 11px mono fits "0.999". Compact but tappable.
-            Width = 48,
-            Padding = new Avalonia.Thickness(2, 0, 2, 0),
-            BorderThickness = new Avalonia.Thickness(0),
-            Background = Avalonia.Media.Brushes.Transparent,
-        };
-
     private static TextBlock MakeDotSeparator(AvaBrush fg) =>
         new TextBlock
         {
@@ -509,6 +494,147 @@ public partial class MainWindow : Window
             Foreground = fg,
             VerticalAlignment = AvaVertAlign.Center
         };
+
+    /// <summary>
+    /// Click-to-edit value slot. The visible state is a plain TextBlock so the
+    /// coefficient row reads identically to the read-only layout that shipped
+    /// before. PointerPressed swaps in a focused TextBox; LostFocus or Enter
+    /// parses the text and invokes <paramref name="onCommit"/>; Escape reverts.
+    ///
+    /// onCommit is invoked only when the parsed value actually differs from
+    /// <paramref name="initial"/>, and only via Dispatcher.UIThread.Post so the
+    /// matrix rebuild that UpdateCoefficient triggers happens after this
+    /// control's event handlers have fully unwound (otherwise Avalonia tears
+    /// the control down inside its own callback stack and crashes).
+    /// </summary>
+    private static Border MakeEditableValueSlot(
+        double initial,
+        AvaBrush fg,
+        AvaFontFamily ff,
+        Action<double> onCommit)
+    {
+        var slot = new Border
+        {
+            Padding = new Avalonia.Thickness(3, 0, 3, 0),
+            Background = Avalonia.Media.Brushes.Transparent,
+            VerticalAlignment = AvaVertAlign.Center,
+            Cursor = new Avalonia.Input.Cursor(StandardCursorType.Ibeam),
+            // A faint hover surface lifts the slot as "interactive" without
+            // committing to the TextBox chrome until the user actually clicks.
+            Classes = { "coeff-slot" },
+        };
+
+        TextBlock MakeDisplay() => new TextBlock
+        {
+            Text = $"{initial:F3}",
+            FontSize = 11,
+            FontFamily = ff,
+            Foreground = fg,
+            VerticalAlignment = AvaVertAlign.Center,
+            HorizontalAlignment = AvaHorizAlign.Center,
+        };
+
+        slot.Child = MakeDisplay();
+
+        void BeginEdit()
+        {
+            var box = new TextBox
+            {
+                Text = $"{initial:F3}",
+                FontSize = 11,
+                FontFamily = ff,
+                Foreground = fg,
+                Background = Avalonia.Media.Brushes.Transparent,
+                BorderThickness = new Avalonia.Thickness(0),
+                Padding = new Avalonia.Thickness(0),
+                MinHeight = 0,
+                VerticalAlignment = AvaVertAlign.Center,
+                HorizontalAlignment = AvaHorizAlign.Stretch,
+                // Inline editor is sized to comfortably hold "0.999" in 11pt
+                // mono with no chrome — narrower than the FluentTheme default
+                // so the L · M · U triple fits inside the cell column.
+                Width = 44,
+                TextAlignment = Avalonia.Media.TextAlignment.Center,
+            };
+
+            bool done = false;
+            void Done(bool commit)
+            {
+                if (done) return;
+                done = true;
+
+                if (commit
+                    && double.TryParse(box.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+                    && parsed != initial)
+                {
+                    // Defer the actual mutation so the focus / key-event call
+                    // stack unwinds before OnStateChanged tears this slot down.
+                    var value = parsed;
+                    Dispatcher.UIThread.Post(() => onCommit(value));
+                }
+                else
+                {
+                    // Restore the display TextBlock. Either nothing changed,
+                    // parsing failed, or the user pressed Escape.
+                    slot.Child = MakeDisplay();
+                }
+            }
+
+            box.LostFocus += (_, _) => Done(commit: true);
+            box.KeyDown += (_, e) =>
+            {
+                if (e.Key == Key.Enter)
+                {
+                    e.Handled = true;
+                    Done(commit: true);
+                }
+                else if (e.Key == Key.Escape)
+                {
+                    e.Handled = true;
+                    Done(commit: false);
+                }
+            };
+
+            slot.Child = box;
+            Dispatcher.UIThread.Post(() =>
+            {
+                box.Focus();
+                box.SelectAll();
+            });
+        }
+
+        slot.PointerPressed += (_, e) =>
+        {
+            // Only swap on a primary-button click that hit the TextBlock itself,
+            // not a re-entrant event from the TextBox we're about to install.
+            if (slot.Child is TextBox) return;
+            if (e.GetCurrentPoint(slot).Properties.IsLeftButtonPressed)
+                BeginEdit();
+        };
+
+        return slot;
+    }
+
+    /// <summary>
+    /// Defers the actual <see cref="ScenarioMutator.UpdateCoefficient"/> call
+    /// onto the UI dispatcher and surfaces any <see cref="ScenarioMutationException"/>
+    /// through the status-bar warning. Called from MakeEditableValueSlot's
+    /// onCommit callbacks, which are themselves already posted, so this is
+    /// effectively the catch-all for domain-rule failures.
+    /// </summary>
+    private void CommitCoefficient(
+        string alternativeId, string propertyId,
+        double lower, double modal, double upper)
+    {
+        try
+        {
+            Mutator.UpdateCoefficient(alternativeId, propertyId, lower, modal, upper);
+        }
+        catch (ScenarioMutationException ex)
+        {
+            StampDiscardWarning(ex.Message);
+        }
+    }
 
     private AvaBrush? TryGetBrush(string key)
     {
