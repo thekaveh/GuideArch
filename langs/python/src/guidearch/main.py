@@ -2051,9 +2051,7 @@ def main() -> None:
     import os
     import sys
 
-    if "--native" in sys.argv[1:] and not sys.argv[0].endswith(
-        ("main.py", "__main__.py")
-    ):
+    if "--native" in sys.argv[1:] and not sys.argv[0].endswith(("main.py", "__main__.py")):
         os.execvp(
             sys.executable,
             [sys.executable, "-m", "guidearch.main", *sys.argv[1:]],
