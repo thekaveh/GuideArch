@@ -119,11 +119,27 @@ Close the window to stop. The Avalonia WebAssembly target is deferred to v1.1 (s
 ```bash
 cd langs/python
 uv sync
-uv run guidearch           # web mode — browser at http://localhost:8080
-uv run guidearch --native  # desktop mode — native pywebview window
+uv run guidearch                       # web mode — browser at http://localhost:8080
+uv run guidearch --native              # desktop mode — native pywebview window
+uv run python -m guidearch.main --native   # equivalent module-form invocation
 ```
 
 `Ctrl-C` (or close the window) to stop.
+
+The two `--native` forms behave identically. The console-script form
+(`uv run guidearch --native`) detects the flag and re-execs itself as
+`python -m guidearch.main` before booting NiceGUI, so the multiprocessing
+spawn child that drives pywebview has a stable package-qualified `__main__`
+to import — without that handoff, on some platforms the parent's HTTP
+server starts (you see `NiceGUI ready to go on http://127.0.0.1:8080`) but
+the pywebview window never surfaces.
+
+What native mode actually is: a borderless desktop window backed by
+pywebview's WebKit (macOS) / WebView2 (Windows) / GTK-WebKit (Linux). The
+UI inside is the same Svelte-style NiceGUI view you'd see in the browser —
+only the chrome differs. The `127.0.0.1:8080` line is still printed in
+native mode because pywebview talks to NiceGUI's local HTTP server; you
+don't need to open it manually.
 
 ### 5.5 Try the sample scenarios
 

@@ -2039,6 +2039,24 @@ def _do_explicit_solve(vm: ScenarioVM) -> None:
 def main() -> None:
     global _is_native
 
+    # NiceGUI's native mode launches pywebview in a multiprocessing-spawn
+    # subprocess. The spawn child re-imports the parent's __main__ module to
+    # bootstrap. When the parent was launched via the `guidearch` console-
+    # script wrapper (i.e. `uv run guidearch --native`), the wrapper is the
+    # __main__ module — which on some platforms (notably macOS) leaves the
+    # spawn child without a stable importable path to user callbacks and the
+    # pywebview window never surfaces (the parent's HTTP server stays up, so
+    # it looks like web mode). Re-exec ourselves as `python -m guidearch.main`
+    # so the spawn child has a real package-qualified __main__.
+    import os
+    import sys
+
+    if "--native" in sys.argv[1:] and not sys.argv[0].endswith(("main.py", "__main__.py")):
+        os.execvp(
+            sys.executable,
+            [sys.executable, "-m", "guidearch.main", *sys.argv[1:]],
+        )
+
     parser = argparse.ArgumentParser(prog="guidearch")
     parser.add_argument(
         "--native",
