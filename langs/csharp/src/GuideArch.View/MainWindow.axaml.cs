@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -15,6 +16,7 @@ using AvaTextWrapping = Avalonia.Media.TextWrapping;
 using AvaTextTrimming = Avalonia.Media.TextTrimming;
 using AvaOrientation = Avalonia.Layout.Orientation;
 using AvaVertAlign = Avalonia.Layout.VerticalAlignment;
+using AvaHorizAlign = Avalonia.Layout.HorizontalAlignment;
 
 namespace GuideArch.View;
 
@@ -38,6 +40,15 @@ public partial class MainWindow : Window
     private ScenarioMutator Mutator => _cmds.Mutator;
 
     // Track last-rendered state so we only refresh when data actually changed.
+    // _lastScenarioRef captures the ScenarioM instance the coefficients matrix
+    // was last built from. ScenarioM is a sealed record and every mutation
+    // (UpdateCoefficient, AddAlternative, …) produces a new instance via `with`,
+    // so reference equality is a reliable "did the matrix shape or values
+    // change?" test. Pure selection clicks in the Results grid leave Scenario
+    // alone — without this gate they'd rebuild the entire coefficients UI tree
+    // on every click and the chart canvases on top of it, which is what made
+    // the Results tab flicker.
+    private ScenarioM? _lastScenarioRef = null;
     private int _lastCandidateCount = -1;
     private int? _lastSelectedIndex = -2; // sentinel "not yet rendered"
 
@@ -171,11 +182,19 @@ public partial class MainWindow : Window
     private void OnStateChanged()
     {
         var state = _vm.Model;
+        bool scenarioChanged = !ReferenceEquals(_lastScenarioRef, state.Scenario);
         bool candidatesChanged = state.Candidates.Length != _lastCandidateCount;
         bool selectionChanged = state.SelectedCandidateIndex != _lastSelectedIndex;
 
-        // Always rebuild the coefficients matrix when state changes (scenario may have changed).
-        RebuildCoefficientsMatrix(state);
+        // Coefficients matrix is a UI mirror of state.Scenario.Coefficients —
+        // only rebuild it when the scenario instance itself has changed (load /
+        // new / any structural or value mutation). Selection-only changes
+        // never touch Scenario, so we skip the rebuild on Results-tab clicks.
+        if (scenarioChanged)
+        {
+            RebuildCoefficientsMatrix(state);
+            _lastScenarioRef = state.Scenario;
+        }
 
         if (!candidatesChanged && !selectionChanged) return;
 
@@ -185,16 +204,27 @@ public partial class MainWindow : Window
         // spec/viewmodels.md §6 caps the Results table at the top 50 rows
         // — Python (main.py:1042) and TS (ResultsTab.svelte:14) do the same.
         // Project here so the DataGrid never tries to render thousands of
-        // rows of TOPSIS candidates on a large scenario.
-        var resultsGrid = this.FindControl<DataGrid>("ResultsGrid");
-        if (resultsGrid is not null)
+        // rows of TOPSIS candidates on a large scenario. Only refresh
+        // ItemsSource when the candidates set itself changed; a selection-
+        // only delta would otherwise hand the DataGrid a brand-new array
+        // (.ToArray() on Span) every click and trigger a re-bind that fed
+        // back into OnResultsGridSelectionChanged.
+        if (candidatesChanged)
         {
-            resultsGrid.ItemsSource = state.Candidates.Length > 50
-                ? state.Candidates.AsSpan(0, 50).ToArray()
-                : (System.Collections.IEnumerable)state.Candidates;
+            var resultsGrid = this.FindControl<DataGrid>("ResultsGrid");
+            if (resultsGrid is not null)
+            {
+                resultsGrid.ItemsSource = state.Candidates.Length > 50
+                    ? state.Candidates.AsSpan(0, 50).ToArray()
+                    : (System.Collections.IEnumerable)state.Candidates;
+            }
         }
 
-        RenderChartA(state);
+        // Chart A (ranked bar) only depends on the candidates set; selection
+        // doesn't change its bars. Charts B (fuzzy triangle of selected) and
+        // C (top-10 polyline with selected highlighted) do depend on
+        // selection, so they re-render either way.
+        if (candidatesChanged) RenderChartA(state);
         RenderChartB(state);
         RenderChartC(state);
 
@@ -372,7 +402,13 @@ public partial class MainWindow : Window
                         Padding = new Avalonia.Thickness(4, 0, 4, 0)
                     };
 
-                    // L · M · U compact display
+                    // L · M · U inputs — three editable TextBoxes mirroring the
+                    // Python + TS coefficient cells (each impl commits on blur
+                    // via UpdateCoefficient). The dots in between are static
+                    // separators. Closure captures `cell` so the LostFocus
+                    // handler always sees the canonical values to compare
+                    // against on parse failure (we revert to the last accepted
+                    // values rather than letting the user keep garbage typed in).
                     var cellContent = new StackPanel
                     {
                         Orientation = AvaOrientation.Horizontal,
@@ -380,23 +416,52 @@ public partial class MainWindow : Window
                         VerticalAlignment = AvaVertAlign.Center
                     };
 
-                    cellContent.Children.Add(MakeFuzzyLabel(cell.Lower, textMuted, monoFont));
-                    cellContent.Children.Add(new TextBlock
+                    var lBox = MakeFuzzyInput(cell.Lower, textMuted, monoFont);
+                    cellContent.Children.Add(lBox);
+                    cellContent.Children.Add(MakeDotSeparator(textMuted));
+                    var mBox = MakeFuzzyInput(cell.Modal, textPrimary, monoFont);
+                    cellContent.Children.Add(mBox);
+                    cellContent.Children.Add(MakeDotSeparator(textMuted));
+                    var uBox = MakeFuzzyInput(cell.Upper, textMuted, monoFont);
+                    cellContent.Children.Add(uBox);
+
+                    var capturedCell = cell;
+                    void Commit(object? _, RoutedEventArgs _2)
                     {
-                        Text = "·",
-                        FontSize = 10,
-                        Foreground = textMuted,
-                        VerticalAlignment = AvaVertAlign.Center
-                    });
-                    cellContent.Children.Add(MakeFuzzyLabel(cell.Modal, textPrimary, monoFont));
-                    cellContent.Children.Add(new TextBlock
-                    {
-                        Text = "·",
-                        FontSize = 10,
-                        Foreground = textMuted,
-                        VerticalAlignment = AvaVertAlign.Center
-                    });
-                    cellContent.Children.Add(MakeFuzzyLabel(cell.Upper, textMuted, monoFont));
+                        if (!double.TryParse(lBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var l) ||
+                            !double.TryParse(mBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var m) ||
+                            !double.TryParse(uBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var u))
+                        {
+                            // Unparseable input — revert to the last accepted values
+                            // (matches Python's ui.notify-on-error + Svelte's reset).
+                            lBox.Text = $"{capturedCell.Lower:F3}";
+                            mBox.Text = $"{capturedCell.Modal:F3}";
+                            uBox.Text = $"{capturedCell.Upper:F3}";
+                            return;
+                        }
+                        // No-op: just tabbing through cells without editing
+                        // shouldn't trigger a solve + matrix rebuild on every
+                        // box that loses focus. We compare against the cell's
+                        // canonical values rather than tracking dirty bits.
+                        if (l == capturedCell.Lower && m == capturedCell.Modal && u == capturedCell.Upper)
+                            return;
+                        try
+                        {
+                            Mutator.UpdateCoefficient(capturedCell.AlternativeId, capturedCell.PropertyId, l, m, u);
+                        }
+                        catch (ScenarioMutationException ex)
+                        {
+                            // Domain-rule violation (e.g. ordering) — surface the
+                            // message via StampDiscardWarning and revert.
+                            StampDiscardWarning(ex.Message);
+                            lBox.Text = $"{capturedCell.Lower:F3}";
+                            mBox.Text = $"{capturedCell.Modal:F3}";
+                            uBox.Text = $"{capturedCell.Upper:F3}";
+                        }
+                    }
+                    lBox.LostFocus += Commit;
+                    mBox.LostFocus += Commit;
+                    uBox.LostFocus += Commit;
 
                     cellBorder.Child = cellContent;
                     Grid.SetColumn(cellBorder, p + 1);
@@ -416,6 +481,31 @@ public partial class MainWindow : Window
             Text = $"{value:F3}",
             FontSize = 11,
             FontFamily = ff,
+            Foreground = fg,
+            VerticalAlignment = AvaVertAlign.Center
+        };
+
+    private static TextBox MakeFuzzyInput(double value, AvaBrush fg, AvaFontFamily ff) =>
+        new TextBox
+        {
+            Text = $"{value:F3}",
+            FontSize = 11,
+            FontFamily = ff,
+            Foreground = fg,
+            VerticalAlignment = AvaVertAlign.Center,
+            HorizontalAlignment = AvaHorizAlign.Center,
+            // ~5 chars at 11px mono fits "0.999". Compact but tappable.
+            Width = 48,
+            Padding = new Avalonia.Thickness(2, 0, 2, 0),
+            BorderThickness = new Avalonia.Thickness(0),
+            Background = Avalonia.Media.Brushes.Transparent,
+        };
+
+    private static TextBlock MakeDotSeparator(AvaBrush fg) =>
+        new TextBlock
+        {
+            Text = "·",
+            FontSize = 10,
             Foreground = fg,
             VerticalAlignment = AvaVertAlign.Center
         };
