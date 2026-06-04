@@ -19,10 +19,13 @@ uv sync --all-extras --group visual # also install playwright for visual snapsho
 ## Run
 
 ```bash
-uv run guidearch                # web mode — browser at http://localhost:8080
-uv run guidearch --native       # desktop — native pywebview window
-uv run guidearch --port 9000    # override port
+uv run guidearch                          # web mode — browser at http://localhost:8080
+uv run guidearch --native                 # desktop — native pywebview window
+uv run python -m guidearch.main --native  # equivalent module-form invocation
+uv run guidearch --port 9000              # override port
 ```
+
+The console-script form (`uv run guidearch --native`) and the module form (`uv run python -m guidearch.main --native`) are equivalent: the entry point auto re-execs into the module form so NiceGUI's multiprocessing spawn child can re-import a stable, package-qualified `__main__`. Without that, on some platforms the HTTP server starts (`NiceGUI ready to go on http://127.0.0.1:8080`) but the pywebview window never opens.
 
 After the app loads, click **Open Sample SAS** or **Open Sample EDS** in the toolbar to try a bundled scenario; or use **Open…** to pick your own JSON file.
 
