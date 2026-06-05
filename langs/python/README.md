@@ -27,7 +27,7 @@ uv run guidearch --port 9000              # override port
 
 The console-script form (`uv run guidearch --native`) and the module form (`uv run python -m guidearch.main --native`) are equivalent: the entry point auto re-execs into the module form so NiceGUI's multiprocessing spawn child can re-import a stable, package-qualified `__main__`. Without that, on some platforms the HTTP server starts (`NiceGUI ready to go on http://127.0.0.1:8080`) but the pywebview window never opens.
 
-After the app loads, click **Open Sample SAS** or **Open Sample EDS** in the toolbar to try a bundled scenario; or use **Open…** to pick your own JSON file.
+After the app loads, click **Sample SAS** or **Sample EDS** in the toolbar (or the **Open Sample SAS** CTA on the first-launch hero) to try a bundled scenario; or use **Open…** to pick your own JSON file.
 
 ## Test
 

@@ -1,6 +1,6 @@
 # Editors layer (M3) — formal specification
 
-**Status:** Authoritative. All three impls must realize this UI contract.
+**Status:** Authoritative. All three impls must realize this UI contract. M0 through M5 all shipped in `v1.0.0`; milestone-tense passages below ("M2 skeleton lets …", "M3 lets …") describe the scope of each milestone as authored, not in-progress work.
 
 The M2 skeleton lets a user OPEN a scenario and SEE the resulting ranked candidates. M3 lets them EDIT scenarios in-place. Editing any field that the spec §4.3 (in `viewmodels.md`) marks "triggers solve" must re-run TOPSIS and update the candidates table live.
 

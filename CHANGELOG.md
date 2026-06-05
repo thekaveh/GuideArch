@@ -10,6 +10,17 @@ Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
 behavior change a user-facing release note would call out.
 
 ### Fixed
+- C# Coefficients tab cells are now click-to-edit (previously the
+  DataGrid columns were init-only because they were bound to record
+  properties; click selected the row but edit never started). Chart B
+  and Chart C now refresh on coefficient edits with a 50 ms debounce so
+  the Results tab no longer flickers under rapid edits.
+- Python `--native` mode now boots reliably on every platform. The
+  console-script entry point detects the flag and re-execs itself as
+  `python -m guidearch.main`, giving the multiprocessing spawn child
+  that drives pywebview a stable package-qualified `__main__` to
+  import. Without that handoff, on some platforms the HTTP server
+  started but the pywebview window never surfaced.
 - Cross-impl `New` scenario defaults, status strings, error-message
   punctuation, tab labels (TitleCase `Critical Decisions` / `Critical
   Constraints`), mutation-error texts, and the coefficient ordering

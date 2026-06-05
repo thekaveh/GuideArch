@@ -1,6 +1,6 @@
 # ViewModel layer — formal specification
 
-**Status:** Authoritative. All three impls must realize this tree with the names and shapes below.
+**Status:** Authoritative. All three impls must realize this tree with the names and shapes below. M0 through M5 all shipped in `v1.0.0`; "M2 skeleton UI", "M3 lets …", "M4 gives …" milestone-tense passages below describe the milestone scope as authored, not in-progress work.
 
 ## 1. Purpose
 
@@ -15,6 +15,17 @@ VMs are built on **VMx** (the submodule at `vendor/vmx/`). Per the project ADRs:
 All require a `MessageHub` and `Dispatcher` from VMx. M0 used the null variants for the smoke samples. At v1.0 ship, TypeScript and Python use a live `MessageHub` so adapter code can subscribe to `PropertyChangedMessage`; C# still constructs its `ComponentVM<ScenarioState>` with `NullMessageHub.Instance` (equalising the C# impl with the other two is on the v1.1 backlog).
 
 ## 2. The VM tree
+
+> **v1.0 status.** The leaf VMs (`DecisionVM`, `AlternativeVM`, `PropertyVM`,
+> `CandidateVM`, `CriticalDecisionVM`, `CriticalConstraintVM`, the three
+> `*ConstraintVM`s, `CoefficientCellVM`, `AppVM`, `ScenarioVM`) ship in all three
+> impls. The intermediate **composite/aggregate** nodes drawn in the tree
+> (`DecisionsVM`, `PropertiesVM`, `AlternativesVM`, `CoefficientsVM`,
+> `ConstraintsVM (AggregateVM3)`, the three `*ConstraintsVM`s, `CandidatesVM`,
+> `CriticalDecisionsVM`, `CriticalConstraintsVM`, `AnalysisVM (AggregateVM2)`)
+> are **aspirational** — the v1.0 UIs read directly from
+> `ScenarioVM.model.scenario.*` and from `ScenarioVM`'s observable lists.
+> Landing real composite wrappers is on the v1.1 backlog.
 
 The conceptual tree is the same in every impl. Names below are the canonical names (each language adapts case: `ScenarioVM` in C#, `scenario_vm.py` filename + `ScenarioVM` class in Python, `scenario-vm.ts` filename + `ScenarioVM` exported type in TypeScript). The TypeScript filename convention is kebab-case to match the rest of the TS source tree, not camelCase as earlier drafts of this spec sketched.
 
@@ -157,6 +168,22 @@ A 2-D grid (`alternative × property`). Implementation: a flat list `Coefficient
 
 Three flavors, each `ComponentVM<XxxConstraint>`. Edits trigger a solve.
 
+**Mutator surface and indexing.** Mutators on `ScenarioVM` that target an
+existing constraint take a **global** index into `scenario.constraints` — the
+same index space used by `CriticalConstraintM.constraintIndex` in
+`spec/algorithms/critical-constraints.md`. The canonical method set is:
+
+- `addThresholdConstraint(c)` / `addDependencyConstraint(c)` / `addConflictConstraint(c)` — typed adds
+- `updateThresholdConstraint(index, c)` / `updateDependencyConstraint(index, c)` / `updateConflictConstraint(index, c)` — typed updates; impls assert the constraint at `index` is of the expected kind
+- `deleteConstraint(index)` — kind-agnostic delete
+
+TypeScript also exposes the generic `addConstraint(c)` / `updateConstraint(index, c)`
+shims for ergonomics; both surfaces target the same global index space.
+Per-kind sub-indexing (e.g. "the third threshold constraint") is **not** a
+supported addressing mode — views that want to render a single-kind sub-tab
+should derive the global index from the constraint reference, not pass a
+filtered-list offset.
+
 ### 5.6 Result VMs
 
 `CandidateVM`, `CriticalDecisionVM`, `CriticalConstraintVM` are **read-only** wrappers — their constructors take the spec-shaped output of M1's `Solver`. No commands. No mutation paths.
@@ -170,7 +197,7 @@ Three flavors, each `ComponentVM<XxxConstraint>`. Edits trigger a solve.
 - `bind(vm: ComponentVMOf[M], property: str, ui_element)` — sets up a two-way binding using NiceGUI's `.bind_value()` and the VMx hub's `PropertyChangedMessage` stream.
 - `bind_command(cmd: RelayCommand, button: ui.button)` — invokes `cmd` on click; disables button when `cmd.can_execute` is false.
 
-Size: ~140 LOC including type hints and docstrings (count grew through M3-M4 as cascade and command bindings landed). Tested with a hand-written demo VM in `tests/unit/test_vmx_to_nicegui_adapter.py`.
+Size: ~140 LOC including type hints and docstrings (count grew through M3-M4 as cascade and command bindings landed). Tested with a hand-written demo VM in `tests/unit/test_vmx_to_nicegui_adapter.py`. The shipped `main.py` v1.0 UI does not currently route through this adapter — it wires NiceGUI elements to VM properties through ad-hoc `vm.subscribe(...)` callbacks. Converging `main.py` onto `bind` / `bind_command` is on the v1.1 backlog; the adapter remains the canonical pattern.
 
 ### 6.2 TypeScript (Svelte)
 
@@ -194,7 +221,7 @@ Each impl ships a minimal app at M2 that demonstrates the VM tree end-to-end:
 1. App opens with no scenario loaded; shows an "Open scenario..." button.
 2. User picks a `.json` scenario file (via OS-native dialog).
 3. `ScenarioVM.OpenCmd(path)` runs.
-4. App shows a single table: the ranked candidates (top 50 rows) with columns: rank, score, alternativeIds.
+4. App shows a single table: the ranked candidates (top 50 rows) with columns: rank, score, alternativeIds. The right-rail ranked-bar **Chart A** alongside the table is hard-fixed to top 30 (see `spec/charts.md` §2) — the table window and the chart window are deliberately different sizes.
 5. Status bar shows scenario name + candidate count.
 
 Editors (M3), charts (M4), and full multi-pane layout (M4) are out of scope for M2.

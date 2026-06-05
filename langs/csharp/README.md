@@ -15,7 +15,7 @@ dotnet build GuideArch.sln
 dotnet run --project src/GuideArch.View   # opens a native Avalonia window
 ```
 
-After the window opens, click **Open Sample SAS** or **Open Sample EDS** in the toolbar to try a bundled scenario; the OS-native file picker is used for **Open…**.
+After the window opens, click **Sample SAS** or **Sample EDS** in the toolbar (or the **Open Sample SAS** CTA on the first-launch hero) to try a bundled scenario; the OS-native file picker is used for **Open…**.
 
 ## WebAssembly (Avalonia.Browser) — deferred to v1.1
 

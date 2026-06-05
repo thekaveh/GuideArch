@@ -1,6 +1,6 @@
 # Analysis & charts (M4) — formal specification
 
-**Status:** Authoritative. All three impls must realize this UI contract.
+**Status:** Authoritative. All three impls must realize this UI contract. M0 through M5 all shipped in `v1.0.0`; milestone-tense passages below describe the scope of each milestone as authored, not in-progress work.
 
 M3 gave editors. M4 gives the architect the *insight* views: ranked-candidates score chart, fuzzy-value triangle visualizer, critical-decisions panel, critical-constraints panel. All four are read-only.
 

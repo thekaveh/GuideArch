@@ -20,6 +20,6 @@ Adopt NiceGUI 3.x as the Python view layer. Build a small VMx ↔ NiceGUI bindin
 ## Consequences
 
 - The Python impl reaches feature parity with TS+Tauri and C#+Avalonia on deployment surface (desktop + web).
-- We write a ~30–50 LOC adapter mapping VMx `PropertyChangedMessage` to NiceGUI binding propagation; contributable back to VMx as `vmx.bindings.nicegui`.
+- We write a small adapter mapping VMx `PropertyChangedMessage` to NiceGUI binding propagation; contributable back to VMx as `vmx.bindings.nicegui`. (Pre-impl estimate was ~30–50 LOC; the shipped `vmx_to_nicegui.py` adapter is ~140 LOC once type hints, docstrings, and v1.0 command-binding semantics are included — see `spec/viewmodels.md` §6.1.)
 - We accept NiceGUI's documentation being less comprehensive than Shiny's — the GitHub Discussions forum is the supplement.
 - Standalone executable packaging (PyInstaller `--onefile`) has known multiprocessing edge cases; deferred past v1.0.

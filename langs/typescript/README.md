@@ -23,7 +23,7 @@ pnpm dev          # web mode — browser at http://localhost:1420
 pnpm tauri dev    # desktop mode — native Tauri window (first build is slow; subsequent are fast)
 ```
 
-After the app loads, click **Open Sample SAS** or **Open Sample EDS** in the toolbar to try a bundled scenario.
+After the app loads, click **Sample SAS** or **Sample EDS** in the toolbar (or the **Open Sample SAS** CTA on the first-launch hero) to try a bundled scenario.
 
 v1.0 uses the same browser-mode UX in both browser and Tauri runs: `<input type="file">` for Open, anchor-download (`URL.createObjectURL`) for Save / Save-As. The OS-native picker integration via `@tauri-apps/plugin-dialog` is on the v1.1 backlog (`spec/editors.md` §3).
 
