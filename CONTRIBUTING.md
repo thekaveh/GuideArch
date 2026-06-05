@@ -41,8 +41,9 @@ Each command below comes in two flavors: **apply** (writes fixes) and **verify**
   - Verify (CI): `dotnet build && dotnet format --verify-no-changes`
   - Warnings are errors (set in `Directory.Build.props`).
 - Python:
-  - Apply: `uv run ruff check src tests --fix && uv run ruff format src tests`
-  - Verify (CI): `uv run ruff check src tests && uv run ruff format --check src tests && uv run mypy src tests`
+  - Apply: `uv sync --all-extras && uv run ruff check src tests --fix && uv run ruff format src tests`
+  - Verify (CI): `uv sync --all-extras && uv run ruff check src tests && uv run ruff format --check src tests && uv run mypy src tests`
+  - The `--all-extras` flag is required: plain `uv sync` strips the `dev` group (`pytest`, `mypy`, `ruff`).
 
 ## Code of Conduct
 

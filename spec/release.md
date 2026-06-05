@@ -8,7 +8,7 @@ M5 ships the v1.0.0 release: build configs + a GitHub Actions release workflow t
 
 ### 1.1 TypeScript + Tauri 2
 
-- **Desktop installers** for Win (`.msi`), macOS (`.dmg`), Linux (`.AppImage`, `.deb`) via `pnpm tauri build`. Built on the corresponding GitHub Actions runner per platform.
+- **Desktop installers** for Win (`.msi` and NSIS `.exe`), macOS (`.dmg`), Linux (`.AppImage`, `.deb`) via `pnpm tauri build` with `"targets": "all"` in `tauri.conf.json`. Built on the corresponding GitHub Actions runner per platform.
 - **Web bundle** — `pnpm build` output (`langs/typescript/build/`), zipped and attached as `guidearch-web-1.0.0.zip` (the version segment is the bare semver — no leading `v` — matching the §3 artifact table and the release workflow).
 
 Signing / notarization are stretch goals; v1.0.0 ships unsigned with an "unsigned binary" note in release notes (users on macOS will need to right-click → Open).
@@ -62,7 +62,7 @@ Signing / notarization are stretch goals; v1.0.0 ships unsigned with an "unsigne
 - `Cargo.toml` (Tauri shell): `version = "1.0.0"`
 - `tauri.conf.json`: same
 
-All five must agree at release time.
+All five should agree at release time. The release workflow derives the version from the pushed tag (`${GITHUB_REF#refs/tags/v}`) and does not cross-check the five sources; bumping is the maintainer's responsibility before tagging.
 
 ## 5. Release notes
 

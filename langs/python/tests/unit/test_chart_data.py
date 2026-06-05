@@ -3,7 +3,9 @@
 Verifies:
 - candidates_bar_option: rank order, score values, alternative name lookup,
   correct ECharts structure.
-- triangle_option: correct series shape for selected candidate.
+- triangle_option: per-property triangle series (spec/charts.md §3) — one
+  triangle per scenario property, vertices derived from summing coefficients
+  across the candidate's alternatives.
 """
 
 from __future__ import annotations
@@ -13,7 +15,9 @@ from pathlib import Path
 import pytest
 
 from guidearch.models.candidate import CandidateM
+from guidearch.models.coefficient import CoefficientM
 from guidearch.models.normalized_fuzzy import NormalizedFuzzyM
+from guidearch.models.property import PropertyM
 from guidearch.models.triangular_fuzzy import TriangularFuzzyM
 from guidearch.view.chart_data import candidates_bar_option, triangle_option
 
@@ -38,6 +42,16 @@ def _make_candidate(rank: int, score: float, alt_ids: tuple[str, ...]) -> Candid
     )
 
 
+def _make_coeff(
+    alt_id: str, prop_id: str, lower: float, modal: float, upper: float
+) -> CoefficientM:
+    return CoefficientM(
+        alternative_id=alt_id,
+        property_id=prop_id,
+        value=TriangularFuzzyM(lower, modal, upper),
+    )
+
+
 _CANDIDATES = (
     _make_candidate(0, 0.10, ("a1", "b1")),
     _make_candidate(1, 0.20, ("a1", "b2")),
@@ -53,6 +67,26 @@ _ALT_MAP = {
     "b1": "Beta-1",
     "b2": "Beta-2",
 }
+
+_PROPS = (
+    PropertyM(id="prop_a", name="Property A", kind="max", weight=1.0),
+    PropertyM(id="prop_b", name="Property B", kind="max", weight=1.0),
+)
+
+# Coefficients: candidate (a1, b1) → prop_a sums to (0.1+0.3, 0.2+0.4, 0.3+0.5) = (0.4, 0.6, 0.8)
+# and prop_b sums to (0.5+0.7, 0.6+0.8, 0.7+0.9) = (1.2, 1.4, 1.6).
+_COEFFS = (
+    _make_coeff("a1", "prop_a", 0.1, 0.2, 0.3),
+    _make_coeff("a1", "prop_b", 0.5, 0.6, 0.7),
+    _make_coeff("a2", "prop_a", 0.2, 0.3, 0.4),
+    _make_coeff("a2", "prop_b", 0.4, 0.5, 0.6),
+    _make_coeff("a3", "prop_a", 0.3, 0.4, 0.5),
+    _make_coeff("a3", "prop_b", 0.3, 0.4, 0.5),
+    _make_coeff("b1", "prop_a", 0.3, 0.4, 0.5),
+    _make_coeff("b1", "prop_b", 0.7, 0.8, 0.9),
+    _make_coeff("b2", "prop_a", 0.4, 0.5, 0.6),
+    _make_coeff("b2", "prop_b", 0.6, 0.7, 0.8),
+)
 
 
 # ---------------------------------------------------------------------------
@@ -144,53 +178,83 @@ def test_bar_option_axes_present() -> None:
 
 
 # ---------------------------------------------------------------------------
-# triangle_option
+# triangle_option (per-property — spec/charts.md §3)
 # ---------------------------------------------------------------------------
 
 
 def test_triangle_option_returns_dict() -> None:
     cand = _CANDIDATES[0]
-    opt = triangle_option(cand, ["prop_a", "prop_b"], _ALT_MAP)
+    opt = triangle_option(cand, _PROPS, _COEFFS, _ALT_MAP)
     assert isinstance(opt, dict)
 
 
-def test_triangle_option_has_series() -> None:
+def test_triangle_option_one_series_per_property() -> None:
+    """spec/charts.md §3: one triangle (one series) per property."""
     cand = _CANDIDATES[0]
-    opt = triangle_option(cand, ["prop_a"], _ALT_MAP)
+    opt = triangle_option(cand, _PROPS, _COEFFS, _ALT_MAP)
     assert "series" in opt
-    assert len(opt["series"]) >= 1
+    assert len(opt["series"]) == len(_PROPS)
 
 
 def test_triangle_option_series_type_line() -> None:
     cand = _CANDIDATES[0]
-    opt = triangle_option(cand, ["prop_a"], _ALT_MAP)
+    opt = triangle_option(cand, _PROPS, _COEFFS, _ALT_MAP)
     for s in opt["series"]:
         assert s["type"] == "line"
 
 
-def test_triangle_option_triangle_shape() -> None:
-    """Each series data must form a triangle: (lower,0), (modal,1), (upper,0)."""
+def test_triangle_option_series_named_after_properties() -> None:
+    """Legend entries (series names) come from PropertyM.name."""
     cand = _CANDIDATES[0]
-    opt = triangle_option(cand, ["prop_a"], _ALT_MAP)
-    tv = cand.triangular_value
-    first_series = opt["series"][0]
-    data = first_series["data"]
+    opt = triangle_option(cand, _PROPS, _COEFFS, _ALT_MAP)
+    names = [s["name"] for s in opt["series"]]
+    assert names == [p.name for p in _PROPS]
+
+
+def test_triangle_option_triangle_shape_uses_per_property_sums() -> None:
+    """Each series is a triangle: (sumLower,0), (sumModal,1), (sumUpper,0)
+    where the sums are taken across the candidate's alternatives for that
+    property — matches TS buildTriangleSeriesData + C# PrepTriangleSeries.
+    """
+    cand = _CANDIDATES[0]  # alternatives ("a1", "b1")
+    opt = triangle_option(cand, _PROPS, _COEFFS, _ALT_MAP)
+
+    # prop_a: (a1 + b1) = (0.1+0.3, 0.2+0.4, 0.3+0.5) = (0.4, 0.6, 0.8)
+    prop_a_series = opt["series"][0]
+    data = prop_a_series["data"]
     assert len(data) == 3
-    # Vertices
-    assert data[0] == [tv.lower, 0.0]
-    assert data[1] == [tv.modal, 1.0]
-    assert data[2] == [tv.upper, 0.0]
+    assert data[0] == [pytest.approx(0.4), 0.0]
+    assert data[1] == [pytest.approx(0.6), 1.0]
+    assert data[2] == [pytest.approx(0.8), 0.0]
+
+    # prop_b: (a1 + b1) = (0.5+0.7, 0.6+0.8, 0.7+0.9) = (1.2, 1.4, 1.6)
+    prop_b_series = opt["series"][1]
+    data = prop_b_series["data"]
+    assert data[0] == [pytest.approx(1.2), 0.0]
+    assert data[1] == [pytest.approx(1.4), 1.0]
+    assert data[2] == [pytest.approx(1.6), 0.0]
 
 
 def test_triangle_option_empty_properties_returns_empty() -> None:
     cand = _CANDIDATES[0]
-    opt = triangle_option(cand, [], _ALT_MAP)
+    opt = triangle_option(cand, (), (), _ALT_MAP)
     assert opt == {}
+
+
+def test_triangle_option_missing_coefficients_emit_zero_triangle() -> None:
+    """A property with no matching coefficients still gets a series — a
+    degenerate (0,0,0) triangle. Cross-impl: TS does the same in
+    buildTriangleSeriesData when count==0."""
+    cand = _CANDIDATES[0]
+    opt = triangle_option(cand, _PROPS, (), _ALT_MAP)
+    assert len(opt["series"]) == len(_PROPS)
+    for s in opt["series"]:
+        assert s["data"] == [[0.0, 0.0], [0.0, 1.0], [0.0, 0.0]]
 
 
 def test_triangle_option_title_shows_rank_and_score() -> None:
     cand = _CANDIDATES[2]
-    opt = triangle_option(cand, ["p"], _ALT_MAP)
+    opt = triangle_option(cand, _PROPS, _COEFFS, _ALT_MAP)
     title_text = opt["title"]["text"]
     assert "2" in title_text  # rank 2
     assert "0.3" in title_text  # score 0.30
@@ -198,9 +262,17 @@ def test_triangle_option_title_shows_rank_and_score() -> None:
 
 def test_triangle_option_subtitle_shows_alt_names() -> None:
     cand = _CANDIDATES[0]
-    opt = triangle_option(cand, ["p"], _ALT_MAP)
+    opt = triangle_option(cand, _PROPS, _COEFFS, _ALT_MAP)
     subtitle = opt["title"]["subtext"]
     assert "Alpha-1" in subtitle or "Beta-1" in subtitle
+
+
+def test_triangle_option_legend_is_visible() -> None:
+    """spec/charts.md §3: 'legend on the right' — must be visible so users
+    can identify which series is which property."""
+    cand = _CANDIDATES[0]
+    opt = triangle_option(cand, _PROPS, _COEFFS, _ALT_MAP)
+    assert opt["legend"]["show"] is True
 
 
 def test_bar_option_with_real_sas() -> None:

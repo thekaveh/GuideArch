@@ -98,8 +98,8 @@ git submodule update --init
 ```bash
 cd langs/typescript
 pnpm install
-pnpm dev          # web mode — browser at http://localhost:1420
-pnpm tauri dev    # desktop mode — native Tauri window (first build is slow)
+pnpm dev          # Vite dev server — browser at http://localhost:1420 (also used by `pnpm tauri dev`)
+pnpm tauri dev    # desktop mode — native Tauri window attaches to the same dev server (first build is slow)
 ```
 
 `Ctrl-C` (or close the window) to stop.
@@ -143,11 +143,11 @@ don't need to open it manually.
 
 ### 5.5 Try the sample scenarios
 
-Each app ships **SAS** (Service-Oriented Architecture, 10 decisions / 25 alternatives / 7 properties) and **EDS** (Enterprise Decision Space, similar shape) as bundled samples. After launching any flavor, click the toolbar button **Open Sample SAS** (or **Open Sample EDS**) — the candidates table populates immediately. The JSON form of each scenario lives under [`spec/conformance/scenarios/`](spec/conformance/scenarios/); the original legacy XML files are not committed to this repository, but [`tools/import-legacy-xml.py`](tools/import-legacy-xml.py) is the converter that produced the bundled JSON from them.
+Each app ships **SAS** (Service-Oriented Architecture, 10 decisions / 25 alternatives / 7 properties) and **EDS** (Enterprise Decision Space, similar shape) as bundled samples. After launching any flavor, click the toolbar button **Sample SAS** (or **Sample EDS**) — or the **Open Sample SAS** CTA on the first-launch hero — and the candidates table populates immediately. The JSON form of each scenario lives under [`spec/conformance/scenarios/`](spec/conformance/scenarios/); the original legacy XML files are not committed to this repository, but [`tools/import-legacy-xml.py`](tools/import-legacy-xml.py) is the converter that produced the bundled JSON from them.
 
 The recommended exploration flow:
 
-1. **Open Sample SAS** in the toolbar.
+1. Click **Sample SAS** in the toolbar.
 2. **Results tab** — top candidate's score should be `0.031180695179944085`. The bar chart on the right shows the top 30; click any bar to jump to that candidate.
 3. **Properties tab** — change one property's weight (e.g., bump *Reliability* to 9). Watch the candidates table refresh instantly (v1.0 re-solves synchronously — see the v1.0 status note at the top of `spec/editors.md`; at SAS/EDS scale a single solve is under 10 ms).
 4. **Critical decisions tab** — see which architectural choices drive the result most.

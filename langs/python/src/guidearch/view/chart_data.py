@@ -145,27 +145,32 @@ _PALETTE = [
 
 def triangle_option(
     candidate: CandidateM,
-    property_names: list[str],
+    properties: tuple[PropertyM, ...],
+    coefficients: tuple[CoefficientM, ...],
     alt_name_map: dict[str, str],
 ) -> dict[str, Any]:
     """Return an ECharts option dict for Chart B (triangle visualizer).
 
-    One line series per property (triangular shape: lower→0, modal→1, upper→0).
-    Title shows rank + score.
+    One line series per property (spec/charts.md §3): each series is a triangle
+    with vertices ``(sumLower, 0) → (sumModal, 1) → (sumUpper, 0)`` where the
+    sums are taken across the selected candidate's alternatives for that
+    property's coefficient.
+
+    Mirrors the TypeScript ``buildTriangleSeriesData`` and the C#
+    ``PrepTriangleSeries`` helpers byte-for-byte on the input → triangle math.
 
     Parameters
     ----------
     candidate:
-        The selected candidate whose triangular_value to decompose.
-        (We show the *candidate*-level triangular value, not per-property;
-         but the signature accepts property_names for future per-property use
-         and for the legend.)
-    property_names:
-        Names of all properties (for the legend entries).
+        The selected candidate whose per-property fuzzy decomposition to render.
+    properties:
+        All scenario properties, used for series names + legend ordering.
+    coefficients:
+        All scenario coefficients — looked up by ``(alternative_id, property_id)``.
     alt_name_map:
         Maps alternative_id → display name (for subtitle).
     """
-    if not property_names:
+    if not properties:
         return {}
 
     alt_labels = [alt_name_map.get(aid, aid[:8]) for aid in candidate.alternative_ids]
@@ -173,30 +178,41 @@ def triangle_option(
         f", +{len(alt_labels) - 4}" if len(alt_labels) > 4 else ""
     )
 
-    tv = candidate.triangular_value
-    # We render the *aggregate* triangular value as a single triangle series.
-    # If there are multiple properties, we add one series per property whose
-    # lower/modal/upper we need.  For M4 we only have the aggregate value on
-    # CandidateM, so we show just that.  Property names are used as legend
-    # placeholder.
-    # Use design-system fuzzy-axis colors (§2.5)
-    series = [
-        {
-            "type": "line",
-            "name": "aggregate",
-            "data": [
-                [tv.lower, 0.0],
-                [tv.modal, 1.0],
-                [tv.upper, 0.0],
-            ],
-            "smooth": False,
-            "lineStyle": {"color": _DS_ACCENT, "width": 2},
-            "itemStyle": {"color": _DS_ACCENT},
-            "areaStyle": {"color": _DS_ACCENT, "opacity": 0.15},
-            "symbol": "circle",
-            "symbolSize": 5,
-        }
-    ]
+    # (alt_id, prop_id) → CoefficientM for O(1) lookup.
+    coeff_index: dict[tuple[str, str], CoefficientM] = {
+        (c.alternative_id, c.property_id): c for c in coefficients
+    }
+    alt_ids = candidate.alternative_ids
+
+    series: list[dict[str, Any]] = []
+    for idx, prop in enumerate(properties):
+        sum_lower = 0.0
+        sum_modal = 0.0
+        sum_upper = 0.0
+        for aid in alt_ids:
+            coeff = coeff_index.get((aid, prop.id))
+            if coeff is not None:
+                sum_lower += coeff.value.lower
+                sum_modal += coeff.value.modal
+                sum_upper += coeff.value.upper
+        color = _PALETTE[idx % len(_PALETTE)]
+        series.append(
+            {
+                "type": "line",
+                "name": prop.name,
+                "data": [
+                    [sum_lower, 0.0],
+                    [sum_modal, 1.0],
+                    [sum_upper, 0.0],
+                ],
+                "smooth": False,
+                "lineStyle": {"color": color, "width": 2},
+                "itemStyle": {"color": color},
+                "areaStyle": {"color": color, "opacity": 0.12},
+                "symbol": "circle",
+                "symbolSize": 5,
+            }
+        )
 
     option: dict[str, Any] = {
         "backgroundColor": "#13161d",  # bg-surface per §5.7
@@ -213,8 +229,15 @@ def triangle_option(
             "borderColor": "#363c4a",
             "textStyle": {"color": "#e6e7ed", "fontSize": 11},
         },
-        "legend": {"show": False},
-        "grid": {"left": "8%", "right": "5%", "top": "28%", "bottom": "10%", "containLabel": True},
+        "legend": {
+            "show": True,
+            "type": "scroll",
+            "right": "2%",
+            "top": "middle",
+            "orient": "vertical",
+            "textStyle": {"color": _DS_TEXT_SEC, "fontSize": 10},
+        },
+        "grid": {"left": "8%", "right": "22%", "top": "20%", "bottom": "10%", "containLabel": True},
         "xAxis": {
             "type": "value",
             "name": "Value",

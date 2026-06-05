@@ -48,7 +48,7 @@ For each `c ∈ C₀`, retain `c` only if it satisfies all three constraint kind
 1. **Dependency constraints**: for each `(sourceAlternativeId → targetAlternativeId)`, keep `c` iff
    `(source ∉ c ∧ target ∉ c) ∨ (source ∈ c ∧ target ∈ c)`.
 
-   > *Note:* The legacy code on `Space.cs` line 975 reads `dc.Dependee` twice — a literal transcription of the buggy form would always evaluate true. The intended semantics, faithful to the rest of the codebase and to the architectural meaning of "dependency" (target depends on source), are the biconditional above. **The spec mandates the biconditional; impls are not bug-compatible with the literal source.**
+   > *Note:* The legacy code on `Space.cs` line 975 reads `dc.Dependee` twice — a literal transcription of the buggy form would always evaluate true. The intended semantics, faithful to the rest of the codebase and to the architectural meaning of "dependency" (target depends on source), are the biconditional above. **The spec mandates the biconditional; impls are not bug-compatible with the literal source.** Line numbers in this section reference the original legacy `GuideArch.Model/Space.cs` (retained only as historical reference per ADR-0003 — not committed to this repository); a `grep` here will return nothing.
 
 2. **Conflict constraints**: for each `(alternativeAId, alternativeBId)`, keep `c` iff `¬(A ∈ c ∧ B ∈ c)`.
 

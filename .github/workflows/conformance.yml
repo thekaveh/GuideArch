@@ -24,6 +24,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   python:
     runs-on: ubuntu-latest
@@ -79,9 +82,45 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
           cache-dependency-path: langs/typescript/pnpm-lock.yaml
+      # VMx-TS's package.json exports point at ./dist/index.{js,d.ts} but
+      # its own .gitignore excludes dist/. The conformance runner itself
+      # imports only from ../models/ (which does not touch vmx), so the
+      # job currently passes without this step — but any later type-guard
+      # or vmx-touching code added to the runner would silently break it.
+      # Mirror typescript.yml's build step defensively. See b5c397a.
+      - name: Build VMx-TS dist
+        working-directory: vendor/vmx/langs/typescript
+        run: |
+          npm ci
+          npm run build
       - name: Install
         working-directory: langs/typescript
         run: pnpm install --frozen-lockfile
       - name: Run TS conformance
         working-directory: langs/typescript
         run: pnpm conformance
+
+  # Aggregator that emits a single status check named `conformance` matching
+  # the required-status-check name on `main`'s branch protection. The three
+  # per-language jobs above expose checks named `python`/`csharp`/`typescript`
+  # (which collide with the per-impl workflows' required names but in practice
+  # report the same green state on a healthy PR); without this rollup the
+  # branch protection's `conformance` check forever sits in `expected` state
+  # and blocks even `--admin` merges once `enforce_admins=true`.
+  conformance:
+    needs: [python, csharp, typescript]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Roll up per-impl conformance results
+        run: |
+          if [[ "${{ needs.python.result }}" != "success" ]] \
+             || [[ "${{ needs.csharp.result }}" != "success" ]] \
+             || [[ "${{ needs.typescript.result }}" != "success" ]]; then
+            echo "One or more per-impl conformance jobs failed:" >&2
+            echo "  python: ${{ needs.python.result }}" >&2
+            echo "  csharp: ${{ needs.csharp.result }}" >&2
+            echo "  typescript: ${{ needs.typescript.result }}" >&2
+            exit 1
+          fi
+          echo "All three impls passed conformance."
