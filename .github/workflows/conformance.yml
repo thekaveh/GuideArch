@@ -24,6 +24,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   python:
     runs-on: ubuntu-latest
@@ -79,6 +82,17 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
           cache-dependency-path: langs/typescript/pnpm-lock.yaml
+      # VMx-TS's package.json exports point at ./dist/index.{js,d.ts} but
+      # its own .gitignore excludes dist/. The conformance runner itself
+      # imports only from ../models/ (which does not touch vmx), so the
+      # job currently passes without this step — but any later type-guard
+      # or vmx-touching code added to the runner would silently break it.
+      # Mirror typescript.yml's build step defensively. See b5c397a.
+      - name: Build VMx-TS dist
+        working-directory: vendor/vmx/langs/typescript
+        run: |
+          npm ci
+          npm run build
       - name: Install
         working-directory: langs/typescript
         run: pnpm install --frozen-lockfile
