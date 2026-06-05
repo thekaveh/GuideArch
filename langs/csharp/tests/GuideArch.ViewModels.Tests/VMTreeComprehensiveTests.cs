@@ -840,10 +840,10 @@ public class VMTreeComprehensiveTests
     {
         var (vm, cmds) = CreateWithMinimalScenario();
         var p = vm.Model.Scenario!.Properties[0];
-        // Add first, then delete.
+        // Add first, then delete via the global-index DeleteConstraint API.
         cmds.Mutator.AddThresholdConstraint(p.Id, 0.0, null);
         bool solved = DidSolveRun(vm,
-            () => cmds.Mutator.DeleteThresholdConstraint(0));
+            () => cmds.Mutator.DeleteConstraint(0));
         Assert.True(solved, "Deleting a constraint must trigger a solve.");
     }
 

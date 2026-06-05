@@ -708,19 +708,17 @@ public sealed class ScenarioMutator
         _solve();
     }
 
+    // `index` is the GLOBAL index into Scenario.Constraints — the same index
+    // space used by CriticalConstraintM.ConstraintIndex and by the Python and
+    // TypeScript mutator APIs. See spec/viewmodels.md §5.5.
     public void UpdateThresholdConstraint(int index, string? propertyId, double? min, double? max)
     {
         var s = RequireScenario();
-        var thresholds = s.Constraints
-            .Select((c, i) => (c, i))
-            .Where(x => x.c is ThresholdConstraintM)
-            .ToList();
-
-        if (index < 0 || index >= thresholds.Count)
+        if (index < 0 || index >= s.Constraints.Length)
             throw new ScenarioMutationException($"Constraint index {index} out of range.");
-
-        var (existing, globalIdx) = thresholds[index];
-        var tc = (ThresholdConstraintM)existing;
+        if (s.Constraints[index] is not ThresholdConstraintM tc)
+            throw new ScenarioMutationException(
+                $"Constraint at index {index} is not a ThresholdConstraint.");
 
         // null in this API has a meaning that ?? cannot express: the caller may
         // pass null *to clear* a bound. Distinguishing "leave unchanged" from
@@ -751,29 +749,9 @@ public sealed class ScenarioMutator
         {
             Scenario = s with
             {
-                Constraints = s.Constraints.SetItem(globalIdx,
+                Constraints = s.Constraints.SetItem(index,
                     new ThresholdConstraintM(newPropId, newMin, newMax))
             },
-            IsDirty = true
-        });
-        _solve();
-    }
-
-    public void DeleteThresholdConstraint(int index)
-    {
-        var s = RequireScenario();
-        var thresholds = s.Constraints
-            .Select((c, i) => (c, i))
-            .Where(x => x.c is ThresholdConstraintM)
-            .ToList();
-
-        if (index < 0 || index >= thresholds.Count)
-            throw new ScenarioMutationException($"Constraint index {index} out of range.");
-
-        var (_, globalIdx) = thresholds[index];
-        _setState(State with
-        {
-            Scenario = s with { Constraints = s.Constraints.RemoveAt(globalIdx) },
             IsDirty = true
         });
         _solve();
@@ -807,21 +785,35 @@ public sealed class ScenarioMutator
         _solve();
     }
 
-    public void DeleteDependencyConstraint(int index)
+    // `index` is the GLOBAL index into Scenario.Constraints. See §5.5.
+    public void UpdateDependencyConstraint(int index, string? sourceAltId, string? targetAltId)
     {
         var s = RequireScenario();
-        var deps = s.Constraints
-            .Select((c, i) => (c, i))
-            .Where(x => x.c is DependencyConstraintM)
-            .ToList();
-
-        if (index < 0 || index >= deps.Count)
+        if (index < 0 || index >= s.Constraints.Length)
             throw new ScenarioMutationException($"Constraint index {index} out of range.");
+        if (s.Constraints[index] is not DependencyConstraintM dc)
+            throw new ScenarioMutationException(
+                $"Constraint at index {index} is not a DependencyConstraint.");
 
-        var (_, globalIdx) = deps[index];
+        var newSource = sourceAltId ?? dc.SourceAlternativeId;
+        var newTarget = targetAltId ?? dc.TargetAlternativeId;
+
+        // Invariants 2.5 + 7.1 at the mutation boundary — matches the Add path.
+        if (!s.Alternatives.Any(a => a.Id == newSource))
+            throw new ScenarioMutationException($"Alternative '{newSource}' not found.");
+        if (!s.Alternatives.Any(a => a.Id == newTarget))
+            throw new ScenarioMutationException($"Alternative '{newTarget}' not found.");
+        if (newSource == newTarget)
+            throw new ScenarioMutationException(
+                "Self-edge on dependency constraint (source must differ from target).");
+
         _setState(State with
         {
-            Scenario = s with { Constraints = s.Constraints.RemoveAt(globalIdx) },
+            Scenario = s with
+            {
+                Constraints = s.Constraints.SetItem(index,
+                    new DependencyConstraintM(newSource, newTarget))
+            },
             IsDirty = true
         });
         _solve();
@@ -851,21 +843,50 @@ public sealed class ScenarioMutator
         _solve();
     }
 
-    public void DeleteConflictConstraint(int index)
+    // `index` is the GLOBAL index into Scenario.Constraints. See §5.5.
+    public void UpdateConflictConstraint(int index, string? altAId, string? altBId)
     {
         var s = RequireScenario();
-        var conflicts = s.Constraints
-            .Select((c, i) => (c, i))
-            .Where(x => x.c is ConflictConstraintM)
-            .ToList();
-
-        if (index < 0 || index >= conflicts.Count)
+        if (index < 0 || index >= s.Constraints.Length)
             throw new ScenarioMutationException($"Constraint index {index} out of range.");
+        if (s.Constraints[index] is not ConflictConstraintM cc)
+            throw new ScenarioMutationException(
+                $"Constraint at index {index} is not a ConflictConstraint.");
 
-        var (_, globalIdx) = conflicts[index];
+        var newA = altAId ?? cc.AlternativeAId;
+        var newB = altBId ?? cc.AlternativeBId;
+
+        if (!s.Alternatives.Any(a => a.Id == newA))
+            throw new ScenarioMutationException($"Alternative '{newA}' not found.");
+        if (!s.Alternatives.Any(a => a.Id == newB))
+            throw new ScenarioMutationException($"Alternative '{newB}' not found.");
+        if (newA == newB)
+            throw new ScenarioMutationException(
+                "Self-edge on conflict constraint (alternativeA must differ from alternativeB).");
+
         _setState(State with
         {
-            Scenario = s with { Constraints = s.Constraints.RemoveAt(globalIdx) },
+            Scenario = s with
+            {
+                Constraints = s.Constraints.SetItem(index,
+                    new ConflictConstraintM(newA, newB))
+            },
+            IsDirty = true
+        });
+        _solve();
+    }
+
+    // Kind-agnostic delete by GLOBAL index into Scenario.Constraints — matches
+    // the Python `delete_constraint` and TypeScript `deleteConstraint` APIs.
+    public void DeleteConstraint(int index)
+    {
+        var s = RequireScenario();
+        if (index < 0 || index >= s.Constraints.Length)
+            throw new ScenarioMutationException($"Constraint index {index} out of range.");
+
+        _setState(State with
+        {
+            Scenario = s with { Constraints = s.Constraints.RemoveAt(index) },
             IsDirty = true
         });
         _solve();
