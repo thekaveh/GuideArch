@@ -1260,7 +1260,6 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
         return
 
     alt_map, alt_dec, _ = _build_alt_maps(vm)
-    prop_names = [p.name for p in scenario.properties] if scenario else []
 
     top30 = candidates[:30]
     top50 = candidates[:50]
@@ -1369,13 +1368,19 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                     )
 
                 with ui.tab_panel(tab_profile).classes("p-0"):
-                    # Chart B — triangle for selected candidate
+                    # Chart B — one triangle per property for the selected candidate
+                    # (spec/charts.md §3). Per-impl parity with TS + C#.
                     sel = vm.selected_candidate_index
                     if sel is not None and sel < len(candidates):
                         selected_cand = candidates[sel]
-                        chart_b_opt = triangle_option(selected_cand, prop_names, alt_map)
                     else:
-                        chart_b_opt = triangle_option(candidates[0], prop_names, alt_map)
+                        selected_cand = candidates[0]
+                    chart_b_opt = triangle_option(
+                        selected_cand,
+                        tuple(scenario.properties),
+                        tuple(scenario.coefficients),
+                        alt_map,
+                    )
                     (
                         ui.echart(chart_b_opt)
                         .classes("w-full rounded border border-[var(--border-strong)]")

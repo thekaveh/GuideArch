@@ -314,7 +314,6 @@ class ScenarioVM:
         self._candidates = ()
         self._critical_decisions = ()
         self._critical_constraints = ()
-        self._status = f"Loaded: {scenario.name}"
         self._selected_candidate_index = None
         self._raise_property_changed("scenario")
         self._raise_property_changed("file_path")
@@ -324,7 +323,10 @@ class ScenarioVM:
         self._raise_property_changed("selected_candidate_index")
         self._raise_property_changed("critical_decisions")
         self._raise_property_changed("critical_constraints")
-        self._raise_property_changed("status")
+        # No transient "Loaded: …" status emission — `_do_solve` below
+        # overwrites status with "Solved: N candidates" in one step, matching
+        # the TS+C# impls. Earlier, an extra `property_changed("status")` was
+        # raised here, exposing a transient value only Python subscribers saw.
 
         # Auto-solve on open
         self._do_solve()
