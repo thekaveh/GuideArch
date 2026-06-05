@@ -28,7 +28,11 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  # Job name matches the `spec` required status check on main's branch
+  # protection — renamed from `validate` in this commit. Without the name
+  # match, the protection's `spec` check forever sits in `expected` state
+  # and blocks every merge (even `--admin` once `enforce_admins=true`).
+  spec:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
