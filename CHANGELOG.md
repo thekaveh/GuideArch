@@ -10,6 +10,16 @@ Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
 behavior change a user-facing release note would call out.
 
 ### Fixed
+- Python Chart B (fuzzy-decomposition triangle) now emits **one triangle
+  per property** as `spec/charts.md` §3 requires — matching TypeScript's
+  `buildTriangleSeriesData` and C#'s `PrepTriangleSeries`. The Python
+  rendering was previously a single aggregate-triangle series read off
+  `CandidateM.triangular_value`, which lost the per-property
+  decomposition the chart exists to show.
+- Python `OpenCmd` no longer emits a transient `"Loaded: {name}"`
+  status before the auto-solve overwrites it with `"Solved: N candidates"`
+  — TS and C# go straight to the solved-status line in one step. Only
+  Python subscribers used to see the intermediate value.
 - C# Coefficients tab cells are now click-to-edit (previously the
   DataGrid columns were init-only because they were bound to record
   properties; click selected the row but edit never started). Chart B
@@ -65,8 +75,36 @@ behavior change a user-facing release note would call out.
 - `release.yml`: added a `concurrency` group with
   `cancel-in-progress: false` so two close tag pushes serialize through
   the Tauri / PyPI / GHCR upload phases instead of racing.
+- All read-only CI workflows (`conformance`, `csharp`, `python`, `spec`,
+  `typescript`) now declare `permissions: { contents: read }` at workflow
+  scope so the `GITHUB_TOKEN` they receive is locked to read-only
+  contents access. `release.yml` and `vmx-bump.yml` retain their
+  explicit write scopes.
+- `conformance.yml`'s TypeScript job now builds VMx-TS's `dist/` before
+  `pnpm install`, mirroring `typescript.yml`. Defensive parity: the
+  conformance runner currently imports only from `../models/` (which
+  doesn't touch vmx), so the job passes without this step today — but
+  any later vmx-touching code added to the runner would silently break
+  a fresh-checkout CI run.
 
 ### Refactored
+- C#: constraint mutators now take the **global** index into
+  `scenario.constraints` (the same index space used by
+  `CriticalConstraintM.constraintIndex` and the Python + TypeScript
+  APIs). Replaced the three per-kind `Delete{Threshold,Dependency,
+  Conflict}Constraint(int)` methods with a single kind-agnostic
+  `DeleteConstraint(int)`; added typed `UpdateDependencyConstraint` /
+  `UpdateConflictConstraint` (with the same invariant-2.5 + 7.1 guards
+  the Add* path enforces) for symmetry with the existing
+  `UpdateThresholdConstraint`, which itself moved from per-kind to
+  global indexing with a kind-assertion. `spec/viewmodels.md` §5.5
+  pins the canonical surface.
+- Python: dropped unused `numpy>=1.26` from `langs/python/pyproject.toml`;
+  no source or test imports it and it isn't a transitive of any other
+  dependency.
+- TypeScript: deleted unreferenced Tauri scaffold SVGs from
+  `langs/typescript/static/` (`svelte.svg`, `tauri.svg`, `vite.svg`).
+  Only `favicon.png` is referenced by `app.html`.
 - C# `Program.cs` no longer starts with a UTF-8 BOM, and
   `App.axaml.cs` ends with a trailing newline — both surfaced by the
   new `.editorconfig` strict-format checks.
@@ -101,6 +139,33 @@ behavior change a user-facing release note would call out.
 - Spec self-contradictions (debounce wording, threshold-bound + self-edge
   severity, tab-count, broken cross-refs) resolved.
 - Added `CHANGELOG.md`.
+- `README.md` and per-impl READMEs now say the toolbar buttons are
+  **Sample SAS** / **Sample EDS** (the actual labels in all three impls);
+  the longer **Open Sample SAS** wording is the first-launch hero CTA.
+- `spec/viewmodels.md` §5.5 pins the canonical constraint-mutator surface
+  (typed `update*Constraint` triplets + kind-agnostic `deleteConstraint`,
+  all on the global `scenario.constraints` index space — the same one
+  `CriticalConstraintM.constraintIndex` uses). §2 admonition flags that
+  the intermediate composite/aggregate VMs (DecisionsVM, PropertiesVM,
+  ...) are aspirational at v1.0; §7 clarifies the M2 table is top-50
+  while the alongside Chart A is top-30 (deliberately different windows).
+- `spec/editors.md` §2.4: call out the deliberate asymmetry between the
+  warning-level coefficient ordering rule (invariants §4.1, non-fatal)
+  and the fatal threshold `min ≤ max` rule (invariants §6).
+- `spec/release.md` §1.1: list the Windows NSIS `.exe` Tauri target
+  alongside `.msi` (was already shipped via `tauri.conf.json
+  "targets": "all"`); soften §4's "must agree" to advisory since the
+  release workflow derives the version from the tag.
+- `spec/algorithms/topsis.md` §3.2: preface `Space.cs` line references
+  as historical pointers into the legacy code (ADR-0003 — not committed
+  here); a `grep` returns nothing.
+- `spec/ADRs/0006`: updated the pre-impl "30–50 LOC adapter" estimate
+  to match the shipped ~140 LOC `vmx_to_nicegui.py`.
+- `spec/viewmodels.md`/`editors.md`/`charts.md`: preface notes that
+  M0–M5 all shipped in v1.0.0 — milestone-tense passages describe scope
+  as authored, not in-progress work.
+- `CONTRIBUTING.md`: prepend `uv sync --all-extras` to the Python verify
+  and apply recipes; bare `uv sync` strips the dev group.
 
 ## [1.0.0] — 2026-05-30
 
