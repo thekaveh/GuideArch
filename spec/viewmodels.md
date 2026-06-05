@@ -171,18 +171,25 @@ Three flavors, each `ComponentVM<XxxConstraint>`. Edits trigger a solve.
 **Mutator surface and indexing.** Mutators on `ScenarioVM` that target an
 existing constraint take a **global** index into `scenario.constraints` — the
 same index space used by `CriticalConstraintM.constraintIndex` in
-`spec/algorithms/critical-constraints.md`. The canonical method set is:
+`spec/algorithms/critical-constraints.md`. Two equivalent surfaces are
+permitted:
 
-- `addThresholdConstraint(c)` / `addDependencyConstraint(c)` / `addConflictConstraint(c)` — typed adds
-- `updateThresholdConstraint(index, c)` / `updateDependencyConstraint(index, c)` / `updateConflictConstraint(index, c)` — typed updates; impls assert the constraint at `index` is of the expected kind
-- `deleteConstraint(index)` — kind-agnostic delete
+- **Typed surface (Python, C#).** Per-kind add/update method triplets that
+  take the constraint fields as positional/keyword arguments —
+  `add_threshold_constraint(property_id, min, max)` /
+  `update_threshold_constraint(index, …)` and the dependency/conflict
+  equivalents — plus the kind-agnostic `delete_constraint(index)`. The
+  `update_*_constraint` methods assert the constraint at `index` is of the
+  expected kind and raise `ScenarioMutationError` (Python) /
+  `ScenarioMutationException` (C#) otherwise.
+- **Generic surface (TypeScript).** `addConstraint(c: ConstraintM)` /
+  `updateConstraint(index, c)` / `deleteConstraint(index)` — the runtime
+  type of `c` carries the kind.
 
-TypeScript also exposes the generic `addConstraint(c)` / `updateConstraint(index, c)`
-shims for ergonomics; both surfaces target the same global index space.
-Per-kind sub-indexing (e.g. "the third threshold constraint") is **not** a
-supported addressing mode — views that want to render a single-kind sub-tab
-should derive the global index from the constraint reference, not pass a
-filtered-list offset.
+Both surfaces target the same global index space. Per-kind sub-indexing
+(e.g. "the third threshold constraint") is **not** a supported addressing
+mode — views that want to render a single-kind sub-tab should derive the
+global index from the constraint reference, not pass a filtered-list offset.
 
 ### 5.6 Result VMs
 
