@@ -86,6 +86,14 @@ behavior change a user-facing release note would call out.
   doesn't touch vmx), so the job passes without this step today — but
   any later vmx-touching code added to the runner would silently break
   a fresh-checkout CI run.
+- Workflow job names re-aligned with `main`'s required status checks.
+  `spec.yml`'s only job renamed `validate → spec`, and `conformance.yml`
+  gained a small aggregator job `conformance` that `needs: [python,
+  csharp, typescript]` and fails iff any sub-job failed. Without these,
+  the protection's `spec` + `conformance` gates sat in `expected` state
+  forever and blocked every PR merge (even `--admin`) once
+  `enforce_admins=true` landed. PR #14 surfaced this when its initial
+  admin merge was rejected.
 
 ### Refactored
 - C#: constraint mutators now take the **global** index into
