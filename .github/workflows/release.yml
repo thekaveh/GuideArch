@@ -52,7 +52,16 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: langs/typescript/pnpm-lock.yaml
 
-      - uses: dtolnay/rust-toolchain@stable
+      # Pin to a SHA on dtolnay/rust-toolchain's `stable` branch (resolved
+       # 2026-03-27) so a force-push or repo compromise can't silently swap
+       # the toolchain action this release job runs with `contents: write` /
+       # `packages: write`. The `toolchain` input still selects the latest
+       # stable Rust channel at run time — pinning the action does not pin
+       # Rust itself. Dependabot's github-actions ecosystem rule will bump
+       # this SHA the same way it bumps every other action pin.
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+        with:
+          toolchain: stable
 
       - name: Install Linux Tauri prereqs
         if: matrix.os == 'ubuntu-latest'
@@ -203,10 +212,16 @@ jobs:
       # ship via the GitHub release attachments.
       - name: Publish to PyPI
         if: ${{ startsWith(github.ref, 'refs/tags/v') && env.PYPI_API_TOKEN != '' }}
+        # Pass the token via TWINE_PASSWORD env-var rather than a --password
+        # CLI flag so it isn't visible in the runner's process listing.
+        # github-hosted runners are ephemeral so the exposure window is
+        # narrow, but TWINE_PASSWORD is the documented twine pattern.
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ env.PYPI_API_TOKEN }}
         run: |
           pip install --quiet twine
-          twine upload --non-interactive --skip-existing \
-              --username __token__ --password "$PYPI_API_TOKEN" dist/*
+          twine upload --non-interactive --skip-existing dist/*
 
   # ─── 4. Python Docker image ───────────────────────────────────────────────────
   python-docker:
