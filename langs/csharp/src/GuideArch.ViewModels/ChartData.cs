@@ -161,8 +161,31 @@ public static class ChartData
     );
 
     /// <summary>
+    /// Stable 10-color qualitative palette (Tableau 10) for Chart C, indexed by
+    /// candidate rank so colors don't reshuffle when the user clicks around.
+    /// Order matches TS COMPARISON_PALETTE in chart-data.ts and Python
+    /// COMPARISON_PALETTE in chart_data.py so cross-impl screenshots line up.
+    /// Lifted from MainWindow.axaml.cs (View layer) into the VM so the cap
+    /// in <see cref="PrepComparisonSeries"/> is testable without instantiating
+    /// any Avalonia controls.
+    /// </summary>
+    public static readonly ImmutableArray<string> ComparisonPalette = ImmutableArray.Create(
+        "#4e79a7", // blue
+        "#f28e2b", // orange
+        "#e15759", // red
+        "#76b7b2", // teal
+        "#59a14f", // green
+        "#edc948", // yellow
+        "#b07aa1", // purple
+        "#ff9da7", // pink
+        "#9c755f", // brown
+        "#bab0ac"  // grey
+    );
+
+    /// <summary>
     /// Cap on the comparison view — matches the cross-impl agreement (top 10).
-    /// Also caps at the palette size in the View.
+    /// Equals <c>ComparisonPalette.Length</c>; named separately for clarity in
+    /// the <see cref="PrepComparisonSeries"/> signature.
     /// </summary>
     public const int DefaultComparisonTopN = 10;
 
@@ -178,7 +201,13 @@ public static class ChartData
         if (candidates.IsEmpty || scenario.Properties.IsEmpty)
             return ImmutableArray<ComparisonSeries>.Empty;
 
-        int n = Math.Min(topN, candidates.Length);
+        // Spec/charts.md §4: N = min(topN, candidates.Length, palette.Length).
+        // Without the palette-length bound, a caller passing topN > 10 with
+        // enough candidates would wrap PaletteIndex % palette.Length in the
+        // View — silently re-using colors and breaking the "stable per-rank
+        // color" contract. Match TS buildComparisonSeries and Python
+        // comparison_option (both already bound by COMPARISON_PALETTE.length).
+        int n = Math.Min(Math.Min(topN, candidates.Length), ComparisonPalette.Length);
         var props = scenario.Properties;
         var xs = Enumerable.Range(0, props.Length).Select(i => (double)i).ToArray();
 

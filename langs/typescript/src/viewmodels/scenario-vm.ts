@@ -621,8 +621,19 @@ export function makeScenarioVm(): ScenarioVM {
     if (index < 0 || index >= s.constraints.length) {
       throw new ScenarioMutationError(`Constraint index ${index} out of range.`);
     }
+    // spec/viewmodels.md §5.5 mandates `update*Constraint` preserve the
+    // existing kind at `index`; Python+C# typed surfaces assert this. Without
+    // the guard, a generic-surface caller could flip threshold→dependency at
+    // a global index, breaking the CriticalConstraintM.constraintIndex
+    // invariant the typed surfaces uphold.
+    const existing = s.constraints[index];
+    if (existing.kind !== c.kind) {
+      throw new ScenarioMutationError(
+        `Constraint at index ${index} is a ${existing.kind} constraint; cannot replace with a ${c.kind} constraint.`,
+      );
+    }
     _validateConstraint(s, c);
-    const constraints = s.constraints.map((existing, i) => (i === index ? c : existing));
+    const constraints = s.constraints.map((old, i) => (i === index ? c : old));
     _setState({ scenario: { ...s, constraints }, isDirty: true });
     _triggerSolve();
   }

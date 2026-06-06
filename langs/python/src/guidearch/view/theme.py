@@ -206,12 +206,14 @@ body {{
 
     ui.add_head_html(f"<style>{css}</style>")
 
-    # Configure Quasar accent palette to match §2.3 / §2.4 semantic tokens
+    # Configure Quasar accent palette to match §2.3 / §2.4 semantic tokens.
+    # Pull from TOKENS so a future palette tweak only needs to touch the
+    # dict above; the duplicated hex literals here would silently drift.
     ui.colors(
-        primary="#8b5cf6",  # accent
-        secondary="#9298a8",  # text-secondary (used as Quasar secondary)
-        positive="#10b981",  # success
-        negative="#ef4444",  # danger
-        info="#3b82f6",  # info
-        warning="#f59e0b",  # warning
+        primary=TOKENS["accent"],
+        secondary=TOKENS["text-secondary"],
+        positive=TOKENS["success"],
+        negative=TOKENS["danger"],
+        info=TOKENS["info"],
+        warning=TOKENS["warning"],
     )

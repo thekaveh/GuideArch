@@ -51,8 +51,9 @@ Numbered rationale for each non-obvious design choice. Read when questioning *wh
 - [ADR-0005 — Single monorepo version; all three impls release together](spec/ADRs/0005-single-monorepo-version.md)
 - [ADR-0006 — NiceGUI 3.x as the Python view layer (not Shiny, not Streamlit)](spec/ADRs/0006-nicegui-over-shiny.md)
 
-### 3.3 Contributing & governance
+### 3.3 Release history & governance
 
+- **[CHANGELOG.md](CHANGELOG.md)** — Keep-a-Changelog–style history of every release plus the running `[Unreleased]` section for post-v1.0 maintenance. *Start here when answering "what shipped?" — more reliable than scanning `git log`.*
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — feature workflow (spec-first, all three impls in lockstep), local development, test layout, code style per language. *Read before opening a PR.*
 - **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1. Report violations to kaveh.razavi@gmail.com.
 - **[SECURITY.md](SECURITY.md)** — private vulnerability reporting.
