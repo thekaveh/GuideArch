@@ -168,23 +168,10 @@ public partial class MainWindow : Window
         plotC.YLabel("Modal sum");
     }
 
-    // ScottPlot v5 has no native qualitative palette helper for these specific
-    // hex codes, so we keep our own. Same order as the TS COMPARISON_PALETTE
-    // and the Python COMPARISON_PALETTE so visual identity is stable across
-    // impls and screenshots line up in cross-impl review.
-    private static readonly string[] ComparisonPalette =
-    {
-        "#4e79a7", // blue
-        "#f28e2b", // orange
-        "#e15759", // red
-        "#76b7b2", // teal
-        "#59a14f", // green
-        "#edc948", // yellow
-        "#b07aa1", // purple
-        "#ff9da7", // pink
-        "#9c755f", // brown
-        "#bab0ac", // grey
-    };
+    // Chart C palette lives in ChartData.ComparisonPalette (lifted out of the
+    // View so the per-rank-color contract is testable from the ViewModels
+    // test project). Same order as TS chart-data.ts COMPARISON_PALETTE and
+    // Python chart_data.py COMPARISON_PALETTE; cross-impl screenshots line up.
 
     // -----------------------------------------------------------------------
     // State-change observer — re-plots charts when relevant state changes
@@ -804,7 +791,7 @@ public partial class MainWindow : Window
         for (int i = 0; i < series.Length; i++)
         {
             var s = series[i];
-            var hex = ComparisonPalette[s.PaletteIndex % ComparisonPalette.Length];
+            var hex = ChartData.ComparisonPalette[s.PaletteIndex % ChartData.ComparisonPalette.Length];
             bool isSelected = (s.Rank == selectedRank);
             // De-emphasise non-selected lines when something is selected, so
             // the chosen line reads against a faded background.
