@@ -33,4 +33,4 @@ See `topsis.md` §5. Salient parameters:
 ## Edge cases
 
 - `|candidates| == 0`: returns an empty list.
-- `|candidates| == 1`: each decision's contribution comes from a single weighted alternative; PIS == NIS for all decisions ⇒ all normalized values are `0` ⇒ all scores are `0` ⇒ all decisions tied. Impls return decisions in `scenario.decisions` order.
+- `|candidates| == 1`: each decision's contribution comes from a single weighted alternative; PIS == NIS for all decisions ⇒ all normalized values are `0` ⇒ all scores are `0` ⇒ all decisions tied. Impls then apply the canonical tie-break from `topsis.md` §3.10 and return decisions ordered by `decisionId` lexicographic ascending — not by `scenario.decisions` insertion order. (Earlier drafts of this card said "insertion order"; the three impls have always implemented lex tie-break, matching the candidate-side rule.)

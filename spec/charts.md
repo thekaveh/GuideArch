@@ -100,9 +100,9 @@ A read-only table:
 
 Sort descending by `eliminated` (most-binding first). Redundant rows shown with a faded background.
 
-## 7. Selection state — `ScenarioState.selectedCandidateIndex`
+## 7. Selection state — `ScenarioVM.selectedCandidateIndex`
 
-Add an observable field `selectedCandidateIndex: int | None` (default `None`). The candidates table, Chart A, Chart B, and Chart C all read it. Editing it from any of the four updates the others.
+Add an observable field `selectedCandidateIndex: int | None` (default `None`) on `ScenarioVM`. The candidates table, Chart A, Chart B, and Chart C all read it. Editing it from any of the four updates the others. (`spec/viewmodels.md` §4.1 places the same field on the VM; this section is the chart-side view of the same observable. `ScenarioState` is the C# Model record name — used only by that impl's state record — and shouldn't appear in a cross-impl chart spec heading.)
 
 ## 8. Tests
 
