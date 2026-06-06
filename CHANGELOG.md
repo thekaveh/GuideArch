@@ -10,6 +10,29 @@ Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
 behavior change a user-facing release note would call out.
 
 ### Fixed
+- TypeScript `updateConstraint(index, c)` now asserts the existing
+  constraint at `index` is the same kind as `c` and throws
+  `ScenarioMutationError` on a kind change. The Python+C# typed
+  surfaces (`update_threshold_constraint` etc.) already enforced this
+  per `spec/viewmodels.md` §5.5; the TS generic shim skipped the check,
+  so a caller could silently flip a threshold constraint into a
+  dependency at a global index and break the
+  `CriticalConstraintM.constraintIndex` invariant the typed surfaces
+  uphold.
+- C# Chart C `PrepComparisonSeries` now caps `N` at
+  `ChartData.ComparisonPalette.Length` in addition to `topN` and
+  `candidates.Length` — matching `spec/charts.md` §4 and the
+  TypeScript + Python implementations. Without the palette bound a
+  caller passing `topN > 10` would receive more series than the
+  palette had entries; the View then wrapped
+  `PaletteIndex % palette.Length` and silently re-used colors,
+  breaking the stable per-rank-color contract. The 10-entry
+  Tableau-10 palette has also been lifted from `MainWindow.axaml.cs`
+  into `ChartData.ComparisonPalette` so the contract is now testable
+  from `GuideArch.ViewModels.Tests` without instantiating Avalonia.
+- Python Chart A bar opacity now floors at 0.5 at the bottom of the
+  list, matching `spec/charts.md` §2 and the C# implementation; was
+  0.55, which read noticeably crisper than the C# render.
 - Python Chart B (fuzzy-decomposition triangle) now emits **one triangle
   per property** as `spec/charts.md` §3 requires — matching TypeScript's
   `buildTriangleSeriesData` and C#'s `PrepTriangleSeries`. The Python
@@ -94,6 +117,18 @@ behavior change a user-facing release note would call out.
   forever and blocked every PR merge (even `--admin`) once
   `enforce_admins=true` landed. PR #14 surfaced this when its initial
   admin merge was rejected.
+- `release.yml`: `dtolnay/rust-toolchain@stable` (a mutable branch
+  ref) replaced with a SHA pin
+  (`@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable`) plus an
+  explicit `toolchain: stable` input. A force-push or repo compromise
+  on the action's `stable` branch can no longer silently swap the
+  toolchain action this release job runs with `contents: write` /
+  `packages: write`. Dependabot's github-actions rule will bump the
+  SHA the same way it bumps every other action pin.
+- `release.yml`: the PyPI publish step now passes the token through
+  `TWINE_USERNAME` / `TWINE_PASSWORD` env-vars instead of a
+  `--password "$PYPI_API_TOKEN"` CLI flag, so the token isn't visible
+  in the runner's process listing.
 
 ### Refactored
 - C#: constraint mutators now take the **global** index into
@@ -113,6 +148,13 @@ behavior change a user-facing release note would call out.
 - TypeScript: deleted unreferenced Tauri scaffold SVGs from
   `langs/typescript/static/` (`svelte.svg`, `tauri.svg`, `vite.svg`).
   Only `favicon.png` is referenced by `app.html`.
+- Python `theme.py`: the Quasar `ui.colors(...)` call now references
+  the `TOKENS` dict (`TOKENS["accent"]` etc.) instead of duplicating
+  six hex literals already declared above. A future palette tweak in
+  `TOKENS` won't silently leave Quasar's accent colors stale.
+- Deleted `spec/conformance/.keep` — empty marker from the original
+  scaffold; `spec/conformance/` long ago acquired `scenarios/`,
+  `expected/`, and `tolerances.json`.
 - C# `Program.cs` no longer starts with a UTF-8 BOM, and
   `App.axaml.cs` ends with a trailing newline — both surfaced by the
   new `.editorconfig` strict-format checks.
@@ -140,6 +182,29 @@ behavior change a user-facing release note would call out.
   Previously C# was the only impl that skipped the property silently.
 
 ### Docs
+- README's documentation hub (§3) now links to `CHANGELOG.md` at the
+  head of §3.3 (renamed *Release history & governance*). Previously
+  the most actively-maintained doc outside `spec/` was orphaned from
+  the top-level entry point.
+- `langs/csharp/README.md`: documented the `tools/screenshot-all-tabs/`
+  console tool that runs the Avalonia app under `Avalonia.Headless`
+  and writes per-tab PNGs to `tests/visual/snapshots/` (mirrors the
+  Python + TS visual harnesses). Was undocumented despite building
+  with the solution.
+- `spec/algorithms/critical-decisions.md` edge-case for
+  `|candidates| == 1` previously said impls return decisions in
+  `scenario.decisions` order. All three impls have always sorted by
+  `(score asc, decisionId lex)` — matching the candidate-side
+  lexicographic tie-break in `topsis.md` §3.10. Spec card was the
+  inconsistent one; corrected to describe shipped behavior.
+- `spec/charts.md` §7 selection-state heading anchored on the C#-only
+  `ScenarioState` record name; renamed to `ScenarioVM.selectedCandidate
+  Index` to match `viewmodels.md` §4.1 (both sections now describe the
+  same observable).
+- `spec/release.md` §1.3 Docker bullet said the image installs deps
+  via `uv sync` and runs `uv run guidearch`. Shipped Dockerfile
+  actually runs `uv sync --no-dev` and
+  `uv run guidearch --port 8080`; spec aligned to shipped behavior.
 - README, SECURITY, `spec/README`, `CONTRIBUTING`, and all per-impl
   READMEs aligned with v1.0.0 reality.
 - C# WebAssembly target marked deferred to v1.1 (was claimed in README
