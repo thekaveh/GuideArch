@@ -138,6 +138,14 @@ public static class Solver
                 total += best;
             }
             M[p.Id] = total;
+            // Invariant 10.1: warn once per (property, solve) at the source.
+            // AltContribution() then silently skips. Previously warned per
+            // (alternative × candidate) call.
+            if (total == 0.0)
+            {
+                Console.Error.WriteLine(
+                    $"Property '{p.Id}' has M=0; skipping to avoid division by zero");
+            }
         }
         return M;
     }
@@ -158,12 +166,8 @@ public static class Solver
             double mp = M[p.Id];
             if (mp == 0.0)
             {
-                // Invariant 10.1: degenerate — emit warning, skip. Parity
-                // with Python (warnings.warn) and TS (console.warn) both of
-                // which land on stderr; same message format for log-scrapers
-                // that look across impls.
-                Console.Error.WriteLine(
-                    $"Property '{p.Id}' has M=0; skipping to avoid division by zero");
+                // Invariant 10.1: degenerate — ComputeNormalizer already
+                // warned once for this property. Skip silently here.
                 continue;
             }
             double sign = p.Kind == PropertyKind.Min ? 1.0 : -1.0;

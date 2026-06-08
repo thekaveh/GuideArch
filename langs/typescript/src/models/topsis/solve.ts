@@ -58,6 +58,13 @@ export function computeNormalizer(scenario: ScenarioM): Map<string, number> {
       total += best;
     }
     M.set(p.id, total);
+    // Invariant 10.1: warn once per (property, solve) at the source.
+    // altContribution() then silently skips. Previously warned per
+    // (alternative × candidate) call — O(|alts| × |candidates|) duplicate
+    // browser-devtools / Tauri-log messages per degenerate property.
+    if (total === 0.0) {
+      console.warn(`Property '${p.id}' has M=0; skipping to avoid division by zero`);
+    }
   }
   return M;
 }
@@ -75,8 +82,7 @@ export function altContribution(
   for (const p of scenario.properties) {
     const mP = M.get(p.id)!;
     if (mP === 0.0) {
-      // Invariant 10.1: degenerate — skip to avoid division by zero
-      console.warn(`Property '${p.id}' has M=0; skipping to avoid division by zero`);
+      // Invariant 10.1: degenerate — computeNormalizer already warned once.
       continue;
     }
     const sign = p.kind === 'min' ? 1.0 : -1.0;

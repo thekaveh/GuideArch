@@ -72,6 +72,16 @@ def _compute_normalizer(
                 best = max(coeff[(a_id, p.id)].lower for a_id in group_alts)
             total += best
         M[p.id] = total
+        # Invariant 10.1: degenerate property (no non-zero coefficient anywhere).
+        # Warn ONCE per (property, solve) at the source; _alt_contribution then
+        # silently skips. The previous in-loop warn fired per (alt × candidate)
+        # — O(|alternatives| × |candidates|) duplicate warnings per degenerate
+        # property, drowning the stream on SAS-scale scenarios.
+        if total == 0.0:
+            _warnings.warn(
+                f"Property '{p.id}' has M=0; skipping to avoid division by zero",
+                stacklevel=3,
+            )
     return M
 
 
@@ -89,11 +99,8 @@ def _alt_contribution(
     for p in scenario.properties:
         m_p = M[p.id]
         if m_p == 0.0:
-            # Invariant 10.1: degenerate — emit warning, treat as zero
-            _warnings.warn(
-                f"Property '{p.id}' has M=0; skipping to avoid division by zero",
-                stacklevel=4,
-            )
+            # Invariant 10.1: degenerate — _compute_normalizer already warned
+            # once for this property; silently skip here.
             continue
         sign = 1.0 if p.kind == "min" else -1.0
         contribution = coeff[(alt_id, p.id)] * (sign * p.weight) / m_p
