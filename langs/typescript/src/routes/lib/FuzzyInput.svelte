@@ -21,16 +21,33 @@
   let uStr = String(upper);
 
   // Re-sync the local string state when the *prop* changes from outside
-  // (file Open, Sample SAS, parent re-render with new coefficients). Without
-  // this, the local strings stay at their first-mount value because
-  // CoefficientsTab keys the `{#each}` by alt+prop id, so component instances
-  // are reused across re-solves and sample swaps. The `Number(lStr) === lower`
-  // guard makes the resync a no-op while the user is mid-edit (after emit()
-  // sets the prop to the value the user just typed) — only external mutations
-  // produce a divergence and trigger the reset.
-  $: if (Number(lStr) !== lower) lStr = String(lower);
-  $: if (Number(mStr) !== modal) mStr = String(modal);
-  $: if (Number(uStr) !== upper) uStr = String(upper);
+  // (file Open, Sample SAS, parent re-render with new coefficients). Track
+  // the previous prop value so the reactive block only fires on an external
+  // prop change — not on every local-string keystroke. The earlier
+  // `Number(lStr) !== lower` guard didn't work because `bind:value={lStr}`
+  // updates lStr per-input-event while `lower` only updates on emit (change/
+  // blur), so a user pressing "1" over a "0.5" coefficient saw the cell snap
+  // back to "0.5" instantly and could never edit.
+  // The `prev*` trackers are read on each reactive re-run of the matching
+  // `$:` block — they're not dead writes the way ESLint's
+  // `no-useless-assignment` (single-pass scope analysis) reads them.
+  /* eslint-disable no-useless-assignment */
+  let prevLower = lower;
+  let prevModal = modal;
+  let prevUpper = upper;
+  $: if (lower !== prevLower) {
+    lStr = String(lower);
+    prevLower = lower;
+  }
+  $: if (modal !== prevModal) {
+    mStr = String(modal);
+    prevModal = modal;
+  }
+  $: if (upper !== prevUpper) {
+    uStr = String(upper);
+    prevUpper = upper;
+  }
+  /* eslint-enable no-useless-assignment */
 
   function emit() {
     const l = parseFloat(lStr);
