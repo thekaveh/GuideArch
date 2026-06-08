@@ -106,7 +106,7 @@ The root VM owns the loaded scenario and brokers re-solve when its children chan
 | `candidates` | `readonly CandidateM[]` | Latest `solve(scenario)` output. Empty array if scenario undefined. |
 | `criticalDecisions` | `readonly CriticalDecisionM[]` | Latest `criticalDecisions(scenario)` output. |
 | `criticalConstraints` | `readonly CriticalConstraintM[]` | Latest `criticalConstraints(scenario)` output. |
-| `status` | `string` | Human-readable status line for the View (e.g. `"Solved: 1336 candidates"`). |
+| `status` | `string` | Human-readable status line for the View (e.g. `"Solved: 720 candidates"` after loading SAS). |
 | `warnings` | `readonly string[]` | Non-fatal warnings from scenario load. |
 | `selectedCandidateIndex` | `int \| null` | Index into `candidates` of the currently selected candidate, or `null` when nothing is selected. The candidates table, Chart A, Chart B, and Chart C all read it; editing it from any of the four updates the others. Defined formally in `spec/charts.md` §7 — added here for completeness. |
 

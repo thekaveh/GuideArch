@@ -1,4 +1,4 @@
-# Editors layer (M3) — formal specification
+# Editors layer — formal specification
 
 **Status:** Authoritative. All three impls must realize this UI contract. M0 through M5 all shipped in `v1.0.0`; milestone-tense passages below ("M2 skeleton lets …", "M3 lets …") describe the scope of each milestone as authored, not in-progress work.
 
@@ -26,7 +26,7 @@ A persistent app shell hosts:
 3. **Status bar (bottom, 32px tall)** — segments rendered left-to-right; chips align right:
    - Scenario name (accent color, semibold).
    - File path basename (monospace, muted), full path on hover. Hidden when `filePath` is undefined.
-   - Status text (12px, secondary color) — e.g. `"Solved: 1336 candidates"`.
+   - Status text (12px, secondary color) — e.g. `"Solved: 720 candidates"` (after loading SAS).
    - Flexible spacer.
    - Candidate count chip (info-blue) — `"{n} candidate(s)"`. Hidden when no scenario is loaded.
    - Unsaved chip (warning-yellow) — `"unsaved"`. Visible when `isDirty`.
@@ -121,7 +121,7 @@ The M2 `OpenCmd`/`SaveCmd`/`NewCmd` are already wired in the VM. M3 connects the
 
 ## 4. Undo/redo
 
-**Deferred to v1.1.** M3 does NOT implement undo. The original cross-reference was to a pre-implementation design doc (`docs/design/`) that has since been removed from the repository per the project's no-pre-impl-spec-docs policy; undo/redo lands when v1.1 work begins.
+**Deferred to v1.1.** M3 does NOT implement undo. Undo/redo lands when v1.1 work begins.
 
 ## 5. Validation feedback
 

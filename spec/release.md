@@ -1,4 +1,4 @@
-# Release artifacts (M5) — formal specification
+# Release artifacts — formal specification
 
 **Status:** Authoritative.
 
