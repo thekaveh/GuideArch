@@ -10,6 +10,24 @@ Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
 behavior change a user-facing release note would call out.
 
 ### Fixed
+- TypeScript `FuzzyInput.svelte` resync now tracks the previous prop
+  value in separate state instead of comparing `Number(localStr)` to
+  the prop. The earlier `Number(lStr) !== lower` guard regressed
+  per-keystroke editing: `bind:value={lStr}` updates the local string
+  on every input event but `lower` only updates on `change` (blur),
+  so typing `1` over `0.5` resolved as `Number("1") !== 0.5` → reset
+  to `"0.5"` mid-keystroke, making coefficient cells uneditable. Now
+  the resync only fires when the prop differs from a separately
+  tracked `prev*` value — external prop changes still resync, local
+  keystrokes don't trigger the reset.
+- All three solvers now emit the M=0 diagnostic exactly once per VM
+  solve cycle, not twice. The pass-1 dedup inlined the warning in
+  `ComputeNormalizer`, which both `Solver.Solve` and
+  `CriticalDecisions.Analyze` call — so the "warn once per (property,
+  solve)" guarantee was actually firing twice. Split into a pure
+  `Compute…` and a sibling `WarnDegenerateNormalizers`; only `Solve`
+  calls the warner, so `CriticalDecisions.Analyze`'s recomputation is
+  silent. Same `Property 'X' has M=0…` text on stderr.
 - TypeScript Chart A bar opacity now floors at 0.5 at the last
   rendered bar — matching Python + C# and `spec/charts.md` §2. TS was
   dividing by `Math.max(data.length - 1, 30)`, so a 10-candidate render
@@ -99,6 +117,9 @@ behavior change a user-facing release note would call out.
   shipping installers branded `tauri-app`).
 
 ### CI
+- `langs/python/src/guidearch/models/topsis/solve.py` comment block
+  uses ASCII `x` (was U+00D7 `×`) so `uv run ruff check` (RUF003) stays
+  green — caught by pass-2 verify after the pass-1 M=0 dedup landed.
 - `.github/dependabot.yml` now covers `langs/python/Dockerfile`
   (`package-ecosystem: docker`). The Python base image and the
   `ghcr.io/astral-sh/uv` stage will now receive automated bump PRs.
@@ -162,6 +183,29 @@ behavior change a user-facing release note would call out.
   in the runner's process listing.
 
 ### Refactored
+- Python `critical_decisions.py` and TypeScript `critical-decisions.ts`
+  now reuse `_normalize_candidates` / `normalizeCandidates` from
+  `solve.py` / `solve.ts` instead of inlining the §3.7-3.8 PIS/NIS
+  pipeline. Mirrors the pass-1 C# refactor in
+  `CriticalDecisions.Analyze`; future PIS/NIS tweaks now land in one
+  place per language. Conformance still passes byte-for-byte.
+- Python `viewmodels/__init__.py` now also re-exports
+  `ScenarioMutationError` (from `scenario_vm.py`) and `register_theme`
+  (from `app_vm.py`) — pass-1's symmetry pass with TypeScript's
+  `viewmodels/index.ts` stopped two symbols short.
+- TypeScript `app-vm.ts` now exports `registerTheme(name)` (idempotent
+  add to `KNOWN_THEMES`), mirroring Python `register_theme` and C#
+  `AppVMFactory.RegisterTheme`. Re-exported from `viewmodels/index.ts`.
+- C# `tools/screenshot-all-tabs/Program.cs` `tabNames` array still had
+  lowercase `"Critical decisions"` / `"Critical constraints"`; pass-1
+  TitleCased the Python harness and missed this. Cross-impl screenshot
+  filenames now match.
+- Python `tests/unit/test_editor_cascades.py` ships
+  `test_update_property_raises_on_non_positive_weight` (parity with
+  the TS+C# regression guards added in pass 1).
+- `spec/editors.md` §8 "Out of scope for M3" bullet TitleCased
+  `Critical Decisions / Critical Constraints panels (M4)` for full
+  document-wide consistency.
 - C# `CriticalDecisions.Analyze` no longer reimplements the §3.7 PIS/NIS
   block and the §3.8 clip01-normalize loop verbatim from
   `Solver.NormalizeCandidates` (plus a private `Clip01` shadow). Replaced
@@ -244,6 +288,10 @@ behavior change a user-facing release note would call out.
   Previously C# was the only impl that skipped the property silently.
 
 ### Docs
+- `CONTRIBUTING.md` visual-harness bullet now spells out the Python
+  Playwright first-run setup (`uv sync --group visual` and
+  `uv run playwright install chromium`) so contributors hitting
+  `ModuleNotFoundError: playwright` aren't sent to `langs/python/README.md`.
 - `spec/viewmodels.md` §4.1 and `spec/editors.md` §3 had a stale
   `"Solved: 1336 candidates"` status example — SAS yields 720 candidates
   and EDS yields 2280; the 1336 literal predated the current sample
