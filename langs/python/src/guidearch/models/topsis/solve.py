@@ -72,17 +72,23 @@ def _compute_normalizer(
                 best = max(coeff[(a_id, p.id)].lower for a_id in group_alts)
             total += best
         M[p.id] = total
-        # Invariant 10.1: degenerate property (no non-zero coefficient anywhere).
-        # Warn ONCE per (property, solve) at the source; _alt_contribution then
-        # silently skips. The previous in-loop warn fired per (alt x candidate)
-        # call - O(|alternatives| x |candidates|) duplicate warnings per
-        # degenerate property, drowning the stream on SAS-scale scenarios.
+    return M
+
+
+def _warn_degenerate_normalizers(M: dict[str, float]) -> None:
+    """Invariant 10.1: emit a warning for every degenerate property (M=0).
+
+    Called once at the top of solve(); _alt_contribution then silently skips.
+    critical_decisions() recomputes M for its decision-set normalization but
+    does NOT call this helper, so the warning fires once per VM solve call
+    instead of twice. See topsis.md §3.4.
+    """
+    for p_id, total in M.items():
         if total == 0.0:
             _warnings.warn(
-                f"Property '{p.id}' has M=0; skipping to avoid division by zero",
+                f"Property '{p_id}' has M=0; skipping to avoid division by zero",
                 stacklevel=3,
             )
-    return M
 
 
 def _alt_contribution(
@@ -246,6 +252,7 @@ def solve(scenario: ScenarioM) -> tuple[CandidateM, ...]:
     # §3.4  Per-property normalizer (over original alternative pool)
     # -----------------------------------------------------------------------
     M = _compute_normalizer(scenario)
+    _warn_degenerate_normalizers(M)
 
     # -----------------------------------------------------------------------
     # §3.5  Total triangular value per candidate

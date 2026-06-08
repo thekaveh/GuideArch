@@ -10,8 +10,8 @@ from guidearch.models.critical_decision import CriticalDecisionM
 from guidearch.models.normalized_fuzzy import NormalizedFuzzyM
 from guidearch.models.topsis.solve import (
     _alt_contribution,
-    _clip01,
     _compute_normalizer,
+    _normalize_candidates,
     _to_z,
 )
 from guidearch.models.triangular_fuzzy import TriangularFuzzyM
@@ -79,27 +79,11 @@ def critical_decisions(
     if not z_values:
         return ()
 
-    # PIS/NIS over decision set
-    pis_avg = min(z.average for z in z_values)
-    pis_pos = max(z.positive for z in z_values)
-    pis_neg = min(z.negative for z in z_values)
-
-    nis_avg = max(z.average for z in z_values)
-    nis_pos = min(z.positive for z in z_values)
-    nis_neg = max(z.negative for z in z_values)
-
-    norm_values: list[NormalizedFuzzyM] = []
-    for z in z_values:
-        denom_avg = nis_avg - pis_avg
-        n_avg = _clip01((z.average - pis_avg) / denom_avg) if denom_avg != 0.0 else 0.0
-
-        denom_pos = pis_pos - nis_pos
-        n_pos = _clip01((pis_pos - z.positive) / denom_pos) if denom_pos != 0.0 else 0.0
-
-        denom_neg = nis_neg - pis_neg
-        n_neg = _clip01((z.negative - pis_neg) / denom_neg) if denom_neg != 0.0 else 0.0
-
-        norm_values.append(NormalizedFuzzyM(positive=n_pos, average=n_avg, negative=n_neg))
+    # §3.7 + §3.8 over the *decision* set: identical pipeline to the candidate
+    # path, just applied to per-decision contributions instead of per-candidate
+    # totals. Reuse _normalize_candidates so a future tweak to the PIS/NIS math
+    # stays in one place (matches the C# refactor in CriticalDecisions.Analyze).
+    norm_values = _normalize_candidates(z_values)
 
     weights = scenario.config.weights
 

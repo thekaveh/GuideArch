@@ -52,6 +52,7 @@ public static class Solver
         // §3.4  Per-property normalizer (over original alternative pool)
         // ------------------------------------------------------------------
         var M = ComputeNormalizer(scenario);
+        WarnDegenerateNormalizers(M);
 
         // ------------------------------------------------------------------
         // §3.5  Total triangular value per candidate
@@ -138,16 +139,28 @@ public static class Solver
                 total += best;
             }
             M[p.Id] = total;
-            // Invariant 10.1: warn once per (property, solve) at the source.
-            // AltContribution() then silently skips. Previously warned per
-            // (alternative × candidate) call.
+        }
+        return M;
+    }
+
+    /// <summary>
+    /// Invariant 10.1: emit a stderr warning for every degenerate
+    /// property (M = 0). Called once at the top of Solve(); the per-call
+    /// AltContribution() silently skips. CriticalDecisions.Analyze
+    /// recomputes the same M for its decision-set normalization but does
+    /// NOT call this method, so the warning fires once per VM Solve()
+    /// instead of twice. See §3.4.
+    /// </summary>
+    internal static void WarnDegenerateNormalizers(Dictionary<string, double> M)
+    {
+        foreach (var (id, total) in M)
+        {
             if (total == 0.0)
             {
                 Console.Error.WriteLine(
-                    $"Property '{p.Id}' has M=0; skipping to avoid division by zero");
+                    $"Property '{id}' has M=0; skipping to avoid division by zero");
             }
         }
-        return M;
     }
 
     /// <summary>

@@ -58,15 +58,22 @@ export function computeNormalizer(scenario: ScenarioM): Map<string, number> {
       total += best;
     }
     M.set(p.id, total);
-    // Invariant 10.1: warn once per (property, solve) at the source.
-    // altContribution() then silently skips. Previously warned per
-    // (alternative × candidate) call — O(|alts| × |candidates|) duplicate
-    // browser-devtools / Tauri-log messages per degenerate property.
-    if (total === 0.0) {
-      console.warn(`Property '${p.id}' has M=0; skipping to avoid division by zero`);
-    }
   }
   return M;
+}
+
+/** Invariant 10.1: emit `console.warn` for every degenerate property (M=0).
+ *  Called once at the top of solve(); altContribution() silently skips.
+ *  criticalDecisions() recomputes M for its decision-set normalization but
+ *  does NOT call this helper, so the warning fires once per VM solve call
+ *  instead of twice. See topsis.md §3.4.
+ */
+export function warnDegenerateNormalizers(M: Map<string, number>): void {
+  for (const [id, total] of M) {
+    if (total === 0.0) {
+      console.warn(`Property '${id}' has M=0; skipping to avoid division by zero`);
+    }
+  }
 }
 
 /** Per-alternative contribution — used in §3.5 and §5.
@@ -259,6 +266,7 @@ export function solve(scenario: ScenarioM): CandidateM[] {
   // §3.4  Per-property normalizer (over original alternative pool)
   // -------------------------------------------------------------------------
   const M = computeNormalizer(scenario);
+  warnDegenerateNormalizers(M);
 
   // -------------------------------------------------------------------------
   // §3.5  Total triangular value per candidate

@@ -5,7 +5,7 @@ import type { ScenarioM } from '../scenario.js';
 import type { CandidateM } from '../candidate.js';
 import type { CriticalDecisionM } from '../critical-decision.js';
 import { TriangularFuzzyM } from '../triangular-fuzzy.js';
-import { altContribution, computeNormalizer, toZ } from './solve.js';
+import { altContribution, computeNormalizer, normalizeCandidates, toZ } from './solve.js';
 import { solve } from './solve.js';
 
 const TOP_N = 20; // topsis.md §8
@@ -67,29 +67,11 @@ export function criticalDecisions(
 
   if (!zValues.length) return [];
 
-  // PIS/NIS over decision set
-  const pisAvg = Math.min(...zValues.map((z) => z.average));
-  const pisPos = Math.max(...zValues.map((z) => z.positive));
-  const pisNeg = Math.min(...zValues.map((z) => z.negative));
-
-  const nisAvg = Math.max(...zValues.map((z) => z.average));
-  const nisPos = Math.min(...zValues.map((z) => z.positive));
-  const nisNeg = Math.max(...zValues.map((z) => z.negative));
-
-  const clip01 = (x: number) => Math.max(0.0, Math.min(1.0, x));
-
-  const normValues = zValues.map((z) => {
-    const denomAvg = nisAvg - pisAvg;
-    const nAvg = denomAvg !== 0.0 ? clip01((z.average - pisAvg) / denomAvg) : 0.0;
-
-    const denomPos = pisPos - nisPos;
-    const nPos = denomPos !== 0.0 ? clip01((pisPos - z.positive) / denomPos) : 0.0;
-
-    const denomNeg = nisNeg - pisNeg;
-    const nNeg = denomNeg !== 0.0 ? clip01((z.negative - pisNeg) / denomNeg) : 0.0;
-
-    return { positive: nPos, average: nAvg, negative: nNeg };
-  });
+  // §3.7 + §3.8 over the *decision* set: identical pipeline to the candidate
+  // path, just applied to per-decision contributions instead of per-candidate
+  // totals. Reuse normalizeCandidates so a future tweak to the PIS/NIS math
+  // stays in one place (matches the C# refactor in CriticalDecisions.Analyze).
+  const normValues = normalizeCandidates(zValues);
 
   const weights = scenario.config.weights;
 
