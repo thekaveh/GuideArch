@@ -19,7 +19,11 @@ from guidearch.models.constraint import (
     DependencyConstraint,
     ThresholdConstraint,
 )
-from guidearch.viewmodels.scenario_vm import ScenarioVM, make_scenario_vm
+from guidearch.viewmodels.scenario_vm import (
+    ScenarioMutationError,
+    ScenarioVM,
+    make_scenario_vm,
+)
 
 _REPO_ROOT = Path(__file__).parents[4]
 _SAS_JSON = _REPO_ROOT / "spec" / "conformance" / "scenarios" / "sas.json"
@@ -271,6 +275,23 @@ def test_add_property_creates_zero_coefficients(vm: ScenarioVM) -> None:
     assert vm.scenario is not None
     new_coefs = [c for c in vm.scenario.coefficients if c.property_id == new_id]
     assert len(new_coefs) == n_alts
+
+
+# ── update_property weight validation (parity with TS+C#) ───────────────────
+
+
+def test_update_property_raises_on_non_positive_weight(vm: ScenarioVM) -> None:
+    """spec/viewmodels.md §5.3 mandates weight > 0; ScenarioVM.update_property
+    enforces it at the mutation boundary. TS `updatePropertyWeight` and C#
+    `UpdateProperty` both have regression guards for this; Python lacked one.
+    """
+    s = vm.scenario
+    assert s is not None
+    prop_id = s.properties[0].id
+    with pytest.raises(ScenarioMutationError):
+        vm.update_property(prop_id, weight=0.0)
+    with pytest.raises(ScenarioMutationError):
+        vm.update_property(prop_id, weight=-1.0)
 
 
 # ── test dirty flag ───────────────────────────────────────────────────────────

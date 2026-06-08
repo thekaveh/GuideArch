@@ -151,7 +151,7 @@ CI conformance is unchanged from M2 (M1 numerical conformance is the gate).
 ## 8. Out of scope for M3
 
 - Charts (M4): ranked-candidates bar, fuzzy-value triangle.
-- Critical decisions / constraints panels (M4).
+- Critical Decisions / Critical Constraints panels (M4).
 - Multi-scenario tabs (v1.1).
 - Themes other than the default (v1.x).
 - Localization (v2.x).
