@@ -14,7 +14,7 @@ What it does:
   8. Kills the server
 
 Tabs covered: Decisions, Alternatives, Properties, Coefficients, Constraints,
-Results, Critical decisions, Critical constraints
+Results, Critical Decisions, Critical Constraints
 """
 
 from __future__ import annotations
@@ -43,8 +43,8 @@ _TAB_NAMES = [
     "Coefficients",
     "Constraints",
     "Results",
-    "Critical decisions",
-    "Critical constraints",
+    "Critical Decisions",
+    "Critical Constraints",
 ]
 
 # Slug used for filenames
@@ -83,7 +83,7 @@ def _screenshot_all_tabs(page: Page, prefix: str) -> list[str]:
     saved: list[str] = []
     for name, slug in zip(_TAB_NAMES, _TAB_SLUGS, strict=False):
         # Click the tab — use exact=True to avoid strict mode violations for
-        # tabs like "Decisions" that also match "Critical decisions"
+        # tabs like "Decisions" that also match "Critical Decisions"
         try:
             page.get_by_role("tab", name=name, exact=True).click()
             page.wait_for_timeout(900)  # let content render
