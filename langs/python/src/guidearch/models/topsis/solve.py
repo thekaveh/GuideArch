@@ -74,9 +74,9 @@ def _compute_normalizer(
         M[p.id] = total
         # Invariant 10.1: degenerate property (no non-zero coefficient anywhere).
         # Warn ONCE per (property, solve) at the source; _alt_contribution then
-        # silently skips. The previous in-loop warn fired per (alt × candidate)
-        # — O(|alternatives| × |candidates|) duplicate warnings per degenerate
-        # property, drowning the stream on SAS-scale scenarios.
+        # silently skips. The previous in-loop warn fired per (alt x candidate)
+        # call - O(|alternatives| x |candidates|) duplicate warnings per
+        # degenerate property, drowning the stream on SAS-scale scenarios.
         if total == 0.0:
             _warnings.warn(
                 f"Property '{p.id}' has M=0; skipping to avoid division by zero",
