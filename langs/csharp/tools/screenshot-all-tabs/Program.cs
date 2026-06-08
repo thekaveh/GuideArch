@@ -87,7 +87,7 @@ void CaptureAll(string dir)
     var tabNames = new[]
     {
         "Decisions", "Alternatives", "Properties", "Coefficients",
-        "Constraints", "Results", "Critical decisions", "Critical constraints",
+        "Constraints", "Results", "Critical Decisions", "Critical Constraints",
     };
 
     Console.WriteLine("[ss] Capturing empty state...");

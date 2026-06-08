@@ -62,6 +62,20 @@ export function computeNormalizer(scenario: ScenarioM): Map<string, number> {
   return M;
 }
 
+/** Invariant 10.1: emit `console.warn` for every degenerate property (M=0).
+ *  Called once at the top of solve(); altContribution() silently skips.
+ *  criticalDecisions() recomputes M for its decision-set normalization but
+ *  does NOT call this helper, so the warning fires once per VM solve call
+ *  instead of twice. See topsis.md §3.4.
+ */
+export function warnDegenerateNormalizers(M: Map<string, number>): void {
+  for (const [id, total] of M) {
+    if (total === 0.0) {
+      console.warn(`Property '${id}' has M=0; skipping to avoid division by zero`);
+    }
+  }
+}
+
 /** Per-alternative contribution — used in §3.5 and §5.
  *  sign(p) = +1 for min, -1 for max (topsis.md §3.5).
  */
@@ -75,8 +89,7 @@ export function altContribution(
   for (const p of scenario.properties) {
     const mP = M.get(p.id)!;
     if (mP === 0.0) {
-      // Invariant 10.1: degenerate — skip to avoid division by zero
-      console.warn(`Property '${p.id}' has M=0; skipping to avoid division by zero`);
+      // Invariant 10.1: degenerate — computeNormalizer already warned once.
       continue;
     }
     const sign = p.kind === 'min' ? 1.0 : -1.0;
@@ -253,6 +266,7 @@ export function solve(scenario: ScenarioM): CandidateM[] {
   // §3.4  Per-property normalizer (over original alternative pool)
   // -------------------------------------------------------------------------
   const M = computeNormalizer(scenario);
+  warnDegenerateNormalizers(M);
 
   // -------------------------------------------------------------------------
   // §3.5  Total triangular value per candidate

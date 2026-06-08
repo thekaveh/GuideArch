@@ -23,6 +23,7 @@ Thanks for your interest in contributing. GuideArch is a spec-driven monorepo wi
 ## Tests
 
 - Per-impl unit tests live under `langs/<impl>/tests/unit/` for TypeScript and Python, with integration tests in `langs/<impl>/tests/integration/`. C# uses .NET solution conventions: `langs/csharp/tests/GuideArch.Models.Tests/` and `langs/csharp/tests/GuideArch.ViewModels.Tests/`.
+- Visual snapshot harnesses (manual / opt-in, not in CI): Python `langs/python/tests/visual/snapshot_all_tabs.py` (Playwright — first run needs `uv sync --group visual` and `uv run playwright install chromium`), TypeScript `langs/typescript/tests/visual/snapshot-all-tabs.mjs` (headless Chromium via Playwright), C# `langs/csharp/tools/screenshot-all-tabs/`.
 - Conformance:
   - TypeScript: `langs/typescript/src/conformance/` (CLI: `pnpm conformance`).
   - C#: `langs/csharp/src/GuideArch.Conformance/` (CLI: `dotnet run --project src/GuideArch.Conformance`).

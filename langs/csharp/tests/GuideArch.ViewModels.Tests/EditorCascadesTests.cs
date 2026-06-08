@@ -306,4 +306,69 @@ public class EditorCascadesTests
         var (vm, mutator) = LoadSas();
         Assert.Throws<ScenarioMutationException>(() => mutator.DeleteProperty("p-does-not-exist"));
     }
+
+    // -----------------------------------------------------------------------
+    // Add cascades (spec editors.md §2.2, §2.3) — parity with Python+TS tests
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void AddAlternative_CreatesZeroFuzzyCoefficients_ForEveryProperty()
+    {
+        var (vm, mutator) = LoadSas();
+        var scenario = vm.Model.Scenario!;
+        var decisionId = scenario.Decisions[0].Id;
+        var propIds = scenario.Properties.Select(p => p.Id).ToHashSet();
+
+        mutator.AddAlternative(decisionId);
+
+        var s = vm.Model.Scenario!;
+        // The new alternative is the last one whose decisionId matches.
+        var newAlt = s.Alternatives.Last(a => a.DecisionId == decisionId);
+        var newCoeffs = s.Coefficients.Where(c => c.AlternativeId == newAlt.Id).ToList();
+
+        Assert.Equal(propIds.Count, newCoeffs.Count);
+        Assert.All(newCoeffs, c =>
+        {
+            Assert.Contains(c.PropertyId, propIds);
+            Assert.Equal(0.0, c.Value.Lower);
+            Assert.Equal(0.0, c.Value.Modal);
+            Assert.Equal(0.0, c.Value.Upper);
+        });
+    }
+
+    [Fact]
+    public void AddProperty_CreatesZeroFuzzyCoefficients_ForEveryAlternative()
+    {
+        var (vm, mutator) = LoadSas();
+        var scenario = vm.Model.Scenario!;
+        var altIds = scenario.Alternatives.Select(a => a.Id).ToHashSet();
+
+        mutator.AddProperty();
+
+        var s = vm.Model.Scenario!;
+        var newProp = s.Properties[^1];
+        var newCoeffs = s.Coefficients.Where(c => c.PropertyId == newProp.Id).ToList();
+
+        Assert.Equal(altIds.Count, newCoeffs.Count);
+        Assert.All(newCoeffs, c =>
+        {
+            Assert.Contains(c.AlternativeId, altIds);
+            Assert.Equal(0.0, c.Value.Lower);
+            Assert.Equal(0.0, c.Value.Modal);
+            Assert.Equal(0.0, c.Value.Upper);
+        });
+    }
+
+    [Fact]
+    public void UpdateProperty_ThrowsForNonPositiveWeight()
+    {
+        var (vm, mutator) = LoadSas();
+        var scenario = vm.Model.Scenario!;
+        var propId = scenario.Properties[0].Id;
+
+        Assert.Throws<ScenarioMutationException>(
+            () => mutator.UpdateProperty(propId, name: null, kind: null, weight: 0.0));
+        Assert.Throws<ScenarioMutationException>(
+            () => mutator.UpdateProperty(propId, name: null, kind: null, weight: -1.0));
+    }
 }

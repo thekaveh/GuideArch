@@ -376,11 +376,16 @@ public sealed class ScenarioMutator
     // Decisions
     // ------------------------------------------------------------------
 
-    public void AddDecision()
+    /// <summary>
+    /// Append a new decision. `name` defaults to "New decision" to match
+    /// Python's `add_decision(name="New decision")` and TypeScript's
+    /// `addDecision(name?)`.
+    /// </summary>
+    public void AddDecision(string? name = null)
     {
         var s = EnsureScenario();
         var id = $"d-{Guid.NewGuid()}";
-        var newDecision = new DecisionM(id, "New decision");
+        var newDecision = new DecisionM(id, name ?? "New decision");
         _setState(State with
         {
             Scenario = s with { Decisions = s.Decisions.Add(newDecision) },
@@ -397,7 +402,15 @@ public sealed class ScenarioMutator
     public void UpdateDecisionName(string id, string newName)
     {
         var s = RequireScenario();
-        var idx = s.Decisions.IndexOf(s.Decisions.FirstOrDefault(d => d.Id == id)!);
+        // Single-pass index lookup. The previous
+        // `IndexOf(FirstOrDefault(...)!)` form walked the list twice and
+        // null-forgave a value that can legitimately be null on unknown id —
+        // the `idx < 0` check after the fact masked it.
+        int idx = -1;
+        for (int i = 0; i < s.Decisions.Length; i++)
+        {
+            if (s.Decisions[i].Id == id) { idx = i; break; }
+        }
         if (idx < 0) throw new ScenarioMutationException($"Decision '{id}' not found.");
         var updated = s.Decisions.SetItem(idx, s.Decisions[idx] with { Name = newName });
         _setState(State with
@@ -460,14 +473,19 @@ public sealed class ScenarioMutator
     // Alternatives
     // ------------------------------------------------------------------
 
-    public void AddAlternative(string decisionId)
+    /// <summary>
+    /// Append a new alternative under <paramref name="decisionId"/> and create
+    /// zero-fuzzy coefficients for every existing property. `name` defaults to
+    /// "New alternative" to match Python+TypeScript.
+    /// </summary>
+    public void AddAlternative(string decisionId, string? name = null)
     {
         var s = RequireScenario();
         if (!s.Decisions.Any(d => d.Id == decisionId))
             throw new ScenarioMutationException($"Decision '{decisionId}' not found.");
 
         var id = $"a-{Guid.NewGuid()}";
-        var newAlt = new AlternativeM(id, decisionId, "New alternative");
+        var newAlt = new AlternativeM(id, decisionId, name ?? "New alternative");
 
         // Add zero-fuzzy coefficients for every existing property.
         var newCoeffs = s.Properties
@@ -544,11 +562,23 @@ public sealed class ScenarioMutator
     // Properties
     // ------------------------------------------------------------------
 
-    public void AddProperty()
+    /// <summary>
+    /// Append a new property and create zero-fuzzy coefficients for every
+    /// existing alternative. Defaults match Python's
+    /// `add_property(name="New property", kind="min", weight=1.0)`.
+    /// </summary>
+    public void AddProperty(string? name = null, PropertyKind? kind = null, double? weight = null)
     {
         var s = EnsureScenario();
         var id = $"p-{Guid.NewGuid()}";
-        var newProp = new PropertyM(id, "New property", PropertyKind.Min, 1.0);
+        if (weight.HasValue && weight.Value <= 0)
+            throw new ScenarioMutationException(
+                $"Property weight must be > 0 (got {weight.Value}).");
+        var newProp = new PropertyM(
+            id,
+            name ?? "New property",
+            kind ?? PropertyKind.Min,
+            weight ?? 1.0);
 
         // Add zero-fuzzy coefficients for every existing alternative.
         var newCoeffs = s.Alternatives

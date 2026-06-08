@@ -52,6 +52,7 @@ public static class Solver
         // §3.4  Per-property normalizer (over original alternative pool)
         // ------------------------------------------------------------------
         var M = ComputeNormalizer(scenario);
+        WarnDegenerateNormalizers(M);
 
         // ------------------------------------------------------------------
         // §3.5  Total triangular value per candidate
@@ -143,6 +144,26 @@ public static class Solver
     }
 
     /// <summary>
+    /// Invariant 10.1: emit a stderr warning for every degenerate
+    /// property (M = 0). Called once at the top of Solve(); the per-call
+    /// AltContribution() silently skips. CriticalDecisions.Analyze
+    /// recomputes the same M for its decision-set normalization but does
+    /// NOT call this method, so the warning fires once per VM Solve()
+    /// instead of twice. See §3.4.
+    /// </summary>
+    internal static void WarnDegenerateNormalizers(Dictionary<string, double> M)
+    {
+        foreach (var (id, total) in M)
+        {
+            if (total == 0.0)
+            {
+                Console.Error.WriteLine(
+                    $"Property '{id}' has M=0; skipping to avoid division by zero");
+            }
+        }
+    }
+
+    /// <summary>
     /// Per-alternative contribution — topsis.md §3.5, §5.
     /// sign(p) = +1 for min, -1 for max.
     /// </summary>
@@ -158,12 +179,8 @@ public static class Solver
             double mp = M[p.Id];
             if (mp == 0.0)
             {
-                // Invariant 10.1: degenerate — emit warning, skip. Parity
-                // with Python (warnings.warn) and TS (console.warn) both of
-                // which land on stderr; same message format for log-scrapers
-                // that look across impls.
-                Console.Error.WriteLine(
-                    $"Property '{p.Id}' has M=0; skipping to avoid division by zero");
+                // Invariant 10.1: degenerate — ComputeNormalizer already
+                // warned once for this property. Skip silently here.
                 continue;
             }
             double sign = p.Kind == PropertyKind.Min ? 1.0 : -1.0;
@@ -290,6 +307,13 @@ public static class Solver
 
     private static List<List<string>> CartesianProduct(List<List<string>> pools)
     {
+        // Early-return on any empty pool — matches the same guard in
+        // CriticalConstraints.CartesianProduct. Avoids briefly allocating the
+        // full intermediate product list only to discard it.
+        foreach (var pool in pools)
+        {
+            if (pool.Count == 0) return new List<List<string>>();
+        }
         var result = new List<List<string>> { new List<string>() };
         foreach (var pool in pools)
         {
@@ -304,9 +328,6 @@ public static class Solver
             }
             result = next;
         }
-        // Return empty if any pool was empty (no candidates possible)
-        if (pools.Any(p => p.Count == 0))
-            return new List<List<string>>();
         return result;
     }
 

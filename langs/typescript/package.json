@@ -10,7 +10,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri",
-    "lint": "eslint src tests --ext .ts,.svelte",
+    "lint": "eslint src tests",
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
     "test": "vitest run",

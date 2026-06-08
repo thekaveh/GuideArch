@@ -30,10 +30,18 @@ import { makeScenarioVm, type ScenarioVM } from './scenario-vm.js';
 // ---------------------------------------------------------------------------
 // 'dark' and 'light' are MANDATED by spec across all impls. Additional
 // framework-supported themes (e.g. high-contrast variants) can be added
-// by extending KNOWN_THEMES at startup before the first AppVM constructs.
+// by calling registerTheme(name) at startup before the first AppVM constructs.
 export const KNOWN_THEMES: Set<string> = new Set(['dark', 'light']);
 
 export const DEFAULT_THEME = 'dark';
+
+/**
+ * Register an additional theme name (idempotent). Mirrors Python's
+ * `register_theme(name)` and C#'s `AppVMFactory.RegisterTheme(name)`.
+ */
+export function registerTheme(name: string): void {
+  KNOWN_THEMES.add(name);
+}
 
 // ---------------------------------------------------------------------------
 // Persistence — small JSON-ish wrapper around localStorage
