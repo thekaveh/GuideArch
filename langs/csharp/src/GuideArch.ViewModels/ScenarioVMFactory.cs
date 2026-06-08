@@ -402,7 +402,15 @@ public sealed class ScenarioMutator
     public void UpdateDecisionName(string id, string newName)
     {
         var s = RequireScenario();
-        var idx = s.Decisions.IndexOf(s.Decisions.FirstOrDefault(d => d.Id == id)!);
+        // Single-pass index lookup. The previous
+        // `IndexOf(FirstOrDefault(...)!)` form walked the list twice and
+        // null-forgave a value that can legitimately be null on unknown id —
+        // the `idx < 0` check after the fact masked it.
+        int idx = -1;
+        for (int i = 0; i < s.Decisions.Length; i++)
+        {
+            if (s.Decisions[i].Id == id) { idx = i; break; }
+        }
         if (idx < 0) throw new ScenarioMutationException($"Decision '{id}' not found.");
         var updated = s.Decisions.SetItem(idx, s.Decisions[idx] with { Name = newName });
         _setState(State with
