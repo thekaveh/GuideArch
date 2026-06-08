@@ -183,6 +183,16 @@ behavior change a user-facing release note would call out.
   in the runner's process listing.
 
 ### Refactored
+- TypeScript `tests/integration/vm-mvvm.test.ts` docstring (line 8) and
+  section comment (line 46) updated from "produces 1336 candidates" to
+  "produces 720 candidates" — pass-1's stale-1336 sweep missed these two
+  test-file comments (the actual assertion already used 720).
+- TypeScript `critical-decisions.ts` merged two consecutive
+  `import … from './solve.js'` statements into a single combined import.
+- C# `Solver.CartesianProduct` early-returns on the first empty pool
+  instead of checking `pools.Any(p => p.Count == 0)` after building the
+  full intermediate product list. Matches the sibling
+  `CriticalConstraints.CartesianProduct` early-exit pattern.
 - Python `critical_decisions.py` and TypeScript `critical-decisions.ts`
   now reuse `_normalize_candidates` / `normalizeCandidates` from
   `solve.py` / `solve.ts` instead of inlining the §3.7-3.8 PIS/NIS
