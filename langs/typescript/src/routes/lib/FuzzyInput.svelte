@@ -20,6 +20,18 @@
   let mStr = String(modal);
   let uStr = String(upper);
 
+  // Re-sync the local string state when the *prop* changes from outside
+  // (file Open, Sample SAS, parent re-render with new coefficients). Without
+  // this, the local strings stay at their first-mount value because
+  // CoefficientsTab keys the `{#each}` by alt+prop id, so component instances
+  // are reused across re-solves and sample swaps. The `Number(lStr) === lower`
+  // guard makes the resync a no-op while the user is mid-edit (after emit()
+  // sets the prop to the value the user just typed) — only external mutations
+  // produce a divergence and trigger the reset.
+  $: if (Number(lStr) !== lower) lStr = String(lower);
+  $: if (Number(mStr) !== modal) mStr = String(modal);
+  $: if (Number(uStr) !== upper) uStr = String(upper);
+
   function emit() {
     const l = parseFloat(lStr);
     const m = parseFloat(mStr);
