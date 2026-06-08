@@ -5,7 +5,7 @@
  * These tests do NOT mount Svelte components — they exercise only the VM layer.
  *
  * Tests verify:
- *  1. _browserOpen loads SAS sample and produces 1336 candidates with expected top score.
+ *  1. _browserOpen loads SAS sample and produces 720 candidates with expected top score.
  *  2. Editing a property weight triggers re-solve and changes top score.
  *  3. Add decision + alternative + property, then save + reload preserves all three.
  *  4. deleteDecision cascades to its alternatives and their coefficients.
@@ -43,7 +43,7 @@ const inlineSchema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8')) as object;
 import { loadScenarioFromParsed } from '../../src/models/scenario-loader.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. _browserOpen produces 1336 candidates with correct top score
+// 1. _browserOpen produces 720 candidates with correct top score
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('_browserOpen — SAS sample', () => {

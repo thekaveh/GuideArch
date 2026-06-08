@@ -5,8 +5,7 @@ import type { ScenarioM } from '../scenario.js';
 import type { CandidateM } from '../candidate.js';
 import type { CriticalDecisionM } from '../critical-decision.js';
 import { TriangularFuzzyM } from '../triangular-fuzzy.js';
-import { altContribution, computeNormalizer, normalizeCandidates, toZ } from './solve.js';
-import { solve } from './solve.js';
+import { altContribution, computeNormalizer, normalizeCandidates, solve, toZ } from './solve.js';
 
 const TOP_N = 20; // topsis.md §8
 const DECAY = 0.1; // topsis.md §8 — exp(-0.1 * rank)

@@ -307,6 +307,13 @@ public static class Solver
 
     private static List<List<string>> CartesianProduct(List<List<string>> pools)
     {
+        // Early-return on any empty pool — matches the same guard in
+        // CriticalConstraints.CartesianProduct. Avoids briefly allocating the
+        // full intermediate product list only to discard it.
+        foreach (var pool in pools)
+        {
+            if (pool.Count == 0) return new List<List<string>>();
+        }
         var result = new List<List<string>> { new List<string>() };
         foreach (var pool in pools)
         {
@@ -321,9 +328,6 @@ public static class Solver
             }
             result = next;
         }
-        // Return empty if any pool was empty (no candidates possible)
-        if (pools.Any(p => p.Count == 0))
-            return new List<List<string>>();
         return result;
     }
 
