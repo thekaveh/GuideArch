@@ -17,6 +17,14 @@ behavior change a user-facing release note would call out.
   remaining low-severity `cookie<0.7.0` is in `@sveltejs/kit`'s
   upstream-pinned transitive; @sveltejs/kit is on the current ^2.x.
 
+### Tests
+- All three impls now have regression-guard tests for the
+  `addProperty(weight ≤ 0)` rejection path: Python
+  `test_add_property_raises_on_non_positive_weight`, C#
+  `AddProperty_ThrowsForNonPositiveWeight`, TS `addProperty validation`
+  describe block. The matching `updateProperty(weight ≤ 0)` paths were
+  already covered; the Add side had zero direct coverage in any impl.
+
 ### Fixed
 - Python `ScenarioVM.add_property` now enforces `weight > 0` at the
   Add boundary, matching `update_property` and C#'s `AddProperty`. The
