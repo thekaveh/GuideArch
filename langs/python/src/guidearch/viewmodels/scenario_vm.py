@@ -618,6 +618,13 @@ class ScenarioVM:
         """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
+        # Schema $defs/Property.weight is exclusiveMinimum 0; match
+        # update_property's guard (line ~790) at the Add boundary too so a
+        # caller can't slip a non-positive weight past the mutator into the
+        # scenario only to fail at save-time schema validation. Mirrors
+        # C# AddProperty's weight>0 check (ScenarioVMFactory.cs:574).
+        if weight <= 0:
+            raise ScenarioMutationError(f"Property weight must be > 0 (got {weight}).")
         scenario = self._scenario
         new_id = f"p-{uuid.uuid4()}"
         new_prop = PropertyM(id=new_id, name=name, kind=kind, weight=weight)

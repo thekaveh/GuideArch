@@ -71,7 +71,7 @@ export type ScenarioVM = ComponentVMOf<ScenarioState> & {
   deleteAlternative(id: string): void;
   updateAlternativeName(id: string, name: string): void;
 
-  addProperty(name?: string): void;
+  addProperty(name?: string, kind?: 'min' | 'max', weight?: number): void;
   deleteProperty(id: string): void;
   updatePropertyName(id: string, name: string): void;
   updatePropertyKind(id: string, kind: 'min' | 'max'): void;
@@ -440,10 +440,22 @@ export function makeScenarioVm(): ScenarioVM {
     // Name change doesn't trigger solve
   }
 
-  function addProperty(name?: string): void {
+  function addProperty(name?: string, kind?: 'min' | 'max', weight?: number): void {
     const s = _requireScenario();
+    // Schema $defs/Property.weight is exclusiveMinimum 0; match Python's
+    // add_property guard and C# AddProperty's weight>0 check at the Add
+    // boundary so a non-positive weight can't slip past the mutator into
+    // the scenario only to fail at save-time schema validation.
+    if (weight !== undefined && weight <= 0) {
+      throw new ScenarioMutationError(`Property weight must be > 0 (got ${weight}).`);
+    }
     const id = genId('p');
-    const newProp = { id, name: name ?? 'New property', kind: 'min' as const, weight: 1 };
+    const newProp = {
+      id,
+      name: name ?? 'New property',
+      kind: kind ?? ('min' as const),
+      weight: weight ?? 1,
+    };
     // Add zero-fuzzy coefficients for every existing alternative
     const newCoefficients = s.alternatives.map((a) => ({
       alternativeId: a.id,
