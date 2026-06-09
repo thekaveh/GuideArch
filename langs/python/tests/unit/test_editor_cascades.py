@@ -294,6 +294,18 @@ def test_update_property_raises_on_non_positive_weight(vm: ScenarioVM) -> None:
         vm.update_property(prop_id, weight=-1.0)
 
 
+def test_add_property_raises_on_non_positive_weight(vm: ScenarioVM) -> None:
+    """Same weight > 0 invariant enforced on the Add boundary, mirroring
+    C# AddProperty's weight>0 check (ScenarioVMFactory.cs:574). Prior
+    behavior accepted any float at Add-time and failed only at save-time
+    schema validation.
+    """
+    with pytest.raises(ScenarioMutationError):
+        vm.add_property(weight=0.0)
+    with pytest.raises(ScenarioMutationError):
+        vm.add_property(weight=-1.0)
+
+
 # ── test dirty flag ───────────────────────────────────────────────────────────
 
 
