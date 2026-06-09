@@ -246,3 +246,15 @@ describe('updatePropertyWeight validation', () => {
     expect(newScore).not.toBe(prevScore);
   });
 });
+
+// ---------------------------------------------------------------------------
+// addProperty: weight > 0 guard (parity with Python+C#)
+// ---------------------------------------------------------------------------
+
+describe('addProperty validation', () => {
+  it('throws ScenarioMutationError when weight <= 0', () => {
+    const vm = loadVm();
+    expect(() => vm.addProperty(undefined, undefined, 0)).toThrow(ScenarioMutationError);
+    expect(() => vm.addProperty(undefined, undefined, -1)).toThrow(ScenarioMutationError);
+  });
+});

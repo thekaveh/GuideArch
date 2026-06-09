@@ -371,4 +371,15 @@ public class EditorCascadesTests
         Assert.Throws<ScenarioMutationException>(
             () => mutator.UpdateProperty(propId, name: null, kind: null, weight: -1.0));
     }
+
+    [Fact]
+    public void AddProperty_ThrowsForNonPositiveWeight()
+    {
+        var (_, mutator) = LoadSas();
+
+        Assert.Throws<ScenarioMutationException>(
+            () => mutator.AddProperty(name: null, kind: null, weight: 0.0));
+        Assert.Throws<ScenarioMutationException>(
+            () => mutator.AddProperty(name: null, kind: null, weight: -1.0));
+    }
 }

@@ -200,7 +200,8 @@ public partial class MainWindow : Window
         _lastSelectedIndex = state.SelectedCandidateIndex;
 
         // spec/viewmodels.md §6 caps the Results table at the top 50 rows
-        // — Python (main.py:1042) and TS (ResultsTab.svelte:14) do the same.
+        // — Python's `top50 = candidates[:50]` and TS's
+        // `top50 = $candidatesStore.slice(0, 50)` do the same.
         // Project here so the DataGrid never tries to render thousands of
         // rows of TOPSIS candidates on a large scenario. Only refresh
         // ItemsSource when the candidates set itself changed; a selection-
