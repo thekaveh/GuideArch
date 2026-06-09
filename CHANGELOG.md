@@ -9,7 +9,25 @@ The format is loosely [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). 
 Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
 behavior change a user-facing release note would call out.
 
+### Security
+- TypeScript `vitest` devDependency bumped from `^2.0.0` to `^3.2.6` to
+  close GHSA-4w7w-66w2-5vf9 (vite path-traversal, **critical**) and
+  two transitive moderates (esbuild, vite-node). Devtools-only blast
+  radius, but the only critical-severity advisory in the tree. The
+  remaining low-severity `cookie<0.7.0` is in `@sveltejs/kit`'s
+  upstream-pinned transitive; @sveltejs/kit is on the current ^2.x.
+
 ### Fixed
+- Python `ScenarioVM.add_property` now enforces `weight > 0` at the
+  Add boundary, matching `update_property` and C#'s `AddProperty`. The
+  schema `$defs/Property.weight` is `exclusiveMinimum: 0`; the prior
+  state accepted any float at Add-time and failed only at save-time
+  schema validation.
+- TypeScript `addProperty(name?, kind?, weight?)` now takes the full
+  three-arg surface that Python `add_property` and C# `AddProperty`
+  expose, with the same `weight > 0` guard. The prior maintenance pass
+  added the C# overload explicitly for Python parity; TS was left
+  narrower than both impls.
 - TypeScript `FuzzyInput.svelte` resync now tracks the previous prop
   value in separate state instead of comparing `Number(localStr)` to
   the prop. The earlier `Number(lStr) !== lower` guard regressed
@@ -117,6 +135,11 @@ behavior change a user-facing release note would call out.
   shipping installers branded `tauri-app`).
 
 ### CI
+- `.github/workflows/vmx-bump.yml` now declares a workflow-scope
+  `permissions: { contents: read }` default; the `check` job retains
+  its explicit `contents: write` / `issues: write` override. Future
+  jobs added without an explicit `permissions:` block will inherit
+  read-only rather than the repo's default GITHUB_TOKEN write scopes.
 - `langs/python/src/guidearch/models/topsis/solve.py` comment block
   uses ASCII `x` (was U+00D7 `×`) so `uv run ruff check` (RUF003) stays
   green — caught by pass-2 verify after the pass-1 M=0 dedup landed.
@@ -298,6 +321,28 @@ behavior change a user-facing release note would call out.
   Previously C# was the only impl that skipped the property silently.
 
 ### Docs
+- `CONTRIBUTING.md` visual-harness setup now reads
+  `uv sync --all-extras --group visual` (was missing `--all-extras`;
+  per the project's documented invariant, plain `uv sync` strips the
+  dev group and tanks ruff/mypy/pytest availability).
+- `CONTRIBUTING.md` "Verify (CI)" recipes for all three languages now
+  include their test runs: TS `pnpm check && pnpm test`, C# `dotnet
+  test --nologo`, Python `uv run pytest tests/ -q`. The prior recipes
+  exercised only the formatter/linter side, so contributors who "ran
+  verify" locally still shipped without exercising the unit suites.
+- `SECURITY.md` "Supported Versions" milestone range tightened from
+  `v0.0.0-bootstrap through the M1–M4 milestone tags` (imprecise — M0
+  is the start, not M1) to `v0.0.0-bootstrap (M0) through v0.4.0-m4 (M4)`.
+- `langs/csharp/src/GuideArch.View/MainWindow.axaml.cs` comment
+  pointing at `main.py:1042` / `ResultsTab.svelte:14` for the top-50
+  cap (both line numbers had drifted) now uses symbolic anchors
+  (`top50 = candidates[:50]` / `top50 = $candidatesStore.slice(0, 50)`)
+  that don't rot on subsequent edits.
+- `langs/python/src/guidearch/models/constraint.py` docstring removed
+  the dangling "Space.cs line 975" reference (Space.cs doesn't exist
+  in the repo; the legacy XML/C# pre-implementation is not vendored
+  per ADR-0002). The substantive "biconditional, not the legacy
+  implication form" callout is retained.
 - `CONTRIBUTING.md` visual-harness bullet now spells out the Python
   Playwright first-run setup (`uv sync --group visual` and
   `uv run playwright install chromium`) so contributors hitting
