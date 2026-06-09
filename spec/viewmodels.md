@@ -159,6 +159,14 @@ Implementation guidance for v1.0: re-solve **synchronously** on each mutation (s
 - Wraps a `PropertyM`.
 - Observable: `id` (read-only), `name` (read-write), `kind` (read-write `'min' | 'max'`), `weight` (read-write `> 0`).
 - Changing `kind` or `weight` triggers a solve.
+- **Mutator boundary:** the `weight > 0` invariant is enforced on **both**
+  the Add and Update paths in every impl (`addProperty`/`add_property`/
+  `AddProperty` and `updateProperty`/`update_property`/`UpdateProperty`).
+  A caller passing `weight <= 0` to any of these gets `ScenarioMutationError`
+  (TS+Py) or `ScenarioMutationException` (C#) at the mutation boundary —
+  not silently accepted to fail later at save-time schema validation. The
+  add-side surface in all three impls takes the same three optional
+  parameters: `name`, `kind`, `weight`.
 
 ### 5.4 `CoefficientsVM`
 
