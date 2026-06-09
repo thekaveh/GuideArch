@@ -5,6 +5,13 @@ on:
     - cron: '0 8 * * 1'  # Mondays at 08:00 UTC
   workflow_dispatch:
 
+# Workflow-scope default: read-only. The `check` job below overrides with the
+# explicit write scopes it needs (issue creation, branch push). Future jobs
+# added without an explicit `permissions:` block will inherit read-only,
+# not the repo's default GITHUB_TOKEN write scopes.
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
