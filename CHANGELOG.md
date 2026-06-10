@@ -10,12 +10,25 @@ Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
 behavior change a user-facing release note would call out.
 
 ### Security
+- Python `aiohttp` 3.13.5 → 3.14.1, closing CVE-2026-34993 and
+  CVE-2026-47265. Unblocked by NiceGUI 3.13.0, which lifted its
+  `aiohttp` cap to `>=3.14.0`; the project's `nicegui` floor is now
+  `>=3.13.0` so installs always get the patched chain.
+- TypeScript: pnpm override pins transitive `cookie` to `^0.7.2`
+  (GHSA-pxg6-pf52-xh8x, low) until `@sveltejs/kit` bumps its own range.
+- `release.yml` GITHUB_TOKEN narrowed to workflow-level `contents: read`;
+  only `python-docker` (`packages: write`) and `release`
+  (`contents: write`) escalate. `vmx-bump.yml`'s check job dropped an
+  unused `contents: write` grant.
+- Python Docker base images (`python:3.12-slim`, `astral-sh/uv:0.8`)
+  are now digest-pinned for reproducible builds; Dependabot's docker
+  ecosystem keeps digest pins fresh.
 - TypeScript `vitest` devDependency bumped from `^2.0.0` to `^3.2.6` to
   close GHSA-4w7w-66w2-5vf9 (vite path-traversal, **critical**) and
   two transitive moderates (esbuild, vite-node). Devtools-only blast
-  radius, but the only critical-severity advisory in the tree. The
-  remaining low-severity `cookie<0.7.0` is in `@sveltejs/kit`'s
-  upstream-pinned transitive; @sveltejs/kit is on the current ^2.x.
+  radius, but the only critical-severity advisory in the tree. (The
+  low-severity `cookie<0.7.0` transitive is now closed by the pnpm
+  override entry above.)
 
 ### Tests
 - All three impls now have regression-guard tests for the
@@ -26,6 +39,12 @@ behavior change a user-facing release note would call out.
   already covered; the Add side had zero direct coverage in any impl.
 
 ### Fixed
+- Python `pyproject.toml` now declares `reactivex>=4.0.4` as a direct
+  dependency — `viewmodels/` and `view/adapters/` import it directly,
+  but it previously resolved only transitively through `vmx`.
+- TypeScript dropped the unused `@typescript-eslint/eslint-plugin`
+  devDependency; `eslint.config.js` consumes the bundled plugin via the
+  `typescript-eslint` meta-package.
 - Python `ScenarioVM.add_property` now enforces `weight > 0` at the
   Add boundary, matching `update_property` and C#'s `AddProperty`. The
   schema `$defs/Property.weight` is `exclusiveMinimum: 0`; the prior
@@ -144,10 +163,22 @@ behavior change a user-facing release note would call out.
 
 ### CI
 - `.github/workflows/vmx-bump.yml` now declares a workflow-scope
-  `permissions: { contents: read }` default; the `check` job retains
-  its explicit `contents: write` / `issues: write` override. Future
-  jobs added without an explicit `permissions:` block will inherit
+  `permissions: { contents: read }` default; the `check` job keeps an
+  explicit override (now trimmed to `issues: write` — it never pushes).
+  Future jobs added without an explicit `permissions:` block will inherit
   read-only rather than the repo's default GITHUB_TOKEN write scopes.
+- `.github/dependabot.yml` Python entry switched from
+  `package-ecosystem: pip` to `uv`: the pip ecosystem never updates
+  `uv.lock`, so Python bump PRs were silently impossible.
+- `release.yml`'s `tauri-build` and `web-bundle` jobs now build the
+  VMx-TS dist before `pnpm install`, matching `typescript.yml` /
+  `conformance.yml` — releases no longer depend on the vite source
+  alias staying in place.
+- `tools/use-vmx-released.sh` now persists the Python toggle by
+  commenting out the `[tool.uv.sources]` vmx entry and re-locking
+  (`use-vmx-local.sh` restores it). The previous bare
+  `uv pip install vmx==X` only mutated the venv, so the next
+  `uv sync --all-extras` silently reverted to the vendored submodule.
 - `langs/python/src/guidearch/models/topsis/solve.py` comment block
   uses ASCII `x` (was U+00D7 `×`) so `uv run ruff check` (RUF003) stays
   green — caught by pass-2 verify after the pass-1 M=0 dedup landed.

@@ -7,3 +7,10 @@
 # only reads allowBuilds from pnpm-workspace.yaml, not from package.json.
 allowBuilds:
   esbuild: true
+
+# cookie <0.7.0 (transitive via @sveltejs/kit 2.61.x) has GHSA-pxg6-pf52-xh8x
+# (low: out-of-bounds characters accepted in name/path/domain). kit has not
+# yet bumped its range; 0.7.x is a drop-in fix. Remove once @sveltejs/kit
+# depends on cookie>=0.7.0 on its own.
+overrides:
+  cookie: "^0.7.2"
