@@ -11,13 +11,6 @@ on:
       - 'langs/csharp/src/GuideArch.View/Assets/Samples/**'
       - '.github/workflows/spec.yml'
   pull_request:
-    paths:
-      - 'spec/**'
-      - 'langs/typescript/src/samples/**'
-      - 'langs/python/src/guidearch/samples/**'
-      - 'langs/python/src/guidearch/_data/**'
-      - 'langs/csharp/src/GuideArch.View/Assets/Samples/**'
-      - '.github/workflows/spec.yml'
   workflow_dispatch:
 
 concurrency:
