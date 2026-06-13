@@ -1,6 +1,6 @@
 # Tags are mutable; pin by multi-arch manifest digest for reproducible builds.
 # Dependabot's docker ecosystem keeps digest pins fresh automatically.
-FROM python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203
+FROM python:3.14-slim@sha256:d7a925f9eb9639a93e455b9f12c167569358818c0f62b51b88edbc8fcf34c421
 
 # Install uv. Pin to a real version tag — `:latest` made the image build
 # non-reproducible (a uv release could silently change CLI behavior) — and
