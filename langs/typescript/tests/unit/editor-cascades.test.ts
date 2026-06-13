@@ -288,14 +288,14 @@ describe('non-finite value guards', () => {
     const vm = loadVm();
     const s = vm.model.scenario!;
     const c = s.coefficients[0];
-    expect(() =>
-      vm.updateCoefficient(c.alternativeId, c.propertyId, NaN, 1, 2),
-    ).toThrow(ScenarioMutationError);
-    expect(() =>
-      vm.updateCoefficient(c.alternativeId, c.propertyId, 0, Infinity, 2),
-    ).toThrow(ScenarioMutationError);
-    expect(() =>
-      vm.updateCoefficient(c.alternativeId, c.propertyId, 0, 1, -Infinity),
-    ).toThrow(ScenarioMutationError);
+    expect(() => vm.updateCoefficient(c.alternativeId, c.propertyId, NaN, 1, 2)).toThrow(
+      ScenarioMutationError,
+    );
+    expect(() => vm.updateCoefficient(c.alternativeId, c.propertyId, 0, Infinity, 2)).toThrow(
+      ScenarioMutationError,
+    );
+    expect(() => vm.updateCoefficient(c.alternativeId, c.propertyId, 0, 1, -Infinity)).toThrow(
+      ScenarioMutationError,
+    );
   });
 });
