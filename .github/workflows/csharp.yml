@@ -9,11 +9,6 @@ on:
       - 'spec/**'
       - '.github/workflows/csharp.yml'
   pull_request:
-    paths:
-      - 'langs/csharp/**'
-      - 'vendor/vmx/**'
-      - 'spec/**'
-      - '.github/workflows/csharp.yml'
   workflow_dispatch:
 
 concurrency:
