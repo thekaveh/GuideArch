@@ -14,8 +14,14 @@ public static class ScenarioLoader
 {
     private static readonly string DefaultSchemaPath = FindSchemaPath();
 
-    // Cache compiled schema per resolved path — JsonSchema.Net 8.x throws if you
-    // attempt to register the same $id URI twice in the global registry.
+    // Cache compiled schemas. JsonSchema.Net's SchemaRegistry rejects
+    // double-registration of the same $id (8.x: throws on second register
+    // with same $id; 9.x: same, but the message reads "Overwriting
+    // registered schemas is not permitted"). The disk path and the
+    // `<embedded>` sentinel resolve to the SAME schema content with the
+    // SAME $id, so a path-keyed cache calls FromText twice for that
+    // content and fails on the second call. Dedupe by content text:
+    // identical text → one FromText call → one registry entry.
     private static readonly Dictionary<string, JsonSchema> SchemaCache = new();
     private static readonly object SchemaCacheLock = new();
 
@@ -44,27 +50,31 @@ public static class ScenarioLoader
 
     private static JsonSchema GetSchema(string resolvedSchemaPath)
     {
+        // Read schema text first (cheap), then dedupe by content. Reading
+        // outside the lock is safe — File.ReadAllText / stream read have no
+        // shared mutable state worth guarding.
+        string schemaText;
+        if (resolvedSchemaPath == EmbeddedSchemaSentinel)
+        {
+            var asm = typeof(ScenarioLoader).Assembly;
+            using var stream = asm.GetManifestResourceStream("scenario.schema.json")
+                ?? throw new InvalidOperationException(
+                    "scenario.schema.json was neither found on disk nor embedded as a manifest resource. "
+                    + "Rebuild GuideArch.Models; the csproj must embed spec/domain/scenario.schema.json.");
+            using var reader = new StreamReader(stream);
+            schemaText = reader.ReadToEnd();
+        }
+        else
+        {
+            schemaText = File.ReadAllText(resolvedSchemaPath);
+        }
+
         lock (SchemaCacheLock)
         {
-            if (!SchemaCache.TryGetValue(resolvedSchemaPath, out var cached))
+            if (!SchemaCache.TryGetValue(schemaText, out var cached))
             {
-                string schemaText;
-                if (resolvedSchemaPath == EmbeddedSchemaSentinel)
-                {
-                    var asm = typeof(ScenarioLoader).Assembly;
-                    using var stream = asm.GetManifestResourceStream("scenario.schema.json")
-                        ?? throw new InvalidOperationException(
-                            "scenario.schema.json was neither found on disk nor embedded as a manifest resource. "
-                            + "Rebuild GuideArch.Models; the csproj must embed spec/domain/scenario.schema.json.");
-                    using var reader = new StreamReader(stream);
-                    schemaText = reader.ReadToEnd();
-                }
-                else
-                {
-                    schemaText = File.ReadAllText(resolvedSchemaPath);
-                }
                 cached = JsonSchema.FromText(schemaText);
-                SchemaCache[resolvedSchemaPath] = cached;
+                SchemaCache[schemaText] = cached;
             }
             return cached;
         }
