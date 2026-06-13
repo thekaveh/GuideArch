@@ -9,11 +9,6 @@ on:
       - 'spec/**'
       - '.github/workflows/python.yml'
   pull_request:
-    paths:
-      - 'langs/python/**'
-      - 'vendor/vmx/**'
-      - 'spec/**'
-      - '.github/workflows/python.yml'
   workflow_dispatch:
 
 concurrency:
