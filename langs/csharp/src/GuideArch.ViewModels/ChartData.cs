@@ -92,33 +92,35 @@ public static class ChartData
         // We need to extract per-property triangular values.
         // CandidateM.TriangularValue is the aggregate; to get per-property breakdown
         // we use the coefficients for each alternative in the candidate.
-        var altIds = candidate.AlternativeIds.ToHashSet();
         var properties = scenario.Properties;
+
+        // One pass over Coefficients instead of a linear scan per
+        // (alternative × property) — large scenarios made this quadratic.
+        var coeffLookup = new Dictionary<(string altId, string propId), TriangularFuzzyM>(
+            scenario.Coefficients.Length);
+        foreach (var c in scenario.Coefficients)
+            coeffLookup[(c.AlternativeId, c.PropertyId)] = c.Value;
 
         var builder = ImmutableArray.CreateBuilder<TriangleSeries>(properties.Length);
 
         foreach (var prop in properties)
         {
-            // Find the coefficient for this candidate's alternative for this property.
             // Each candidate has exactly one alternative per decision.
-            // Properties are orthogonal — we sum up contributions across alternatives.
+            // Properties are orthogonal — we sum up contributions across
+            // alternatives. A property with no coefficients yields a zero
+            // triangle (TS/Python emit the same; dropping the series would
+            // desync the per-property legend across impls).
             double sumLower = 0, sumModal = 0, sumUpper = 0;
-            bool anyCoeff = false;
 
             foreach (var altId in candidate.AlternativeIds)
             {
-                var coeff = scenario.Coefficients.FirstOrDefault(
-                    c => c.AlternativeId == altId && c.PropertyId == prop.Id);
-                if (coeff is not null)
+                if (coeffLookup.TryGetValue((altId, prop.Id), out var v))
                 {
-                    sumLower += coeff.Value.Lower;
-                    sumModal += coeff.Value.Modal;
-                    sumUpper += coeff.Value.Upper;
-                    anyCoeff = true;
+                    sumLower += v.Lower;
+                    sumModal += v.Modal;
+                    sumUpper += v.Upper;
                 }
             }
-
-            if (!anyCoeff) continue;
 
             builder.Add(new TriangleSeries(
                 PropertyId: prop.Id,
@@ -211,20 +213,26 @@ public static class ChartData
         var props = scenario.Properties;
         var xs = Enumerable.Range(0, props.Length).Select(i => (double)i).ToArray();
 
+        // One pass over Coefficients; the previous per-(candidate × property)
+        // full scan was O(N · P · C) on every render.
+        var modalLookup = new Dictionary<(string altId, string propId), double>(
+            scenario.Coefficients.Length);
+        foreach (var coeff in scenario.Coefficients)
+            modalLookup[(coeff.AlternativeId, coeff.PropertyId)] = coeff.Value.Modal;
+
         var builder = ImmutableArray.CreateBuilder<ComparisonSeries>(n);
         for (int i = 0; i < n; i++)
         {
             var c = candidates[i];
-            var altIds = c.AlternativeIds.ToHashSet();
             var ys = new double[props.Length];
             for (int p = 0; p < props.Length; p++)
             {
                 double sum = 0;
                 var pid = props[p].Id;
-                foreach (var coeff in scenario.Coefficients)
+                foreach (var altId in c.AlternativeIds)
                 {
-                    if (coeff.PropertyId == pid && altIds.Contains(coeff.AlternativeId))
-                        sum += coeff.Value.Modal;
+                    if (modalLookup.TryGetValue((altId, pid), out var m))
+                        sum += m;
                 }
                 ys[p] = sum;
             }
