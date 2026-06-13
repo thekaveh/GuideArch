@@ -15,9 +15,10 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
+# Workflow-scope default: read-only. The two jobs that publish (python-docker
+# pushes to GHCR; release creates the GitHub Release) escalate explicitly.
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 jobs:
   # ─── 1. Tauri desktop installers (Win / macOS / Linux) ──────────────────────
@@ -70,6 +71,17 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libsoup-3.0-dev \
             build-essential curl wget file libxdo-dev libssl-dev \
             libayatana-appindicator3-dev librsvg2-dev
+
+      # vendor/vmx's TS dist/ is gitignored, so a fresh submodule checkout has
+      # no compiled output. vite.config.js aliases `vmx` to the submodule
+      # *source*, so release builds happen to succeed without this — but keep
+      # parity with typescript.yml/conformance.yml so an alias change can't
+      # break only at release time. See typescript.yml for the full rationale.
+      - name: Build VMx-TS dist
+        working-directory: vendor/vmx/langs/typescript
+        run: |
+          npm ci
+          npm run build
 
       - name: Install pnpm dependencies
         run: pnpm install --frozen-lockfile
@@ -226,6 +238,9 @@ jobs:
   # ─── 4. Python Docker image ───────────────────────────────────────────────────
   python-docker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -305,6 +320,13 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: langs/typescript/pnpm-lock.yaml
 
+      # Same VMx-TS dist parity step as tauri-build above.
+      - name: Build VMx-TS dist
+        working-directory: vendor/vmx/langs/typescript
+        run: |
+          npm ci
+          npm run build
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -345,6 +367,8 @@ jobs:
       - python-docker
       - web-bundle
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 

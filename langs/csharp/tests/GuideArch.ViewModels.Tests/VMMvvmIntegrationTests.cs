@@ -196,41 +196,51 @@ public class VMMvvmIntegrationTests
     }
 
     // -----------------------------------------------------------------------
-    // 6. AddDecision with no scenario auto-creates one (bug fix verification)
+    // 6. Add with no scenario throws at the VM layer (parity with TS/Python).
+    //    The add-before-open auto-create convenience is View policy:
+    //    MainWindow runs NewCmd first, then calls the mutator.
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void AddDecision_WithNoScenario_AutoCreatesScenarioAndAddsDecision()
+    public void AddDecision_WithNoScenario_Throws()
     {
         var vm = ScenarioVMFactory.Create();
         var cmds = ScenarioVMFactory.GetCommands(vm);
 
         Assert.Null(vm.Model.Scenario);
+        Assert.Throws<ScenarioMutationException>(() => cmds.Mutator.AddDecision());
+        Assert.Null(vm.Model.Scenario);
+        Assert.False(vm.Model.IsDirty);
+    }
 
-        // Should not throw — mirrors the Python fix.
-        cmds.Mutator.AddDecision();
+    [Fact]
+    public void AddProperty_WithNoScenario_Throws()
+    {
+        var vm = ScenarioVMFactory.Create();
+        var cmds = ScenarioVMFactory.GetCommands(vm);
 
-        Assert.NotNull(vm.Model.Scenario);
-        Assert.Single(vm.Model.Scenario!.Decisions);
-        Assert.True(vm.Model.IsDirty);
+        Assert.Null(vm.Model.Scenario);
+        Assert.Throws<ScenarioMutationException>(() => cmds.Mutator.AddProperty());
+        Assert.Null(vm.Model.Scenario);
+        Assert.False(vm.Model.IsDirty);
     }
 
     // -----------------------------------------------------------------------
-    // 7. AddProperty with no scenario auto-creates one (bug fix verification)
+    // 7. View auto-create policy still works end-to-end: NewCmd then Add.
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void AddProperty_WithNoScenario_AutoCreatesScenarioAndAddsProperty()
+    public void NewCmdThenAdd_MirrorsViewAutoCreatePolicy()
     {
         var vm = ScenarioVMFactory.Create();
         var cmds = ScenarioVMFactory.GetCommands(vm);
 
-        Assert.Null(vm.Model.Scenario);
-
-        // Should not throw — mirrors the Python fix.
+        cmds.NewCmd.Execute(null);
+        cmds.Mutator.AddDecision();
         cmds.Mutator.AddProperty();
 
         Assert.NotNull(vm.Model.Scenario);
+        Assert.Single(vm.Model.Scenario!.Decisions);
         Assert.Single(vm.Model.Scenario!.Properties);
         Assert.True(vm.Model.IsDirty);
     }

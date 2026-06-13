@@ -28,7 +28,11 @@ public sealed record TriangularFuzzyM(double Lower, double Modal, double Upper)
     public static TriangularFuzzyM operator *(TriangularFuzzyM a, double scalar)
         => new(scalar * a.Lower, scalar * a.Modal, scalar * a.Upper);
 
-    // topsis.md §4.1: a ⊘ s = (aL/s, aM/s, aU/s)
+    // topsis.md §4.1: a ⊘ s = (aL/s, aM/s, aU/s), defined only for s ≠ 0.
+    // TS throws and Python raises ZeroDivisionError here; without this guard
+    // C# would silently produce ±Infinity/NaN components.
     public static TriangularFuzzyM operator /(TriangularFuzzyM a, double scalar)
-        => new(a.Lower / scalar, a.Modal / scalar, a.Upper / scalar);
+        => scalar == 0.0
+            ? throw new DivideByZeroException("TriangularFuzzyM: division by zero")
+            : new(a.Lower / scalar, a.Modal / scalar, a.Upper / scalar);
 }

@@ -693,6 +693,79 @@ public class VMTreeComprehensiveTests
     }
 
     [Fact]
+    public void Mutator_UpdateThresholdConstraint_ThrowsForUnknownProperty()
+    {
+        // Invariant 2.4 at the mutation boundary: an unknown property id on
+        // the Update path would round-trip into a file the loader rejects.
+        var (vm, cmds) = CreateWithMinimalScenario();
+        var p = vm.Model.Scenario!.Properties[0];
+        cmds.Mutator.AddThresholdConstraint(p.Id, 0.0, null);
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateThresholdConstraint(0, "p-nope", null, null));
+    }
+
+    [Fact]
+    public void Mutator_UpdateThresholdConstraint_ClearFlagsClearOneBound()
+    {
+        var (vm, cmds) = CreateWithMinimalScenario();
+        var p = vm.Model.Scenario!.Properties[0];
+        cmds.Mutator.AddThresholdConstraint(p.Id, 1.0, 5.0);
+
+        cmds.Mutator.UpdateThresholdConstraint(0, null, null, null, clearMin: true);
+        var tc = (ThresholdConstraintM)vm.Model.Scenario!.Constraints[0];
+        Assert.Null(tc.Min);
+        Assert.Equal(5.0, tc.Max!.Value, 10);
+
+        // Clearing the only remaining bound must throw (schema anyOf).
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateThresholdConstraint(0, null, null, null, clearMax: true));
+    }
+
+    [Fact]
+    public void Mutator_WeightAndCoefficient_RejectNonFiniteValues()
+    {
+        // NaN <= 0 is false, so a bare >0 guard would let NaN through and
+        // poison every downstream score with "Solved" status.
+        var (vm, cmds) = CreateWithMinimalScenario();
+        var p = vm.Model.Scenario!.Properties[0];
+        var c = vm.Model.Scenario!.Coefficients[0];
+
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.AddProperty(weight: double.NaN));
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateProperty(p.Id, null, null, double.NaN));
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateProperty(p.Id, null, null, double.PositiveInfinity));
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateCoefficient(c.AlternativeId, c.PropertyId,
+                double.NaN, 1.0, 2.0));
+    }
+
+    [Fact]
+    public void Mutator_NoOpUpdates_DoNotDirtyOrResolve()
+    {
+        // A blur handler that re-commits the unchanged value must not flip
+        // IsDirty or trigger a re-solve (cross-impl canonical semantics).
+        var (vm, cmds) = CreateWithMinimalScenario();
+        var s = vm.Model.Scenario!;
+        var candidatesBefore = vm.Model.Candidates;
+        Assert.False(vm.Model.IsDirty);
+
+        cmds.Mutator.UpdateScenarioName(s.Name);
+        cmds.Mutator.UpdateDecisionName(s.Decisions[0].Id, s.Decisions[0].Name);
+        cmds.Mutator.UpdateAlternativeName(s.Alternatives[0].Id, s.Alternatives[0].Name);
+        cmds.Mutator.UpdateProperty(s.Properties[0].Id,
+            s.Properties[0].Name, s.Properties[0].Kind, s.Properties[0].Weight);
+        var coeff = s.Coefficients[0];
+        cmds.Mutator.UpdateCoefficient(coeff.AlternativeId, coeff.PropertyId,
+            coeff.Value.Lower, coeff.Value.Modal, coeff.Value.Upper);
+
+        Assert.False(vm.Model.IsDirty);
+        // Same candidates instance — no re-solve happened.
+        Assert.True(candidatesBefore == vm.Model.Candidates);
+    }
+
+    [Fact]
     public void Mutator_AllChanges_PropagateViaVmModel()
     {
         var (vm, cmds) = CreateWithMinimalScenario();

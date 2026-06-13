@@ -17,9 +17,9 @@ namespace GuideArch.ViewModels;
 public static class ScenarioVMFactory
 {
     /// <summary>
-    /// A fresh empty scenario used by NewCmd (immediately) and by
-    /// ScenarioMutator.EnsureScenario (lazily on first Add when no scenario
-    /// is loaded). Defined here so both call sites share one definition.
+    /// A fresh empty scenario used by NewCmd. Also the shape the View's
+    /// add-before-open auto-create policy produces (MainWindow runs NewCmd
+    /// first when the user clicks Add with no scenario loaded).
     /// </summary>
     internal static readonly ScenarioM EmptyScenario = new(
         SchemaVersion: "1.0.0",
@@ -281,7 +281,12 @@ public static class ScenarioVMFactory
         // string literals, correct field names for ConstraintM subclasses, etc.)
         // so that ScenarioLoader.Load() can round-trip the file.
         var json = ScenarioSerializer.Serialize(scenario);
-        File.WriteAllText(path, json);
+        // Atomic write (tmp sibling + move) so a crash or disk-full mid-write
+        // can't destroy the user's existing scenario file — same pattern as
+        // AppVMFactory.PersistTheme.
+        var tmp = path + ".tmp";
+        File.WriteAllText(tmp, json);
+        File.Move(tmp, path, overwrite: true);
     }
 }
 
@@ -313,30 +318,59 @@ public sealed class ScenarioMutator
 
     private ScenarioState State => _getState();
 
-    /// <summary>
-    /// Returns the current scenario, auto-creating an empty one if null.
-    /// Uses ScenarioVMFactory.EmptyScenario as the single source of truth
-    /// for the empty-scenario shape. Mirrors the Python fix: clicking Add
-    /// Decision/Property before opening a scenario runs New automatically
-    /// instead of throwing.
-    /// </summary>
-    private ScenarioM EnsureScenario()
-    {
-        if (State.Scenario is not null) return State.Scenario;
-        _setState(State with
-        {
-            Scenario = ScenarioVMFactory.EmptyScenario,
-            IsDirty = true,
-            Status = "New scenario — nothing to solve."
-        });
-        return _getState().Scenario!;
-    }
-
     private ScenarioM RequireScenario()
     {
         if (State.Scenario is null)
             throw new ScenarioMutationException("No scenario loaded.");
         return State.Scenario;
+    }
+
+    /// <summary>
+    /// Validates that both alternative ids exist and differ (invariants 2.5 +
+    /// 7.1 at the mutation boundary). Shared by the dependency/conflict
+    /// Add and Update paths.
+    /// </summary>
+    private static void RequireAltPair(
+        ScenarioM s, string firstId, string secondId, string selfEdgeMessage)
+    {
+        if (!s.Alternatives.Any(a => a.Id == firstId))
+            throw new ScenarioMutationException($"Alternative '{firstId}' not found.");
+        if (!s.Alternatives.Any(a => a.Id == secondId))
+            throw new ScenarioMutationException($"Alternative '{secondId}' not found.");
+        if (firstId == secondId)
+            throw new ScenarioMutationException(selfEdgeMessage);
+    }
+
+    /// <summary>
+    /// Removes dependency/conflict constraints referencing any of the given
+    /// alternative ids; threshold constraints are untouched (spec editors.md
+    /// §2.1/§2.2 cascades).
+    /// </summary>
+    private static ImmutableArray<ConstraintM> RemoveConstraintsReferencing(
+        ImmutableArray<ConstraintM> constraints, IReadOnlySet<string> altIds)
+        => constraints
+            .Where(c => c switch
+            {
+                DependencyConstraintM dep =>
+                    !altIds.Contains(dep.SourceAlternativeId) &&
+                    !altIds.Contains(dep.TargetAlternativeId),
+                ConflictConstraintM conf =>
+                    !altIds.Contains(conf.AlternativeAId) &&
+                    !altIds.Contains(conf.AlternativeBId),
+                _ => true
+            })
+            .ToImmutableArray();
+
+    /// <summary>
+    /// Appends a warning to the VM state through the factory's state setter.
+    /// The View must use this (never write vm.Model directly) so the factory's
+    /// closure state stays authoritative — a direct Model write is silently
+    /// discarded by the next SetState. No solve is triggered.
+    /// </summary>
+    public void AddWarning(string message)
+    {
+        var s = State;
+        _setState(s with { Warnings = s.Warnings.Add(message) });
     }
 
     // ------------------------------------------------------------------
@@ -364,6 +398,7 @@ public sealed class ScenarioMutator
     public void UpdateScenarioName(string name)
     {
         var s = RequireScenario();
+        if (s.Name == name) return; // no-op: don't dirty the scenario
         _setState(State with
         {
             Scenario = s with { Name = name },
@@ -379,11 +414,13 @@ public sealed class ScenarioMutator
     /// <summary>
     /// Append a new decision. `name` defaults to "New decision" to match
     /// Python's `add_decision(name="New decision")` and TypeScript's
-    /// `addDecision(name?)`.
+    /// `addDecision(name?)`. Throws when no scenario is loaded — the
+    /// add-before-open auto-create convenience is View policy (the View runs
+    /// NewCmd first), matching Python and TypeScript.
     /// </summary>
     public void AddDecision(string? name = null)
     {
-        var s = EnsureScenario();
+        var s = RequireScenario();
         var id = $"d-{Guid.NewGuid()}";
         var newDecision = new DecisionM(id, name ?? "New decision");
         _setState(State with
@@ -412,6 +449,7 @@ public sealed class ScenarioMutator
             if (s.Decisions[i].Id == id) { idx = i; break; }
         }
         if (idx < 0) throw new ScenarioMutationException($"Decision '{id}' not found.");
+        if (s.Decisions[idx].Name == newName) return; // no-op: don't dirty
         var updated = s.Decisions.SetItem(idx, s.Decisions[idx] with { Name = newName });
         _setState(State with
         {
@@ -441,19 +479,7 @@ public sealed class ScenarioMutator
         var newCoefficients = s.Coefficients
             .Where(c => !altIds.Contains(c.AlternativeId))
             .ToImmutableArray();
-        var newConstraints = s.Constraints
-            .Where(c => c switch
-            {
-                ThresholdConstraintM _ => true,
-                DependencyConstraintM dep =>
-                    !altIds.Contains(dep.SourceAlternativeId) &&
-                    !altIds.Contains(dep.TargetAlternativeId),
-                ConflictConstraintM conf =>
-                    !altIds.Contains(conf.AlternativeAId) &&
-                    !altIds.Contains(conf.AlternativeBId),
-                _ => true
-            })
-            .ToImmutableArray();
+        var newConstraints = RemoveConstraintsReferencing(s.Constraints, altIds);
 
         _setState(State with
         {
@@ -513,6 +539,7 @@ public sealed class ScenarioMutator
         var s = RequireScenario();
         var alt = s.Alternatives.FirstOrDefault(a => a.Id == id);
         if (alt is null) throw new ScenarioMutationException($"Alternative '{id}' not found.");
+        if (alt.Name == newName) return; // no-op: don't dirty
         var idx = s.Alternatives.IndexOf(alt);
         _setState(State with
         {
@@ -533,17 +560,8 @@ public sealed class ScenarioMutator
 
         var newAlts = s.Alternatives.Where(a => a.Id != id).ToImmutableArray();
         var newCoeffs = s.Coefficients.Where(c => c.AlternativeId != id).ToImmutableArray();
-        var newConstraints = s.Constraints
-            .Where(c => c switch
-            {
-                ThresholdConstraintM _ => true,
-                DependencyConstraintM dep =>
-                    dep.SourceAlternativeId != id && dep.TargetAlternativeId != id,
-                ConflictConstraintM conf =>
-                    conf.AlternativeAId != id && conf.AlternativeBId != id,
-                _ => true
-            })
-            .ToImmutableArray();
+        var newConstraints = RemoveConstraintsReferencing(
+            s.Constraints, new HashSet<string> { id });
 
         _setState(State with
         {
@@ -566,12 +584,16 @@ public sealed class ScenarioMutator
     /// Append a new property and create zero-fuzzy coefficients for every
     /// existing alternative. Defaults match Python's
     /// `add_property(name="New property", kind="min", weight=1.0)`.
+    /// Throws when no scenario is loaded — auto-create is View policy,
+    /// matching Python and TypeScript (see AddDecision).
     /// </summary>
     public void AddProperty(string? name = null, PropertyKind? kind = null, double? weight = null)
     {
-        var s = EnsureScenario();
+        var s = RequireScenario();
         var id = $"p-{Guid.NewGuid()}";
-        if (weight.HasValue && weight.Value <= 0)
+        // NaN <= 0 is false, so the >0 guard alone would let NaN through and
+        // poison every downstream score — hence the explicit finiteness check.
+        if (weight.HasValue && (!double.IsFinite(weight.Value) || weight.Value <= 0))
             throw new ScenarioMutationException(
                 $"Property weight must be > 0 (got {weight.Value}).");
         var newProp = new PropertyM(
@@ -603,7 +625,8 @@ public sealed class ScenarioMutator
         var prop = s.Properties.FirstOrDefault(p => p.Id == id);
         if (prop is null) throw new ScenarioMutationException($"Property '{id}' not found.");
 
-        if (weight.HasValue && weight.Value <= 0)
+        // See AddProperty: NaN must not slip past the >0 guard.
+        if (weight.HasValue && (!double.IsFinite(weight.Value) || weight.Value <= 0))
             throw new ScenarioMutationException(
                 $"Property weight must be > 0 (got {weight.Value}).");
 
@@ -614,8 +637,8 @@ public sealed class ScenarioMutator
             Kind = kind ?? prop.Kind,
             Weight = weight ?? prop.Weight
         };
-        bool triggerSolve = (kind.HasValue && kind.Value != prop.Kind)
-                         || (weight.HasValue && weight.Value != prop.Weight);
+        if (updated == prop) return; // full no-op: no dirty, no solve
+        bool triggerSolve = updated.Kind != prop.Kind || updated.Weight != prop.Weight;
 
         _setState(State with
         {
@@ -666,6 +689,11 @@ public sealed class ScenarioMutator
             throw new ScenarioMutationException($"Alternative '{alternativeId}' not found.");
         if (!s.Properties.Any(p => p.Id == propertyId))
             throw new ScenarioMutationException($"Property '{propertyId}' not found.");
+        // JSON cannot encode NaN/Infinity, so a non-finite component would
+        // solve "successfully" into NaN scores and then fail at save time.
+        if (!double.IsFinite(lower) || !double.IsFinite(modal) || !double.IsFinite(upper))
+            throw new ScenarioMutationException(
+                $"Coefficient components must be finite (got {lower}, {modal}, {upper}).");
         var idx = -1;
         for (int i = 0; i < s.Coefficients.Length; i++)
         {
@@ -679,11 +707,18 @@ public sealed class ScenarioMutator
 
         // Drop any prior ordering warning for this (alt, prop) pair before
         // deciding whether to emit one — matches the Python + TS pattern so
-        // a re-edit that fixes the values clears the warning chip. The
-        // message shape also matches Python + TS so log/UI parity holds.
+        // a re-edit that fixes the values clears the warning chip. Two
+        // formats exist for the same condition: the VM's own
+        // "Coefficient (a, p): ordering …" and the loader's
+        // "Invariant 4.1: coefficient (a, p) …" (a file opened with
+        // out-of-order values carries the latter). Sweep both so fixing the
+        // cell always clears the chip. Ordinal comparison: ids are arbitrary
+        // user strings and culture-sensitive StartsWith can mismatch.
         var stalePrefix = $"Coefficient ({alternativeId}, {propertyId}): ordering";
-        ImmutableArray<string> warnings =
-            State.Warnings.RemoveAll(w => w.StartsWith(stalePrefix));
+        var staleLoaderPrefix = $"Invariant 4.1: coefficient ({alternativeId}, {propertyId})";
+        ImmutableArray<string> warnings = State.Warnings.RemoveAll(w =>
+            w.StartsWith(stalePrefix, StringComparison.Ordinal) ||
+            w.StartsWith(staleLoaderPrefix, StringComparison.Ordinal));
         if (lower > modal || modal > upper)
         {
             warnings = warnings.Add(
@@ -692,6 +727,10 @@ public sealed class ScenarioMutator
         }
 
         var newValue = new TriangularFuzzyM(lower, modal, upper);
+        // Full no-op (same value, no warning to add or sweep): skip dirty+solve.
+        if (idx >= 0 && s.Coefficients[idx].Value == newValue
+            && warnings == State.Warnings && !(lower > modal || modal > upper))
+            return;
         ImmutableArray<CoefficientM> newCoeffs;
         if (idx >= 0)
         {
@@ -741,7 +780,14 @@ public sealed class ScenarioMutator
     // `index` is the GLOBAL index into Scenario.Constraints — the same index
     // space used by CriticalConstraintM.ConstraintIndex and by the Python and
     // TypeScript mutator APIs. See spec/viewmodels.md §5.5.
-    public void UpdateThresholdConstraint(int index, string? propertyId, double? min, double? max)
+    //
+    // null on propertyId/min/max means "leave unchanged". Because null cannot
+    // also mean "clear", clearing one bound goes through the explicit
+    // clearMin/clearMax flags — Python expresses the same distinction with
+    // its _UNSET sentinel, and TS replaces the whole constraint.
+    public void UpdateThresholdConstraint(
+        int index, string? propertyId, double? min, double? max,
+        bool clearMin = false, bool clearMax = false)
     {
         var s = RequireScenario();
         if (index < 0 || index >= s.Constraints.Length)
@@ -749,17 +795,20 @@ public sealed class ScenarioMutator
         if (s.Constraints[index] is not ThresholdConstraintM tc)
             throw new ScenarioMutationException(
                 $"Constraint at index {index} is not a ThresholdConstraint.");
+        // Invariant 2.4 at the mutation boundary — matches the Add path and
+        // the dependency/conflict Update paths (and TS's _validateConstraint).
+        // Without this an unknown id round-trips into a file that fails the
+        // loader's fatal invariant 2.4 on reopen.
+        if (propertyId is not null && !s.Properties.Any(p => p.Id == propertyId))
+            throw new ScenarioMutationException($"Property '{propertyId}' not found.");
+        if (clearMin && min.HasValue)
+            throw new ScenarioMutationException("clearMin and a min value are mutually exclusive.");
+        if (clearMax && max.HasValue)
+            throw new ScenarioMutationException("clearMax and a max value are mutually exclusive.");
 
-        // null in this API has a meaning that ?? cannot express: the caller may
-        // pass null *to clear* a bound. Distinguishing "leave unchanged" from
-        // "clear" requires a 4-arg-flag approach; we model "clear" via an
-        // explicit Set<...>Bound API in callers, but for the common
-        // leave-unchanged path the existing API uses propertyId/min/max nullable
-        // with null = "leave unchanged" — the caller is expected to read the
-        // existing constraint first and pass the desired final value.
         var newPropId = propertyId ?? tc.PropertyId;
-        var newMin = min ?? tc.Min;
-        var newMax = max ?? tc.Max;
+        var newMin = clearMin ? null : (min ?? tc.Min);
+        var newMax = clearMax ? null : (max ?? tc.Max);
 
         // After applying the patch, the schema $defs/Constraint anyOf still
         // requires at least one of min/max to be present — guard so we don't
@@ -775,12 +824,14 @@ public sealed class ScenarioMutator
             throw new ScenarioMutationException(
                 $"Threshold constraint min ({newMin.Value}) must be ≤ max ({newMax.Value}).");
 
+        var updatedTc = new ThresholdConstraintM(newPropId, newMin, newMax);
+        if (updatedTc == tc) return; // no-op: no dirty, no solve
+
         _setState(State with
         {
             Scenario = s with
             {
-                Constraints = s.Constraints.SetItem(index,
-                    new ThresholdConstraintM(newPropId, newMin, newMax))
+                Constraints = s.Constraints.SetItem(index, updatedTc)
             },
             IsDirty = true
         });
@@ -790,19 +841,11 @@ public sealed class ScenarioMutator
     public void AddDependencyConstraint(string sourceAltId, string targetAltId)
     {
         var s = RequireScenario();
-        if (!s.Alternatives.Any(a => a.Id == sourceAltId))
-            throw new ScenarioMutationException($"Alternative '{sourceAltId}' not found.");
-        if (!s.Alternatives.Any(a => a.Id == targetAltId))
-            throw new ScenarioMutationException($"Alternative '{targetAltId}' not found.");
-
-        // Invariant 7.1 (spec/domain/invariants.md) flags self-edges as FATAL,
-        // and ScenarioLoader already throws on them at load time. The earlier
-        // warn-and-accept behavior here would let a self-edge enter the
-        // scenario via the editor, then fail the very next file round-trip.
-        // Match the loader + Python + TypeScript: throw on self-edge.
-        if (sourceAltId == targetAltId)
-            throw new ScenarioMutationException(
-                "Self-edge on dependency constraint (source must differ from target).");
+        // Invariants 2.5 + 7.1 are FATAL at load time (spec/domain/
+        // invariants.md), so the mutation boundary throws too — otherwise an
+        // editor edit could produce a file that fails its next round-trip.
+        RequireAltPair(s, sourceAltId, targetAltId,
+            "Self-edge on dependency constraint (source must differ from target).");
 
         _setState(State with
         {
@@ -827,15 +870,10 @@ public sealed class ScenarioMutator
 
         var newSource = sourceAltId ?? dc.SourceAlternativeId;
         var newTarget = targetAltId ?? dc.TargetAlternativeId;
-
-        // Invariants 2.5 + 7.1 at the mutation boundary — matches the Add path.
-        if (!s.Alternatives.Any(a => a.Id == newSource))
-            throw new ScenarioMutationException($"Alternative '{newSource}' not found.");
-        if (!s.Alternatives.Any(a => a.Id == newTarget))
-            throw new ScenarioMutationException($"Alternative '{newTarget}' not found.");
-        if (newSource == newTarget)
-            throw new ScenarioMutationException(
-                "Self-edge on dependency constraint (source must differ from target).");
+        RequireAltPair(s, newSource, newTarget,
+            "Self-edge on dependency constraint (source must differ from target).");
+        if (newSource == dc.SourceAlternativeId && newTarget == dc.TargetAlternativeId)
+            return; // no-op: no dirty, no solve
 
         _setState(State with
         {
@@ -852,15 +890,8 @@ public sealed class ScenarioMutator
     public void AddConflictConstraint(string altAId, string altBId)
     {
         var s = RequireScenario();
-        if (!s.Alternatives.Any(a => a.Id == altAId))
-            throw new ScenarioMutationException($"Alternative '{altAId}' not found.");
-        if (!s.Alternatives.Any(a => a.Id == altBId))
-            throw new ScenarioMutationException($"Alternative '{altBId}' not found.");
-
-        // Invariant 7.1: fatal, matching the loader and the Python/TS mutators.
-        if (altAId == altBId)
-            throw new ScenarioMutationException(
-                "Self-edge on conflict constraint (alternativeA must differ from alternativeB).");
+        RequireAltPair(s, altAId, altBId,
+            "Self-edge on conflict constraint (alternativeA must differ from alternativeB).");
 
         _setState(State with
         {
@@ -885,14 +916,10 @@ public sealed class ScenarioMutator
 
         var newA = altAId ?? cc.AlternativeAId;
         var newB = altBId ?? cc.AlternativeBId;
-
-        if (!s.Alternatives.Any(a => a.Id == newA))
-            throw new ScenarioMutationException($"Alternative '{newA}' not found.");
-        if (!s.Alternatives.Any(a => a.Id == newB))
-            throw new ScenarioMutationException($"Alternative '{newB}' not found.");
-        if (newA == newB)
-            throw new ScenarioMutationException(
-                "Self-edge on conflict constraint (alternativeA must differ from alternativeB).");
+        RequireAltPair(s, newA, newB,
+            "Self-edge on conflict constraint (alternativeA must differ from alternativeB).");
+        if (newA == cc.AlternativeAId && newB == cc.AlternativeBId)
+            return; // no-op: no dirty, no solve
 
         _setState(State with
         {

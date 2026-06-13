@@ -10,12 +10,25 @@ Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
 behavior change a user-facing release note would call out.
 
 ### Security
+- Python `aiohttp` 3.13.5 → 3.14.1, closing CVE-2026-34993 and
+  CVE-2026-47265. Unblocked by NiceGUI 3.13.0, which lifted its
+  `aiohttp` cap to `>=3.14.0`; the project's `nicegui` floor is now
+  `>=3.13.0` so installs always get the patched chain.
+- TypeScript: pnpm override pins transitive `cookie` to `^0.7.2`
+  (GHSA-pxg6-pf52-xh8x, low) until `@sveltejs/kit` bumps its own range.
+- `release.yml` GITHUB_TOKEN narrowed to workflow-level `contents: read`;
+  only `python-docker` (`packages: write`) and `release`
+  (`contents: write`) escalate. `vmx-bump.yml`'s check job dropped an
+  unused `contents: write` grant.
+- Python Docker base images (`python:3.12-slim`, `astral-sh/uv:0.8`)
+  are now digest-pinned for reproducible builds; Dependabot's docker
+  ecosystem keeps digest pins fresh.
 - TypeScript `vitest` devDependency bumped from `^2.0.0` to `^3.2.6` to
   close GHSA-4w7w-66w2-5vf9 (vite path-traversal, **critical**) and
   two transitive moderates (esbuild, vite-node). Devtools-only blast
-  radius, but the only critical-severity advisory in the tree. The
-  remaining low-severity `cookie<0.7.0` is in `@sveltejs/kit`'s
-  upstream-pinned transitive; @sveltejs/kit is on the current ^2.x.
+  radius, but the only critical-severity advisory in the tree. (The
+  low-severity `cookie<0.7.0` transitive is now closed by the pnpm
+  override entry above.)
 
 ### Tests
 - All three impls now have regression-guard tests for the
@@ -24,8 +37,119 @@ behavior change a user-facing release note would call out.
   `AddProperty_ThrowsForNonPositiveWeight`, TS `addProperty validation`
   describe block. The matching `updateProperty(weight ≤ 0)` paths were
   already covered; the Add side had zero direct coverage in any impl.
+- All three impls now have regression-guard tests for the
+  `NaN`/`±Infinity` rejection path on `addProperty(weight)`,
+  `updateProperty(weight)` / `updatePropertyWeight`, and
+  `updateCoefficient(lower, modal, upper)`: Python
+  `test_weight_and_coefficient_reject_non_finite_values`, C#
+  `Mutator_WeightAndCoefficient_RejectNonFiniteValues`, TS
+  `non-finite value guards` describe block. The previous
+  `weight > 0` guard let `NaN` slip past (all NaN comparisons are
+  false), and coefficient components had no finiteness check at all.
+- C# `TriangularFuzzyMTests.DivisionByZero_Throws` guards the new
+  parity throw on `a / 0`. C# `VMMvvmIntegrationTests` add-without-
+  scenario tests now expect a throw and a separate
+  `NewCmdThenAdd_MirrorsViewAutoCreatePolicy` test exercises the
+  View's auto-create policy end-to-end. C# `VMTreeComprehensiveTests`
+  add: `UpdateThresholdConstraint_ThrowsForUnknownProperty`,
+  `UpdateThresholdConstraint_ClearFlagsClearOneBound`, and
+  `Mutator_NoOpUpdates_DoNotDirtyOrResolve` (a blur handler that
+  re-commits the unchanged value must not flip `IsDirty` or burn a
+  solve).
+- C# `ConformanceTests` now reads its absolute tolerance from
+  `spec/conformance/tolerances.json` instead of a hardcoded `1e-9`,
+  matching the standalone C# runner and the TS + Python suites — a
+  corpus tolerance change can't silently diverge from this suite any
+  more. Missing expected files are now a conformance FAILURE rather
+  than a silent skip, matching the TS + Python runners.
 
 ### Fixed
+- All three impls now reject `NaN` / `±Infinity` at the
+  `addProperty(weight)` / `updateProperty(weight)` /
+  `updateCoefficient(lower, modal, upper)` mutation boundary.
+  `NaN <= 0` is false in JS, Python and C# (all NaN comparisons are),
+  so the existing `weight > 0` guard let `NaN` through; coefficient
+  components had no finiteness check at all. A non-finite component
+  also can't be encoded in JSON, so prior behavior solved
+  "successfully" into NaN scores and then failed at save time with a
+  schema error that pointed at the wrong place.
+- C# `CriticalConstraints.SortByMostBinding` now explicitly tie-breaks
+  by `ConstraintIndex` ascending after `Eliminated` descending.
+  `ImmutableArray.Sort` is an unstable introsort; TS and Python get
+  index-first-on-ties for free from their stable sorts, and
+  `sas.critical-constraints.json` encodes tied entries that way.
+- C# `TriangularFuzzyM` operator `/` throws `DivideByZeroException`
+  on `scalar == 0`. `topsis.md` §4.1 defines `a ⊘ s` only for `s ≠ 0`;
+  TS throws and Python raises `ZeroDivisionError`; C# was the outlier
+  that silently produced `±∞ / NaN` components.
+- C# `ChartData.PrepTriangleSeries` and `PrepComparisonSeries` collapse
+  the per-`(alt × prop)` full scan of `Coefficients` into a single
+  up-front pass into a `(altId, propId) → value` dictionary. Was
+  `O(N · P · C)` on every chart render. `PrepTriangleSeries` also now
+  emits a zero triangle for properties with no coefficients (matches
+  TS + Python; dropping the series would desync the per-property
+  legend across impls).
+- C# `ScenarioState.LastWarning` + the `Warnings[0]` →
+  `Model.LastWarning` AXAML binding flip. The reflection binding
+  evaluated `Warnings[0]` before `IsVisible` gated it, logging a
+  binding error on the empty array; `[0]` was also the oldest entry,
+  while users expect the most recent. Dead `CoeffCellVM.Display`
+  removed at the same time.
+- C# `MainWindow` candidates-changed detector compares the
+  `ImmutableArray<CandidateM>` INSTANCE, not its length. A coefficient
+  or weight edit re-solves to the same count with different scores,
+  so a length-only test left Charts A / B / C displaying stale
+  pre-edit data.
+- C# `MainWindow` coefficient cell text formatting uses
+  `CultureInfo.InvariantCulture` — `Done()` parses with the invariant
+  culture, so current-culture formatting pre-populated `"0,500"` on
+  comma-decimal locales which the parse then silently rejected.
+- C# Chart C click hit-test now tests against the rendered series
+  instead of recomputing the full series set per click.
+- C# `StampDiscardWarning` and the `ScenarioMutationException`
+  fallback in `MainWindow.axaml.cs` now route through
+  `ScenarioMutator.AddWarning` instead of writing `_vm.Model = ...`
+  directly. The factory's closure state is authoritative; a direct
+  `_vm.Model` write was silently discarded by the next `SetState`.
+  Validation errors are also now surfaced verbatim instead of being
+  wrapped in the misleading "… replaced unsaved changes" template.
+- C# `MainWindow` Add Decision / Add Property — the auto-create-on-Add
+  convenience is now explicit View policy: the click handler runs
+  `NewCmd` first if no scenario is loaded, then calls the mutator.
+  `ScenarioMutator.AddDecision` / `AddProperty` throw on no-scenario,
+  matching TS and Python; the C# mutator was the only impl with
+  implicit auto-create at the VM layer.
+- C# `ScenarioVMFactory.SaveScenario` writes atomically (sibling
+  `.tmp` + `File.Move(..., overwrite: true)`) — same pattern as
+  `AppVMFactory.PersistTheme`. A crash or disk-full mid-write can no
+  longer destroy the user's existing scenario file.
+- C# Update mutators (`UpdateScenarioName`, `UpdateDecisionName`,
+  `UpdateAlternativeName`, `UpdateProperty`, `UpdateCoefficient`,
+  `UpdateThresholdConstraint`, `UpdateDependencyConstraint`,
+  `UpdateConflictConstraint`) short-circuit on a true no-op: no
+  `IsDirty` flip, no re-solve. A blur handler that re-commits the
+  unchanged value used to dirty the scenario and burn one full solve
+  cycle.
+- C# `ScenarioMutator.UpdateThresholdConstraint` accepts explicit
+  `clearMin` / `clearMax` flags. `null` already meant
+  "leave unchanged", so clearing one bound needed a separate channel —
+  Python expressed the same distinction with its `_UNSET` sentinel,
+  TS with full-replacement `updateConstraint(index, c)`. The threshold
+  updater also now validates the proposed `propertyId` against
+  `Scenario.Properties` at the mutation boundary (invariant 2.4),
+  matching the Add path.
+- C# `MainWindow` `BtnTheme` has `AutomationProperties.Name="Toggle
+  theme"` so the icon-only toggle has a name in the accessibility
+  tree.
+- C# `screenshot-all-tabs` writes output PNGs through `File.Create`
+  (truncates) instead of `File.OpenWrite`, which left trailing bytes
+  of a larger previous PNG and silently corrupted baselines.
+- Python `pyproject.toml` now declares `reactivex>=4.0.4` as a direct
+  dependency — `viewmodels/` and `view/adapters/` import it directly,
+  but it previously resolved only transitively through `vmx`.
+- TypeScript dropped the unused `@typescript-eslint/eslint-plugin`
+  devDependency; `eslint.config.js` consumes the bundled plugin via the
+  `typescript-eslint` meta-package.
 - Python `ScenarioVM.add_property` now enforces `weight > 0` at the
   Add boundary, matching `update_property` and C#'s `AddProperty`. The
   schema `$defs/Property.weight` is `exclusiveMinimum: 0`; the prior
@@ -144,10 +268,22 @@ behavior change a user-facing release note would call out.
 
 ### CI
 - `.github/workflows/vmx-bump.yml` now declares a workflow-scope
-  `permissions: { contents: read }` default; the `check` job retains
-  its explicit `contents: write` / `issues: write` override. Future
-  jobs added without an explicit `permissions:` block will inherit
+  `permissions: { contents: read }` default; the `check` job keeps an
+  explicit override (now trimmed to `issues: write` — it never pushes).
+  Future jobs added without an explicit `permissions:` block will inherit
   read-only rather than the repo's default GITHUB_TOKEN write scopes.
+- `.github/dependabot.yml` Python entry switched from
+  `package-ecosystem: pip` to `uv`: the pip ecosystem never updates
+  `uv.lock`, so Python bump PRs were silently impossible.
+- `release.yml`'s `tauri-build` and `web-bundle` jobs now build the
+  VMx-TS dist before `pnpm install`, matching `typescript.yml` /
+  `conformance.yml` — releases no longer depend on the vite source
+  alias staying in place.
+- `tools/use-vmx-released.sh` now persists the Python toggle by
+  commenting out the `[tool.uv.sources]` vmx entry and re-locking
+  (`use-vmx-local.sh` restores it). The previous bare
+  `uv pip install vmx==X` only mutated the venv, so the next
+  `uv sync --all-extras` silently reverted to the vendored submodule.
 - `langs/python/src/guidearch/models/topsis/solve.py` comment block
   uses ASCII `x` (was U+00D7 `×`) so `uv run ruff check` (RUF003) stays
   green — caught by pass-2 verify after the pass-1 M=0 dedup landed.

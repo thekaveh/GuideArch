@@ -18,8 +18,14 @@ sed -i.bak -E "s|<VMxVersion>[^<]*</VMxVersion>|<VMxVersion>${VMX_VERSION}</VMxV
 rm langs/csharp/Directory.Build.props.bak
 echo "  ok"
 
-echo "→ Python: install vmx==${VMX_VERSION} from PyPI"
-( cd langs/python && uv pip install "vmx==${VMX_VERSION}" )
+echo "→ Python: pointing langs/python at PyPI vmx==${VMX_VERSION}"
+# A bare `uv pip install` only mutates the venv: the next `uv sync`/`uv run`
+# would reinstall the editable submodule pinned by [tool.uv.sources]. Comment
+# the source entry out (use-vmx-local.sh restores it) and re-lock so the
+# toggle persists across syncs.
+sed -i.bak -E 's|^vmx = \{ path = |# vmx = { path = |' langs/python/pyproject.toml
+rm langs/python/pyproject.toml.bak
+( cd langs/python && uv lock --upgrade-package "vmx==${VMX_VERSION}" && uv sync --all-extras )
 echo "  ok"
 
 echo "Done. VMx is now consumed from published packages (${VMX_VERSION})."

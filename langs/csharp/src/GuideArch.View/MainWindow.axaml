@@ -108,6 +108,7 @@
              matches the current theme. -->
         <Button Name="BtnTheme"
                 ToolTip.Tip="Toggle theme"
+                AutomationProperties.Name="Toggle theme"
                 Classes="toolbar-btn icon-btn"
                 Width="32"
                 Padding="0"
@@ -202,7 +203,7 @@
                 Padding="8,2"
                 Margin="8,0,0,0"
                 VerticalAlignment="Center"
-                ToolTip.Tip="{ReflectionBinding Model.Warnings[0]}"
+                ToolTip.Tip="{ReflectionBinding Model.LastWarning}"
                 IsVisible="{ReflectionBinding !Model.Warnings.IsEmpty}">
           <TextBlock Text="{ReflectionBinding Model.Warnings.Length, StringFormat=⚠ {0} warning(s)}"
                      FontSize="11"
@@ -693,10 +694,13 @@
                 ColumnDefinitions="3*,2*"
                 IsVisible="{ReflectionBinding Model.HasScenario}">
 
-            <!-- Left: ranked candidates DataGrid -->
+            <!-- Left: ranked candidates DataGrid.
+                 ItemsSource is owned by code-behind (OnStateChanged), which
+                 caps the rows at 50 and skips re-binds on selection-only
+                 changes — an AXAML binding here would re-push the full
+                 uncapped array on every Model change, defeating both. -->
             <DataGrid Grid.Column="0"
                       Name="ResultsGrid"
-                      ItemsSource="{ReflectionBinding Model.Candidates}"
                       AutoGenerateColumns="False"
                       CanUserResizeColumns="True"
                       CanUserSortColumns="False"

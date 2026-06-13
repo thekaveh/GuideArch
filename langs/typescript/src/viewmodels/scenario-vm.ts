@@ -445,8 +445,11 @@ export function makeScenarioVm(): ScenarioVM {
     // Schema $defs/Property.weight is exclusiveMinimum 0; match Python's
     // add_property guard and C# AddProperty's weight>0 check at the Add
     // boundary so a non-positive weight can't slip past the mutator into
-    // the scenario only to fail at save-time schema validation.
-    if (weight !== undefined && weight <= 0) {
+    // the scenario only to fail at save-time schema validation. NaN <= 0
+    // is false (JS NaN comparisons all are), so the >0 guard alone would
+    // let NaN through and poison every downstream score — hence the
+    // explicit finiteness check.
+    if (weight !== undefined && (!Number.isFinite(weight) || weight <= 0)) {
       throw new ScenarioMutationError(`Property weight must be > 0 (got ${weight}).`);
     }
     const id = genId('p');
@@ -518,7 +521,8 @@ export function makeScenarioVm(): ScenarioVM {
 
   function updatePropertyWeight(id: string, weight: number): void {
     const s = _requireScenario();
-    if (weight <= 0)
+    // See addProperty: NaN must not slip past the >0 guard.
+    if (!Number.isFinite(weight) || weight <= 0)
       throw new ScenarioMutationError(`Property weight must be > 0 (got ${weight}).`);
     _requireProperty(s, id);
     const properties = s.properties.map((p) => (p.id === id ? { ...p, weight } : p));
@@ -539,6 +543,13 @@ export function makeScenarioVm(): ScenarioVM {
     }
     if (!s.properties.some((p) => p.id === propertyId)) {
       throw new ScenarioMutationError(`Property '${propertyId}' not found.`);
+    }
+    // JSON cannot encode NaN/Infinity, so a non-finite component would
+    // solve "successfully" into NaN scores and then fail at save time.
+    if (!Number.isFinite(lower) || !Number.isFinite(modal) || !Number.isFinite(upper)) {
+      throw new ScenarioMutationError(
+        `Coefficient components must be finite (got ${lower}, ${modal}, ${upper}).`,
+      );
     }
     // Drop any prior ordering warning for this (alt, prop) pair before
     // deciding whether to emit one — without this, the warning persists
