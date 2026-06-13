@@ -47,7 +47,7 @@ jobs:
         with:
           version: '11'
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'pnpm'
@@ -139,7 +139,7 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
@@ -201,7 +201,7 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -314,7 +314,7 @@ jobs:
         with:
           version: '11'
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'pnpm'
