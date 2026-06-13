@@ -19,7 +19,6 @@
   let fileInputEl: HTMLInputElement;
 
   // Re-derive stores each time vm changes (for reactivity)
-  $: filePathStore = vmxToStore(vm, 'filePath');
   $: scenarioStore = vmxToStore(vm, 'scenario');
   // v1.0 web-mode handleSave/handleSaveAs both anchor-download (Toolbar
   // bypasses vm.saveCmd, see spec/editors.md §3). Anchor-download needs

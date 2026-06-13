@@ -1,8 +1,11 @@
-FROM python:3.12-slim
+# Tags are mutable; pin by multi-arch manifest digest for reproducible builds.
+# Dependabot's docker ecosystem keeps digest pins fresh automatically.
+FROM python:3.12-slim@sha256:090ba77e2958f6af52a5341f788b50b032dd4ca28377d2893dcf1ecbdfdfe203
 
 # Install uv. Pin to a real version tag — `:latest` made the image build
-# non-reproducible (a uv release could silently change CLI behavior).
-COPY --from=ghcr.io/astral-sh/uv:0.8 /uv /usr/local/bin/uv
+# non-reproducible (a uv release could silently change CLI behavior) — and
+# additionally by digest, same rationale as the base image above.
+COPY --from=ghcr.io/astral-sh/uv:0.8@sha256:1d31be550ff927957472b2a491dc3de1ea9b5c2d319a9cea5b6a48021e2990a6 /uv /usr/local/bin/uv
 
 WORKDIR /app
 

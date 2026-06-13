@@ -1,4 +1,4 @@
-# Analysis & charts (M4) — formal specification
+# Analysis & charts — formal specification
 
 **Status:** Authoritative. All three impls must realize this UI contract. M0 through M5 all shipped in `v1.0.0`; milestone-tense passages below describe the scope of each milestone as authored, not in-progress work.
 
@@ -100,14 +100,14 @@ A read-only table:
 
 Sort descending by `eliminated` (most-binding first). Redundant rows shown with a faded background.
 
-## 7. Selection state — `ScenarioState.selectedCandidateIndex`
+## 7. Selection state — `ScenarioVM.selectedCandidateIndex`
 
-Add an observable field `selectedCandidateIndex: int | None` (default `None`). The candidates table, Chart A, Chart B, and Chart C all read it. Editing it from any of the four updates the others.
+Add an observable field `selectedCandidateIndex: int | None` (default `None`) on `ScenarioVM`. The candidates table, Chart A, Chart B, and Chart C all read it. Editing it from any of the four updates the others. (`spec/viewmodels.md` §4.1 places the same field on the VM; this section is the chart-side view of the same observable.)
 
 ## 8. Tests
 
-- `tests/unit/chart-data.{py,cs,ts}` — verify the data prep step: candidates → chart-input arrays preserves rank order, score values, alternative-name lookups, and (for Chart C) modal sums and stable palette indexing.
-- `tests/unit/selection-state.*` — observe `selectedCandidateIndex` propagating between subscribers across the candidates table, Chart A, Chart B, and Chart C.
+- Per-impl chart-data tests (`tests/unit/test_chart_data.py` / `tests/GuideArch.ViewModels.Tests/ChartDataTests.cs` / `tests/unit/chart-data.test.ts`) verify the data prep step: candidates → chart-input arrays preserves rank order, score values, alternative-name lookups, and (for Chart C) modal sums and stable palette indexing.
+- Per-impl selection-state tests verify `selectedCandidateIndex` propagating between subscribers across the candidates table, Chart A, Chart B, and Chart C.
 
 UI rendering itself remains non-automatable.
 

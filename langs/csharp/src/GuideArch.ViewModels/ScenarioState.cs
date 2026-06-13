@@ -13,11 +13,7 @@ public sealed record CoeffCellVM(
     string PropertyId,
     double Lower,
     double Modal,
-    double Upper)
-{
-    /// <summary>Display text: L / M / U formatted to 4 dp.</summary>
-    public string Display => $"{Lower:F4} / {Modal:F4} / {Upper:F4}";
-}
+    double Upper);
 
 /// <summary>One alternative row in the coefficients matrix.</summary>
 public sealed record CoeffRowVM(
@@ -107,6 +103,14 @@ public sealed record ScenarioState(
 
     /// <summary>True when a scenario is loaded.</summary>
     public bool HasScenario => Scenario is not null;
+
+    /// <summary>
+    /// Most recent warning, or null when there are none. Bind this instead of
+    /// indexing Warnings directly: an AXAML Warnings[0] binding evaluates
+    /// before IsVisible gates it and logs binding errors on the empty array
+    /// (and [0] is the oldest entry anyway).
+    /// </summary>
+    public string? LastWarning => Warnings.Length > 0 ? Warnings[^1] : null;
 
     /// <summary>
     /// True when SaveCmd would succeed — a scenario is loaded AND a FilePath

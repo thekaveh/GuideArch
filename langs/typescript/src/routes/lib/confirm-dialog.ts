@@ -19,7 +19,7 @@
  * page level — it watches {@link confirmRequest} and renders whenever a
  * request is pending, resolving the promise on user input.
  */
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 
 export interface ConfirmOptions {
   title: string;
@@ -38,6 +38,13 @@ export const confirmRequest = writable<ConfirmRequest | null>(null);
 
 export function confirmDialog(opts: ConfirmOptions): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
+    // If two click handlers fire close together (e.g. a user double-clicks a
+    // delete button), the second call would replace the first request's
+    // ConfirmRequest entry in the store and the first promise would never
+    // resolve. Settle any in-flight request as a cancel before installing the
+    // new one so its `await` releases.
+    const pending = get(confirmRequest);
+    if (pending) pending.resolve(false);
     confirmRequest.set({ ...opts, resolve });
   });
 }

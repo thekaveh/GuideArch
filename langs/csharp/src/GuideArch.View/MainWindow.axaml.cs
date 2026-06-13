@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -51,7 +52,13 @@ public partial class MainWindow : Window
     // on every click and the chart canvases on top of it, which is what made
     // the Results tab flicker.
     private ScenarioM? _lastScenarioRef = null;
-    private int _lastCandidateCount = -1;
+    // Compare the candidates ARRAY INSTANCE, not its length: a coefficient or
+    // weight edit re-solves to the same count with different scores, and a
+    // length-only test would leave Charts A/B/C showing stale pre-edit data.
+    // Solve() always produces a fresh ImmutableArray, and selection-only
+    // changes carry the same instance forward, so instance identity is exactly
+    // the "did a re-solve happen?" signal.
+    private ImmutableArray<CandidateM> _lastCandidates;
     private int? _lastSelectedIndex = -2; // sentinel "not yet rendered"
 
     // Coalesces rapid selection clicks into a single chart redraw cycle.
@@ -168,23 +175,10 @@ public partial class MainWindow : Window
         plotC.YLabel("Modal sum");
     }
 
-    // ScottPlot v5 has no native qualitative palette helper for these specific
-    // hex codes, so we keep our own. Same order as the TS COMPARISON_PALETTE
-    // and the Python COMPARISON_PALETTE so visual identity is stable across
-    // impls and screenshots line up in cross-impl review.
-    private static readonly string[] ComparisonPalette =
-    {
-        "#4e79a7", // blue
-        "#f28e2b", // orange
-        "#e15759", // red
-        "#76b7b2", // teal
-        "#59a14f", // green
-        "#edc948", // yellow
-        "#b07aa1", // purple
-        "#ff9da7", // pink
-        "#9c755f", // brown
-        "#bab0ac", // grey
-    };
+    // Chart C palette lives in ChartData.ComparisonPalette (lifted out of the
+    // View so the per-rank-color contract is testable from the ViewModels
+    // test project). Same order as TS chart-data.ts COMPARISON_PALETTE and
+    // Python chart_data.py COMPARISON_PALETTE; cross-impl screenshots line up.
 
     // -----------------------------------------------------------------------
     // State-change observer — re-plots charts when relevant state changes
@@ -194,7 +188,7 @@ public partial class MainWindow : Window
     {
         var state = _vm.Model;
         bool scenarioChanged = !ReferenceEquals(_lastScenarioRef, state.Scenario);
-        bool candidatesChanged = state.Candidates.Length != _lastCandidateCount;
+        bool candidatesChanged = state.Candidates != _lastCandidates;
         bool selectionChanged = state.SelectedCandidateIndex != _lastSelectedIndex;
 
         // Coefficients matrix is a UI mirror of state.Scenario.Coefficients —
@@ -209,11 +203,12 @@ public partial class MainWindow : Window
 
         if (!candidatesChanged && !selectionChanged) return;
 
-        _lastCandidateCount = state.Candidates.Length;
+        _lastCandidates = state.Candidates;
         _lastSelectedIndex = state.SelectedCandidateIndex;
 
         // spec/viewmodels.md §6 caps the Results table at the top 50 rows
-        // — Python (main.py:1042) and TS (ResultsTab.svelte:14) do the same.
+        // — Python's `top50 = candidates[:50]` and TS's
+        // `top50 = $candidatesStore.slice(0, 50)` do the same.
         // Project here so the DataGrid never tries to render thousands of
         // rows of TOPSIS candidates on a large scenario. Only refresh
         // ItemsSource when the candidates set itself changed; a selection-
@@ -526,7 +521,10 @@ public partial class MainWindow : Window
 
         TextBlock MakeDisplay() => new TextBlock
         {
-            Text = $"{initial:F3}",
+            // InvariantCulture to match Done()'s parse — current-culture
+            // formatting pre-populates "0,500" on comma-decimal locales,
+            // which the invariant parse then silently rejects.
+            Text = initial.ToString("F3", CultureInfo.InvariantCulture),
             FontSize = 11,
             FontFamily = ff,
             Foreground = fg,
@@ -540,7 +538,8 @@ public partial class MainWindow : Window
         {
             var box = new TextBox
             {
-                Text = $"{initial:F3}",
+                // InvariantCulture — see MakeDisplay.
+                Text = initial.ToString("F3", CultureInfo.InvariantCulture),
                 FontSize = 11,
                 FontFamily = ff,
                 Foreground = fg,
@@ -632,7 +631,10 @@ public partial class MainWindow : Window
         }
         catch (ScenarioMutationException ex)
         {
-            StampDiscardWarning(ex.Message);
+            // Surface the domain-rule failure verbatim — routing it through
+            // the discard template produced garbled "… replaced unsaved
+            // changes" text for what is actually a validation error.
+            Mutator.AddWarning(ex.Message);
         }
     }
 
@@ -781,6 +783,12 @@ public partial class MainWindow : Window
     // property. Click on any line (or its legend) selects that candidate.
     // -----------------------------------------------------------------------
 
+    // Last-rendered Chart C series, reused by the click hit-test so a click
+    // tests against exactly what is on screen instead of recomputing the
+    // full series set per click.
+    private ImmutableArray<ChartData.ComparisonSeries> _lastComparisonSeries =
+        ImmutableArray<ChartData.ComparisonSeries>.Empty;
+
     private void RenderChartC(ScenarioState state)
     {
         var plotC = ChartC.Plot;
@@ -788,11 +796,13 @@ public partial class MainWindow : Window
 
         if (state.Candidates.IsEmpty || state.Scenario is null)
         {
+            _lastComparisonSeries = ImmutableArray<ChartData.ComparisonSeries>.Empty;
             ChartC.Refresh();
             return;
         }
 
         var series = ChartData.PrepComparisonSeries(state.Candidates, state.Scenario);
+        _lastComparisonSeries = series;
         if (series.IsEmpty)
         {
             ChartC.Refresh();
@@ -804,7 +814,7 @@ public partial class MainWindow : Window
         for (int i = 0; i < series.Length; i++)
         {
             var s = series[i];
-            var hex = ComparisonPalette[s.PaletteIndex % ComparisonPalette.Length];
+            var hex = ChartData.ComparisonPalette[s.PaletteIndex % ChartData.ComparisonPalette.Length];
             bool isSelected = (s.Rank == selectedRank);
             // De-emphasise non-selected lines when something is selected, so
             // the chosen line reads against a faded background.
@@ -839,8 +849,9 @@ public partial class MainWindow : Window
             (float)pixel.X, (float)pixel.Y,
             ChartC.Plot.Axes.Bottom, ChartC.Plot.Axes.Left);
 
-        // Pick the nearest polyline at the nearest property-x index.
-        var series = ChartData.PrepComparisonSeries(state.Candidates, state.Scenario);
+        // Pick the nearest polyline at the nearest property-x index, testing
+        // against the series that is actually rendered.
+        var series = _lastComparisonSeries;
         if (series.IsEmpty) return;
 
         int nearestX = (int)Math.Round(coord.X);
@@ -985,14 +996,11 @@ public partial class MainWindow : Window
     /// "discarded changes" warning.
     /// </summary>
     private void StampDiscardWarning(string action)
-    {
-        var state = _vm.Model;
-        _vm.Model = state with
-        {
-            Warnings = state.Warnings.Add(
-                $"{action} replaced unsaved changes — last revision discarded.")
-        };
-    }
+        // Must go through the Mutator so the factory's closure state is
+        // updated — a direct _vm.Model write is silently dropped by the
+        // factory's next SetState (any mutation or solve).
+        => Mutator.AddWarning(
+            $"{action} replaced unsaved changes — last revision discarded.");
 
     private void OnSaveClicked(object? sender, RoutedEventArgs e)
         => _cmds.SaveCmd.Execute(null);
@@ -1061,6 +1069,9 @@ public partial class MainWindow : Window
 
     private async void OnAddDecisionClicked(object? sender, RoutedEventArgs e)
     {
+        // Add-before-open convenience is View policy: run New first, then add.
+        // The VM itself throws on Add with no scenario (parity with TS/Python).
+        if (!_vm.Model.HasScenario) _cmds.NewCmd.Execute(null);
         await SafeMutateAsync(() => Mutator.AddDecision());
     }
 
@@ -1092,6 +1103,8 @@ public partial class MainWindow : Window
 
     private async void OnAddPropertyClicked(object? sender, RoutedEventArgs e)
     {
+        // See OnAddDecisionClicked: auto-create is View policy, not VM policy.
+        if (!_vm.Model.HasScenario) _cmds.NewCmd.Execute(null);
         await SafeMutateAsync(() => Mutator.AddProperty());
     }
 

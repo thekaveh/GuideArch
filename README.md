@@ -51,8 +51,9 @@ Numbered rationale for each non-obvious design choice. Read when questioning *wh
 - [ADR-0005 — Single monorepo version; all three impls release together](spec/ADRs/0005-single-monorepo-version.md)
 - [ADR-0006 — NiceGUI 3.x as the Python view layer (not Shiny, not Streamlit)](spec/ADRs/0006-nicegui-over-shiny.md)
 
-### 3.3 Contributing & governance
+### 3.3 Release history & governance
 
+- **[CHANGELOG.md](CHANGELOG.md)** — Keep-a-Changelog–style history of every release plus the running `[Unreleased]` section for post-v1.0 maintenance. *Start here when answering "what shipped?" — more reliable than scanning `git log`.*
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — feature workflow (spec-first, all three impls in lockstep), local development, test layout, code style per language. *Read before opening a PR.*
 - **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1. Report violations to kaveh.razavi@gmail.com.
 - **[SECURITY.md](SECURITY.md)** — private vulnerability reporting.
@@ -150,8 +151,8 @@ The recommended exploration flow:
 1. Click **Sample SAS** in the toolbar.
 2. **Results tab** — top candidate's score should be `0.031180695179944085`. The bar chart on the right shows the top 30; click any bar to jump to that candidate.
 3. **Properties tab** — change one property's weight (e.g., bump *Reliability* to 9). Watch the candidates table refresh instantly (v1.0 re-solves synchronously — see the v1.0 status note at the top of `spec/editors.md`; at SAS/EDS scale a single solve is under 10 ms).
-4. **Critical decisions tab** — see which architectural choices drive the result most.
-5. **Critical constraints tab** — see which constraints eliminate the most candidates.
+4. **Critical Decisions tab** — see which architectural choices drive the result most.
+5. **Critical Constraints tab** — see which constraints eliminate the most candidates.
 6. **Save As…** to a temp file; **New**; then **Open…** the file you just saved — the edit should round-trip.
 
 ### 5.6 Run the conformance suite

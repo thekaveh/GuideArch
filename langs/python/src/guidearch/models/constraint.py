@@ -23,8 +23,9 @@ class ThresholdConstraint:
 class DependencyConstraint:
     """Biconditional: source ∈ candidate ↔ target ∈ candidate.
 
-    The spec mandates the biconditional (topsis.md §3.2 note), NOT the
-    buggy literal from Space.cs line 975.
+    The spec mandates the biconditional (topsis.md §3.2 note); the
+    earlier non-biconditional implication form is a known legacy
+    miscoding and is not what this scenario family uses.
     """
 
     kind: Literal["dependency"]
