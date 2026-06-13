@@ -9,6 +9,7 @@ Each test:
 
 from __future__ import annotations
 
+import math
 from collections.abc import Generator
 from pathlib import Path
 
@@ -304,6 +305,30 @@ def test_add_property_raises_on_non_positive_weight(vm: ScenarioVM) -> None:
         vm.add_property(weight=0.0)
     with pytest.raises(ScenarioMutationError):
         vm.add_property(weight=-1.0)
+
+
+def test_weight_and_coefficient_reject_non_finite_values(vm: ScenarioVM) -> None:
+    """NaN <= 0 is False in Python (all NaN comparisons are), so the >0 guard
+    alone would let NaN through and poison every downstream score with
+    "Solved" status. Parity with C# ScenarioMutator and TS scenario-vm.
+    """
+    s = vm.scenario
+    assert s is not None
+    prop_id = s.properties[0].id
+    coeff = s.coefficients[0]
+
+    for bad in (math.nan, math.inf, -math.inf):
+        with pytest.raises(ScenarioMutationError):
+            vm.add_property(weight=bad)
+        with pytest.raises(ScenarioMutationError):
+            vm.update_property(prop_id, weight=bad)
+        # Each non-finite component is rejected independently.
+        with pytest.raises(ScenarioMutationError):
+            vm.update_coefficient(coeff.alternative_id, coeff.property_id, bad, 1.0, 2.0)
+        with pytest.raises(ScenarioMutationError):
+            vm.update_coefficient(coeff.alternative_id, coeff.property_id, 0.0, bad, 2.0)
+        with pytest.raises(ScenarioMutationError):
+            vm.update_coefficient(coeff.alternative_id, coeff.property_id, 0.0, 1.0, bad)
 
 
 # ── test dirty flag ───────────────────────────────────────────────────────────
