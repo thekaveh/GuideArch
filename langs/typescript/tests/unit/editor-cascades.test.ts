@@ -246,3 +246,56 @@ describe('updatePropertyWeight validation', () => {
     expect(newScore).not.toBe(prevScore);
   });
 });
+
+// ---------------------------------------------------------------------------
+// addProperty: weight > 0 guard (parity with Python+C#)
+// ---------------------------------------------------------------------------
+
+describe('addProperty validation', () => {
+  it('throws ScenarioMutationError when weight <= 0', () => {
+    const vm = loadVm();
+    expect(() => vm.addProperty(undefined, undefined, 0)).toThrow(ScenarioMutationError);
+    expect(() => vm.addProperty(undefined, undefined, -1)).toThrow(ScenarioMutationError);
+  });
+
+  // NaN <= 0 is false in JS (all NaN comparisons are), so a bare >0 guard
+  // would let NaN through and poison every downstream score with "Solved"
+  // status. Matches the Python + C# guard added in the same parity pass.
+  it('throws ScenarioMutationError on non-finite weight', () => {
+    const vm = loadVm();
+    expect(() => vm.addProperty(undefined, undefined, NaN)).toThrow(ScenarioMutationError);
+    expect(() => vm.addProperty(undefined, undefined, Infinity)).toThrow(ScenarioMutationError);
+    expect(() => vm.addProperty(undefined, undefined, -Infinity)).toThrow(ScenarioMutationError);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// updatePropertyWeight + updateCoefficient: finiteness guard (parity)
+// ---------------------------------------------------------------------------
+
+describe('non-finite value guards', () => {
+  it('updatePropertyWeight throws on NaN / Infinity', () => {
+    const vm = loadVm();
+    const propId = vm.model.scenario!.properties[0].id;
+    expect(() => vm.updatePropertyWeight(propId, NaN)).toThrow(ScenarioMutationError);
+    expect(() => vm.updatePropertyWeight(propId, Infinity)).toThrow(ScenarioMutationError);
+    expect(() => vm.updatePropertyWeight(propId, -Infinity)).toThrow(ScenarioMutationError);
+  });
+
+  it('updateCoefficient throws on non-finite lower / modal / upper', () => {
+    // JSON cannot encode NaN/Infinity, so a non-finite component would
+    // solve into NaN scores and then fail at save time.
+    const vm = loadVm();
+    const s = vm.model.scenario!;
+    const c = s.coefficients[0];
+    expect(() => vm.updateCoefficient(c.alternativeId, c.propertyId, NaN, 1, 2)).toThrow(
+      ScenarioMutationError,
+    );
+    expect(() => vm.updateCoefficient(c.alternativeId, c.propertyId, 0, Infinity, 2)).toThrow(
+      ScenarioMutationError,
+    );
+    expect(() => vm.updateCoefficient(c.alternativeId, c.propertyId, 0, 1, -Infinity)).toThrow(
+      ScenarioMutationError,
+    );
+  });
+});

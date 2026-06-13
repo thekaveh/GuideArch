@@ -7,11 +7,38 @@ namespace GuideArch.Models.Tests;
 
 /// <summary>
 /// Runs the conformance runner programmatically and fails the test on any divergence.
-/// Tolerance: 1e-9 absolute on all scalars; rank and alternativeIds are exact.
+/// Tolerance comes from spec/conformance/tolerances.json (absolute on all
+/// scalars); rank and alternativeIds are exact.
 /// </summary>
 public class ConformanceTests
 {
-    private const double AbsTol = 1e-9;
+    // Fallback only if tolerances.json is missing — matches its committed value.
+    private const double FallbackAbsTol = 1e-9;
+
+    private static double AbsTol { get; } = LoadAbsTol();
+
+    private static double LoadAbsTol()
+    {
+        // Read the tolerance from the corpus like the standalone
+        // GuideArch.Conformance runner (and the TS/Python runners) do, so a
+        // corpus tolerance change can't silently diverge from this suite.
+        try
+        {
+            var path = Path.Combine(FindSpecConformanceDir(), "tolerances.json");
+            var doc = JsonDocument.Parse(File.ReadAllText(path));
+            // Same path the standalone runner and the Python runner read:
+            // all scalar fields share one absolute tolerance at v1.0.
+            return doc.RootElement
+                .GetProperty("candidates")
+                .GetProperty("score")
+                .GetProperty("absolute")
+                .GetDouble();
+        }
+        catch
+        {
+            return FallbackAbsTol;
+        }
+    }
 
     private static string FindSpecConformanceDir()
     {
@@ -51,12 +78,20 @@ public class ConformanceTests
 
         var diffs = new List<string>();
 
+        // A missing expected file is a conformance FAILURE, not a skip — a
+        // deleted/renamed corpus file must not turn this suite vacuously
+        // green (the TS and Python runners record a divergence here too).
+
         // Candidates
         string candPath = Path.Combine(expectedDir, $"{name}.candidates.json");
         if (File.Exists(candPath))
         {
             var expList = JsonDocument.Parse(File.ReadAllText(candPath)).RootElement;
             CompareCandidates(expList, candidates, name, diffs);
+        }
+        else
+        {
+            diffs.Add($"[{name}] expected file missing: {candPath}");
         }
 
         // Critical decisions
@@ -66,6 +101,10 @@ public class ConformanceTests
             var expList = JsonDocument.Parse(File.ReadAllText(cdPath)).RootElement;
             CompareCriticalDecisions(expList, cd, name, diffs);
         }
+        else
+        {
+            diffs.Add($"[{name}] expected file missing: {cdPath}");
+        }
 
         // Critical constraints
         string ccPath = Path.Combine(expectedDir, $"{name}.critical-constraints.json");
@@ -73,6 +112,10 @@ public class ConformanceTests
         {
             var expList = JsonDocument.Parse(File.ReadAllText(ccPath)).RootElement;
             CompareCriticalConstraints(expList, cc, name, diffs);
+        }
+        else
+        {
+            diffs.Add($"[{name}] expected file missing: {ccPath}");
         }
 
         Assert.True(diffs.Count == 0,

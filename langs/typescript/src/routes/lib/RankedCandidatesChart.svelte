@@ -29,8 +29,12 @@
   }
 
   function barOpacity(rank: number): number {
-    // Full opacity at rank 0, half opacity at rank 30
-    return 1 - (rank / Math.max(data.length - 1, 30)) * 0.5;
+    // spec/charts.md §2: full opacity at rank 0, half opacity at the
+    // last rendered bar. Matches C# ChartData.cs and Python chart_data.py
+    // (`1.0 - 0.5 * (i / max(n-1, 1))`). Previously divided by `max(len-1, 30)`,
+    // which under-faded the bottom bars whenever fewer than 30 candidates were
+    // shown — a 10-candidate render hit 0.85 instead of the spec'd 0.5.
+    return 1 - (rank / Math.max(data.length - 1, 1)) * 0.5;
   }
 
   function formatScore(s: number): string {

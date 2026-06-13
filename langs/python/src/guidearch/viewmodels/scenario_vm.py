@@ -54,6 +54,7 @@ allow in-place mutation with automatic dirty marking and re-solve.
 from __future__ import annotations
 
 import json
+import math
 import uuid
 from dataclasses import replace
 from pathlib import Path
@@ -618,6 +619,16 @@ class ScenarioVM:
         """
         if self._scenario is None:
             raise ScenarioMutationError("No scenario loaded.")
+        # Schema $defs/Property.weight is exclusiveMinimum 0; match
+        # update_property's guard (line ~790) at the Add boundary too so a
+        # caller can't slip a non-positive weight past the mutator into the
+        # scenario only to fail at save-time schema validation. Mirrors
+        # C# AddProperty's weight>0 check (ScenarioVMFactory.cs:574).
+        # NaN <= 0 is False in Python (all NaN comparisons are), so the >0
+        # guard alone would let NaN through and poison every downstream
+        # score — hence the explicit finiteness check.
+        if not math.isfinite(weight) or weight <= 0:
+            raise ScenarioMutationError(f"Property weight must be > 0 (got {weight}).")
         scenario = self._scenario
         new_id = f"p-{uuid.uuid4()}"
         new_prop = PropertyM(id=new_id, name=name, kind=kind, weight=weight)
@@ -787,9 +798,10 @@ class ScenarioVM:
         # 'Property X not found' rather than '... must be > 0' first.
         if not any(p.id == property_id for p in scenario.properties):
             raise ScenarioMutationError(f"Property '{property_id}' not found.")
-        if weight is not None and weight <= 0:
+        if weight is not None and (not math.isfinite(weight) or weight <= 0):
             # Schema $defs/Property.weight is exclusiveMinimum 0 — match at the
             # mutation boundary instead of letting it surface at save-time only.
+            # See add_property: NaN must not slip past the >0 guard.
             raise ScenarioMutationError(f"Property weight must be > 0 (got {weight}).")
         triggers_solve = kind is not None or weight is not None
         new_props: list[PropertyM] = []
@@ -837,6 +849,12 @@ class ScenarioVM:
             raise ScenarioMutationError(f"Alternative '{alternative_id}' not found.")
         if not any(p.id == property_id for p in scenario.properties):
             raise ScenarioMutationError(f"Property '{property_id}' not found.")
+        # JSON cannot encode NaN/Infinity, so a non-finite component would
+        # solve "successfully" into NaN scores and then fail at save time.
+        if not (math.isfinite(lower) and math.isfinite(modal) and math.isfinite(upper)):
+            raise ScenarioMutationError(
+                f"Coefficient components must be finite (got {lower}, {modal}, {upper})."
+            )
         new_value = TriangularFuzzyM(lower=lower, modal=modal, upper=upper)
         new_coefficients = tuple(
             replace(c, value=new_value)

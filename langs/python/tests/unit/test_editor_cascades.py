@@ -9,6 +9,7 @@ Each test:
 
 from __future__ import annotations
 
+import math
 from collections.abc import Generator
 from pathlib import Path
 
@@ -19,7 +20,11 @@ from guidearch.models.constraint import (
     DependencyConstraint,
     ThresholdConstraint,
 )
-from guidearch.viewmodels.scenario_vm import ScenarioVM, make_scenario_vm
+from guidearch.viewmodels.scenario_vm import (
+    ScenarioMutationError,
+    ScenarioVM,
+    make_scenario_vm,
+)
 
 _REPO_ROOT = Path(__file__).parents[4]
 _SAS_JSON = _REPO_ROOT / "spec" / "conformance" / "scenarios" / "sas.json"
@@ -271,6 +276,59 @@ def test_add_property_creates_zero_coefficients(vm: ScenarioVM) -> None:
     assert vm.scenario is not None
     new_coefs = [c for c in vm.scenario.coefficients if c.property_id == new_id]
     assert len(new_coefs) == n_alts
+
+
+# ── update_property weight validation (parity with TS+C#) ───────────────────
+
+
+def test_update_property_raises_on_non_positive_weight(vm: ScenarioVM) -> None:
+    """spec/viewmodels.md §5.3 mandates weight > 0; ScenarioVM.update_property
+    enforces it at the mutation boundary. TS `updatePropertyWeight` and C#
+    `UpdateProperty` both have regression guards for this; Python lacked one.
+    """
+    s = vm.scenario
+    assert s is not None
+    prop_id = s.properties[0].id
+    with pytest.raises(ScenarioMutationError):
+        vm.update_property(prop_id, weight=0.0)
+    with pytest.raises(ScenarioMutationError):
+        vm.update_property(prop_id, weight=-1.0)
+
+
+def test_add_property_raises_on_non_positive_weight(vm: ScenarioVM) -> None:
+    """Same weight > 0 invariant enforced on the Add boundary, mirroring
+    C# AddProperty's weight>0 check (ScenarioVMFactory.cs:574). Prior
+    behavior accepted any float at Add-time and failed only at save-time
+    schema validation.
+    """
+    with pytest.raises(ScenarioMutationError):
+        vm.add_property(weight=0.0)
+    with pytest.raises(ScenarioMutationError):
+        vm.add_property(weight=-1.0)
+
+
+def test_weight_and_coefficient_reject_non_finite_values(vm: ScenarioVM) -> None:
+    """NaN <= 0 is False in Python (all NaN comparisons are), so the >0 guard
+    alone would let NaN through and poison every downstream score with
+    "Solved" status. Parity with C# ScenarioMutator and TS scenario-vm.
+    """
+    s = vm.scenario
+    assert s is not None
+    prop_id = s.properties[0].id
+    coeff = s.coefficients[0]
+
+    for bad in (math.nan, math.inf, -math.inf):
+        with pytest.raises(ScenarioMutationError):
+            vm.add_property(weight=bad)
+        with pytest.raises(ScenarioMutationError):
+            vm.update_property(prop_id, weight=bad)
+        # Each non-finite component is rejected independently.
+        with pytest.raises(ScenarioMutationError):
+            vm.update_coefficient(coeff.alternative_id, coeff.property_id, bad, 1.0, 2.0)
+        with pytest.raises(ScenarioMutationError):
+            vm.update_coefficient(coeff.alternative_id, coeff.property_id, 0.0, bad, 2.0)
+        with pytest.raises(ScenarioMutationError):
+            vm.update_coefficient(coeff.alternative_id, coeff.property_id, 0.0, 1.0, bad)
 
 
 # ── test dirty flag ───────────────────────────────────────────────────────────
