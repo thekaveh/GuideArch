@@ -61,29 +61,11 @@ public static class CriticalDecisions
         if (zValues.Count == 0)
             return ImmutableArray<CriticalDecisionM>.Empty;
 
-        // PIS/NIS over decision set — same as §3.7
-        double pisAvg = zValues.Min(z => z.Average);
-        double pisPos = zValues.Max(z => z.Positive);
-        double pisNeg = zValues.Min(z => z.Negative);
-
-        double nisAvg = zValues.Max(z => z.Average);
-        double nisPos = zValues.Min(z => z.Positive);
-        double nisNeg = zValues.Max(z => z.Negative);
-
-        var normValues = new List<NormalizedFuzzyM>(zValues.Count);
-        foreach (var z in zValues)
-        {
-            double denomAvg = nisAvg - pisAvg;
-            double nAvg = denomAvg != 0.0 ? Clip01((z.Average - pisAvg) / denomAvg) : 0.0;
-
-            double denomPos = pisPos - nisPos;
-            double nPos = denomPos != 0.0 ? Clip01((pisPos - z.Positive) / denomPos) : 0.0;
-
-            double denomNeg = nisNeg - pisNeg;
-            double nNeg = denomNeg != 0.0 ? Clip01((z.Negative - pisNeg) / denomNeg) : 0.0;
-
-            normValues.Add(new NormalizedFuzzyM(Positive: nPos, Average: nAvg, Negative: nNeg));
-        }
+        // §3.7 + §3.8 over the *decision* set: identical pipeline to the
+        // candidate path, just applied to per-decision contributions instead of
+        // per-candidate totals. Reuse Solver.NormalizeCandidates so a future
+        // change to the PIS/NIS math stays in one place.
+        var normValues = Solver.NormalizeCandidates(zValues);
 
         // Score with max aggregation (legacy hardcodes Max here — topsis.md §5)
         var weights = scenario.Config.Weights;
@@ -114,6 +96,4 @@ public static class CriticalDecisions
         }
         return builder.MoveToImmutable();
     }
-
-    private static double Clip01(double x) => Math.Max(0.0, Math.Min(1.0, x));
 }

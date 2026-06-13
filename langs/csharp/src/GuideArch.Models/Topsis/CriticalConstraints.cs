@@ -50,9 +50,15 @@ public static class CriticalConstraints
             ));
         }
 
-        // Sort by eliminated descending (most-binding first)
-        return builder.ToImmutable()
-            .Sort((a, b) => b.Eliminated.CompareTo(a.Eliminated));
+        // Sort by eliminated descending (most-binding first), tie-break by
+        // constraint index ascending. ImmutableArray.Sort is an unstable
+        // introsort, so the tie-break must be explicit — TS/Python get it
+        // for free from their stable sorts, and the conformance corpus
+        // (sas.critical-constraints.json) encodes tied entries index-first.
+        return builder
+            .OrderByDescending(c => c.Eliminated)
+            .ThenBy(c => c.ConstraintIndex)
+            .ToImmutableArray();
     }
 
     private static bool ApplySingleConstraint(

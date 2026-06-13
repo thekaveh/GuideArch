@@ -2,15 +2,15 @@
 
 **Status:** Authoritative. See [`topsis.md`](topsis.md) §6 for the canonical algorithm — this document is the reference card.
 
-## Summary
+## 1. Summary
 
 `criticalConstraints(scenario) → RankedConstraints` measures, for each constraint, how many candidates it eliminates from the unconstrained Cartesian product.
 
-## Inputs
+## 2. Inputs
 
 - A `ScenarioM`.
 
-## Outputs
+## 3. Outputs
 
 A list of `CriticalConstraintM` sorted by `eliminated` descending (most-binding first), with fields:
 
@@ -20,11 +20,11 @@ A list of `CriticalConstraintM` sorted by `eliminated` descending (most-binding 
 - `total`: `|unconstrained Cartesian product|` (same for every constraint in a scenario, but echoed for context)
 - `redundant`: `eliminated == 0`
 
-## Algorithm
+## 4. Algorithm
 
 See `topsis.md` §6.
 
-## Edge cases
+## 5. Edge cases
 
 - **Empty `constraints` array**: returns an empty list.
 - **A constraint eliminates all candidates**: not an error here; the constraint gets a maximal `eliminated` value. The downstream solve will then report "no feasible candidates" via the §9 invariant warning.

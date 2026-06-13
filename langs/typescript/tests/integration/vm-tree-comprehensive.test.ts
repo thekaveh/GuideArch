@@ -935,6 +935,32 @@ describe('§6 Solve-trigger matrix (spec §3.3)', () => {
     });
     expect(triggered).toBe(true);
   });
+
+  it("updateConstraint refuses to change a constraint's kind (spec §5.5)", () => {
+    const vm = makeScenarioVm();
+    try {
+      vm._browserOpen(sasRaw, 'sas.json');
+      const s = vm.model.scenario!;
+      const propId = s.properties[0].id;
+      // Add a known-threshold constraint, then try to swap it for a dependency.
+      vm.addConstraint({ kind: 'threshold', propertyId: propId, min: 0 });
+      const idx = vm.model.scenario!.constraints.length - 1;
+      const altA = s.alternatives[0].id;
+      const altB = s.alternatives[1].id;
+      expect(() =>
+        vm.updateConstraint(idx, {
+          kind: 'dependency',
+          sourceAlternativeId: altA,
+          targetAlternativeId: altB,
+        }),
+      ).toThrow(/is a threshold constraint.*cannot replace.*dependency/);
+      // State must not have mutated.
+      const stillThreshold = vm.model.scenario!.constraints[idx];
+      expect(stillThreshold.kind).toBe('threshold');
+    } finally {
+      vm.dispose();
+    }
+  });
 });
 
 // ============================================================================

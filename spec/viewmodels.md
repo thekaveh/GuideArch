@@ -106,7 +106,7 @@ The root VM owns the loaded scenario and brokers re-solve when its children chan
 | `candidates` | `readonly CandidateM[]` | Latest `solve(scenario)` output. Empty array if scenario undefined. |
 | `criticalDecisions` | `readonly CriticalDecisionM[]` | Latest `criticalDecisions(scenario)` output. |
 | `criticalConstraints` | `readonly CriticalConstraintM[]` | Latest `criticalConstraints(scenario)` output. |
-| `status` | `string` | Human-readable status line for the View (e.g. `"Solved: 1336 candidates"`). |
+| `status` | `string` | Human-readable status line for the View (e.g. `"Solved: 720 candidates"` after loading SAS). |
 | `warnings` | `readonly string[]` | Non-fatal warnings from scenario load. |
 | `selectedCandidateIndex` | `int \| null` | Index into `candidates` of the currently selected candidate, or `null` when nothing is selected. The candidates table, Chart A, Chart B, and Chart C all read it; editing it from any of the four updates the others. Defined formally in `spec/charts.md` §7 — added here for completeness. |
 
@@ -159,10 +159,34 @@ Implementation guidance for v1.0: re-solve **synchronously** on each mutation (s
 - Wraps a `PropertyM`.
 - Observable: `id` (read-only), `name` (read-write), `kind` (read-write `'min' | 'max'`), `weight` (read-write `> 0`).
 - Changing `kind` or `weight` triggers a solve.
+- **Mutator boundary:** the `weight > 0` invariant is enforced on **both**
+  the Add and Update paths in every impl (`addProperty`/`add_property`/
+  `AddProperty` and `updateProperty`/`update_property`/`UpdateProperty`).
+  A caller passing `weight <= 0` to any of these gets `ScenarioMutationError`
+  (TS+Py) or `ScenarioMutationException` (C#) at the mutation boundary —
+  not silently accepted to fail later at save-time schema validation. The
+  add-side surface in all three impls takes the same three optional
+  parameters: `name`, `kind`, `weight`.
+- The same boundary rejects non-finite values (`NaN`, `+Infinity`,
+  `-Infinity`) on `weight`. The literal `>0` predicate alone is not
+  sufficient: in all three target languages `NaN <= 0` evaluates to
+  false (all NaN comparisons are), so a bare `> 0` check lets `NaN`
+  through and poisons every downstream score with a `Solved` status.
+  Implementations use `Number.isFinite` (TS), `math.isfinite` (Py), and
+  `double.IsFinite` (C#) before the `> 0` check.
 
 ### 5.4 `CoefficientsVM`
 
 A 2-D grid (`alternative × property`). Implementation: a flat list `CoefficientCellVM[]`, indexed by `(alternativeId, propertyId)`. Each cell is a `ComponentVM<CoefficientM>` exposing `lower`, `modal`, `upper` as read-write doubles. Editing any cell triggers a solve.
+
+- **Mutator boundary:** `updateCoefficient`/`update_coefficient`/
+  `UpdateCoefficient` rejects non-finite components (`NaN`, `+Infinity`,
+  `-Infinity`) on any of `lower`, `modal`, `upper`. JSON cannot encode
+  these values, so accepting them solves "successfully" into NaN scores
+  and then fails at save-time with a schema error that points at the
+  wrong place. Triangular ordering (`lower <= modal <= upper`) remains a
+  *warning*, not a fatal error — that is invariant 4.1 and the loader
+  also treats it as a warning. Finiteness is fatal.
 
 ### 5.5 Constraint VMs
 

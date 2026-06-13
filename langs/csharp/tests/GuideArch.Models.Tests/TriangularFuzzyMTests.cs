@@ -90,4 +90,13 @@ public class TriangularFuzzyMTests
         AssertClose(a.Modal, r.Modal);
         AssertClose(a.Upper, r.Upper);
     }
+
+    [Fact]
+    public void DivisionByZero_Throws()
+    {
+        // topsis.md §4.1 defines a ⊘ s only for s ≠ 0. TS throws and Python
+        // raises ZeroDivisionError; silent ±Infinity here was the C# outlier.
+        var a = new TriangularFuzzyM(2.0, 4.0, 6.0);
+        Assert.Throws<DivideByZeroException>(() => a / 0.0);
+    }
 }

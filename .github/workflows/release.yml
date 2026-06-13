@@ -15,9 +15,10 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
+# Workflow-scope default: read-only. The two jobs that publish (python-docker
+# pushes to GHCR; release creates the GitHub Release) escalate explicitly.
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 jobs:
   # ─── 1. Tauri desktop installers (Win / macOS / Linux) ──────────────────────
@@ -37,7 +38,7 @@ jobs:
       run:
         working-directory: langs/typescript
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -52,7 +53,16 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: langs/typescript/pnpm-lock.yaml
 
-      - uses: dtolnay/rust-toolchain@stable
+      # Pin to a SHA on dtolnay/rust-toolchain's `stable` branch (resolved
+       # 2026-03-27) so a force-push or repo compromise can't silently swap
+       # the toolchain action this release job runs with `contents: write` /
+       # `packages: write`. The `toolchain` input still selects the latest
+       # stable Rust channel at run time — pinning the action does not pin
+       # Rust itself. Dependabot's github-actions ecosystem rule will bump
+       # this SHA the same way it bumps every other action pin.
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+        with:
+          toolchain: stable
 
       - name: Install Linux Tauri prereqs
         if: matrix.os == 'ubuntu-latest'
@@ -61,6 +71,17 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libsoup-3.0-dev \
             build-essential curl wget file libxdo-dev libssl-dev \
             libayatana-appindicator3-dev librsvg2-dev
+
+      # vendor/vmx's TS dist/ is gitignored, so a fresh submodule checkout has
+      # no compiled output. vite.config.js aliases `vmx` to the submodule
+      # *source*, so release builds happen to succeed without this — but keep
+      # parity with typescript.yml/conformance.yml so an alias change can't
+      # break only at release time. See typescript.yml for the full rationale.
+      - name: Build VMx-TS dist
+        working-directory: vendor/vmx/langs/typescript
+        run: |
+          npm ci
+          npm run build
 
       - name: Install pnpm dependencies
         run: pnpm install --frozen-lockfile
@@ -114,7 +135,7 @@ jobs:
       run:
         working-directory: langs/csharp
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -176,7 +197,7 @@ jobs:
       # is evaluated; only job-level `env:` is in scope for the gate.)
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -203,16 +224,25 @@ jobs:
       # ship via the GitHub release attachments.
       - name: Publish to PyPI
         if: ${{ startsWith(github.ref, 'refs/tags/v') && env.PYPI_API_TOKEN != '' }}
+        # Pass the token via TWINE_PASSWORD env-var rather than a --password
+        # CLI flag so it isn't visible in the runner's process listing.
+        # github-hosted runners are ephemeral so the exposure window is
+        # narrow, but TWINE_PASSWORD is the documented twine pattern.
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ env.PYPI_API_TOKEN }}
         run: |
           pip install --quiet twine
-          twine upload --non-interactive --skip-existing \
-              --username __token__ --password "$PYPI_API_TOKEN" dist/*
+          twine upload --non-interactive --skip-existing dist/*
 
   # ─── 4. Python Docker image ───────────────────────────────────────────────────
   python-docker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -275,7 +305,7 @@ jobs:
       run:
         working-directory: langs/typescript
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -289,6 +319,13 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
           cache-dependency-path: langs/typescript/pnpm-lock.yaml
+
+      # Same VMx-TS dist parity step as tauri-build above.
+      - name: Build VMx-TS dist
+        working-directory: vendor/vmx/langs/typescript
+        run: |
+          npm ci
+          npm run build
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -330,8 +367,10 @@ jobs:
       - python-docker
       - web-bundle
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Resolve VERSION from tag (or 'dev' on manual dispatch)
         id: version

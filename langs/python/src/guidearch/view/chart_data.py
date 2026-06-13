@@ -56,9 +56,13 @@ def candidates_bar_option(
 
     bar_data: list[dict[str, Any]] = []
     for i, cand in enumerate(top):
-        # Gradient: full opacity at rank 0, diminishing toward the end
+        # Gradient: full opacity at rank 0, half opacity at rank n-1 —
+        # spec/charts.md §2 fixes the floor at 0.5. C# ChartData.cs matches
+        # (`1.0 - 0.5 * (i/(n-1))`); the previous 0.45 here put the floor at
+        # 0.55 and the Python Chart A bars read noticeably crisper than C#'s
+        # at the bottom of the list. Aligned 2026-06-05.
         frac = i / max(n - 1, 1)
-        opacity = 1.0 - 0.45 * frac
+        opacity = 1.0 - 0.5 * frac
         is_selected = selected_index is not None and i == selected_index
         # Selected: accent-hover highlight; others: accent at varying opacity
         if is_selected:

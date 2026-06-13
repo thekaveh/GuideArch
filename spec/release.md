@@ -1,4 +1,4 @@
-# Release artifacts (M5) — formal specification
+# Release artifacts — formal specification
 
 **Status:** Authoritative.
 
@@ -21,7 +21,7 @@ Signing / notarization are stretch goals; v1.0.0 ships unsigned with an "unsigne
 ### 1.3 Python + NiceGUI
 
 - **PyPI package** — `uv build` produces `dist/guidearch-1.0.0-py3-none-any.whl` and `guidearch-1.0.0.tar.gz`. Attach to GitHub Release. Optional: publish to PyPI via `twine` if `PYPI_API_TOKEN` secret is configured; otherwise skip.
-- **Docker image** — `docker buildx build --platform linux/amd64,linux/arm64` on a `Dockerfile` at `langs/python/Dockerfile` that copies the package, installs deps via `uv sync`, exposes port 8080, and runs `uv run guidearch`. Push to `ghcr.io/thekaveh/guidearch:1.0.0` if `GHCR_TOKEN` is configured; otherwise skip push but build to validate.
+- **Docker image** — `docker buildx build --platform linux/amd64,linux/arm64` on a `Dockerfile` at `langs/python/Dockerfile` that copies the package, installs production-only deps via `uv sync --no-dev`, exposes port 8080, and runs `uv run guidearch --port 8080`. Push to `ghcr.io/thekaveh/guidearch:1.0.0` if `GHCR_TOKEN` is configured; otherwise skip push but build to validate.
 
 ## 2. CI workflow
 
