@@ -9,11 +9,6 @@ on:
       - 'spec/**'
       - '.github/workflows/typescript.yml'
   pull_request:
-    paths:
-      - 'langs/typescript/**'
-      - 'vendor/vmx/**'
-      - 'spec/**'
-      - '.github/workflows/typescript.yml'
   workflow_dispatch:
 
 concurrency:
@@ -34,7 +29,7 @@ jobs:
       run:
         working-directory: langs/typescript
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
