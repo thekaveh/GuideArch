@@ -17,8 +17,12 @@ sed -i.bak -E 's|(<VMxSource Condition=[^>]+>)[^<]*(</VMxSource>)|\1local\2|' la
 rm langs/csharp/Directory.Build.props.bak
 echo "  ok"
 
-echo "→ Python: editable install from vendor/vmx/langs/python"
-( cd langs/python && uv pip install -e ../../vendor/vmx/langs/python )
+echo "→ Python: restoring [tool.uv.sources] editable entry for vendor/vmx"
+# Mirror of use-vmx-released.sh: uncomment the vmx source entry and re-lock
+# so the local toggle persists across `uv sync` runs.
+sed -i.bak -E 's|^# vmx = \{ path = |vmx = { path = |' langs/python/pyproject.toml
+rm langs/python/pyproject.toml.bak
+( cd langs/python && uv lock && uv sync --all-extras )
 echo "  ok"
 
 echo "Done. VMx is now consumed locally from vendor/vmx/."

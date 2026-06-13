@@ -87,7 +87,7 @@ void CaptureAll(string dir)
     var tabNames = new[]
     {
         "Decisions", "Alternatives", "Properties", "Coefficients",
-        "Constraints", "Results", "Critical decisions", "Critical constraints",
+        "Constraints", "Results", "Critical Decisions", "Critical Constraints",
     };
 
     Console.WriteLine("[ss] Capturing empty state...");
@@ -210,7 +210,9 @@ static string ToSafe(string s) => s.Replace(" ", "-").ToLowerInvariant();
 static void SaveOrWarn(Avalonia.Media.Imaging.WriteableBitmap? bmp, string path)
 {
     if (bmp is null) { Console.Error.WriteLine($"[ss] null frame: {Path.GetFileName(path)}"); return; }
-    using var s = File.OpenWrite(path);
+    // File.Create truncates; OpenWrite would leave trailing bytes of a larger
+    // previous PNG in place and silently corrupt the baseline.
+    using var s = File.Create(path);
     bmp.Save(s);
     Console.WriteLine($"[ss]   -> {path}");
 }

@@ -35,12 +35,23 @@ dotnet format GuideArch.sln --verify-no-changes         # CI gate
 
 The integration suite at `tests/GuideArch.ViewModels.Tests/VMMvvmIntegrationTests.cs` exercises the ViewModel factory and `ScenarioState` **without instantiating any Avalonia controls** — that's the MVVM separation in action.
 
+## Visual snapshots
+
+The `tools/screenshot-all-tabs/` console tool runs the full Avalonia app under `Avalonia.Headless` (no real window system, dispatcher on a dedicated thread) and writes per-tab PNGs to `tests/visual/snapshots/`. Useful for visual diffs after a UI change.
+
+```bash
+dotnet run --project tools/screenshot-all-tabs   # writes PNGs to tests/visual/snapshots/
+```
+
+Mirrors the Python visual harness at `langs/python/tests/visual/snapshot_all_tabs.py` and the TS one at `langs/typescript/tests/visual/snapshot-all-tabs.mjs`. Not wired into CI; intended for manual cross-impl review.
+
 ## Solution layout
 
 - `src/GuideArch.Models/` — domain entities + TOPSIS pipeline (`Topsis/Solver.cs`, `CriticalDecisions.cs`, `CriticalConstraints.cs`) + `ScenarioLoader.cs` + JSON output
 - `src/GuideArch.ViewModels/` — `ScenarioVMFactory.cs` (factory pattern because `ComponentVM<M>` is sealed), child VM factories, `ScenarioMutator`, `SampleScenarios.cs`
 - `src/GuideArch.View/` — Avalonia 12 desktop app (`MainWindow.axaml` is the 8-tab editor + analysis UI)
 - `src/GuideArch.Conformance/` — console runner that validates outputs against `spec/conformance/expected/`
+- `tools/screenshot-all-tabs/` — headless-Avalonia per-tab PNG capture (see *Visual snapshots* above)
 - `tests/GuideArch.Models.Tests/` — unit tests for Models + Topsis
 - `tests/GuideArch.ViewModels.Tests/` — unit tests for VMs + MVVM integration
 

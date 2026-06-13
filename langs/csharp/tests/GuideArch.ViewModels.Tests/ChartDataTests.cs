@@ -479,6 +479,30 @@ public class ChartDataTests
     }
 
     [Fact]
+    public void PrepComparisonSeries_CapsAtPaletteLength_WhenExplicitTopNExceedsIt()
+    {
+        // spec/charts.md §4: N = min(topN, candidates.Length, palette.Length).
+        // TS + Python already cap at COMPARISON_PALETTE.length; before this
+        // bound the C# impl returned `topN` series and the View wrapped
+        // PaletteIndex % palette.Length, silently re-using colors.
+        var scenario = MakeScenario(1, 2, 1);
+        var candidates = MakeCandidates(50);
+        var result = ChartData.PrepComparisonSeries(candidates, scenario, topN: 20);
+        Assert.Equal(ChartData.ComparisonPalette.Length, result.Length);
+    }
+
+    [Fact]
+    public void ComparisonPalette_HasTenStableHexEntries()
+    {
+        // Cross-impl-stable order; matches TS chart-data.ts COMPARISON_PALETTE
+        // and Python chart_data.py COMPARISON_PALETTE. Lifted from
+        // MainWindow.axaml.cs so cross-impl tests can read it.
+        Assert.Equal(10, ChartData.ComparisonPalette.Length);
+        Assert.Equal("#4e79a7", ChartData.ComparisonPalette[0]);
+        Assert.Equal("#bab0ac", ChartData.ComparisonPalette[9]);
+    }
+
+    [Fact]
     public void PrepComparisonSeries_PaletteIndex_MatchesArrayPosition()
     {
         var scenario = MakeScenario(1, 2, 1);
