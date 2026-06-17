@@ -22,6 +22,11 @@ behavior change a user-facing release note would call out.
   ADR-0001's 2026-06-16 update.
 
 ### Security
+- Python `starlette` 1.2.0 → 1.3.1 (CVE-2026-54283, CVE-2026-54282) and
+  `python-multipart` 0.0.29 → 0.0.32 (CVE-2026-53540, CVE-2026-53539,
+  CVE-2026-53538), both transitive via NiceGUI. NiceGUI 3.13.0 already
+  allows `starlette>=0.49.1` and `python-multipart>=0.0.27`, so the bumps
+  are pure `uv.lock` upgrades; `pip-audit` on the project venv is now clean.
 - Python `aiohttp` 3.13.5 → 3.14.1, closing CVE-2026-34993 and
   CVE-2026-47265. Unblocked by NiceGUI 3.13.0, which lifted its
   `aiohttp` cap to `>=3.14.0`; the project's `nicegui` floor is now
@@ -32,7 +37,7 @@ behavior change a user-facing release note would call out.
   only `python-docker` (`packages: write`) and `release`
   (`contents: write`) escalate. `vmx-bump.yml`'s check job dropped an
   unused `contents: write` grant.
-- Python Docker base images (`python:3.12-slim`, `astral-sh/uv:0.8`)
+- Python Docker base images (`python:3.14-slim`, `astral-sh/uv:0.8`)
   are now digest-pinned for reproducible builds; Dependabot's docker
   ecosystem keeps digest pins fresh.
 - TypeScript `vitest` devDependency bumped from `^2.0.0` to `^3.2.6` to

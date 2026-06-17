@@ -26,9 +26,9 @@ jobs:
   python:
     runs-on: ubuntu-latest
     steps:
+      # vmx is resolved from PyPI, so the Python conformance job no longer needs
+      # the vendor/vmx submodule (the csharp/typescript jobs below still do).
       - uses: actions/checkout@v6
-        with:
-          submodules: recursive
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
