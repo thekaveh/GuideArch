@@ -17,8 +17,8 @@ Thanks for your interest in contributing. GuideArch is a spec-driven monorepo wi
 
 ## Local development
 
-- VMx is a git submodule at `vendor/vmx/`. Clone with `git clone --recurse-submodules`, or after cloning run `git submodule update --init`.
-- Use `tools/use-vmx-local.sh` to consume VMx from the submodule (editable), or `tools/use-vmx-released.sh` to consume the published package versions.
+- VMx consumption differs by impl: **Python** pulls VMx from PyPI (`uv sync` just works, no submodule needed), while **TypeScript** and **C#** build it from the git submodule at `vendor/vmx/`. For TS/C#, clone with `git clone --recurse-submodules`, or after cloning run `git submodule update --init`.
+- To co-develop VMx alongside GuideArch, run `tools/use-vmx-local.sh` to point all three impls (Python included) at the editable submodule; `tools/use-vmx-released.sh` reverts Python to PyPI. (Released mode for TS/C# requires VMx to be published to npm/NuGet, which has not happened yet.)
 
 ## Tests
 

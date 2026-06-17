@@ -9,7 +9,7 @@ authors = [{ name = "Kaveh Razavi", email = "kaveh.razavi@gmail.com" }]
 dependencies = [
     "nicegui>=3.13.0",
     "pywebview>=5.0",
-    "vmx>=2.1.0",
+    "vmx>=2.6.0",
     "jsonschema>=4.23",
     "platformdirs>=4.0",
     # Direct dependency: VM observables are consumed via reactivex in
@@ -80,8 +80,11 @@ module = "playwright.sync_api"
 ignore_missing_imports = true
 
 [tool.uv.sources]
-# Use the vendored VMx by default. Toggle to released via tools/use-vmx-released.sh.
-vmx = { path = "../../vendor/vmx/langs/python", editable = true }
+# PyPI is the default source for vmx (see [project.dependencies] above). The
+# editable submodule entry below is commented out so a plain `uv sync` resolves
+# vmx from PyPI. For co-developing VMx alongside GuideArch, tools/use-vmx-local.sh
+# uncomments it (and re-locks editable); tools/use-vmx-released.sh re-comments it.
+# vmx = { path = "../../vendor/vmx/langs/python", editable = true }
 
 [dependency-groups]
 # Browser-automation tooling for visual snapshot tests (tests/visual/). Distinct

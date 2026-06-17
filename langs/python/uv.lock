@@ -654,7 +654,7 @@ requires-dist = [
     { name = "pywebview", specifier = ">=5.0" },
     { name = "reactivex", specifier = ">=4.0.4" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.17" },
-    { name = "vmx", editable = "../../vendor/vmx/langs/python" },
+    { name = "vmx", specifier = ">=2.6.0" },
 ]
 provides-extras = ["dev"]
 
@@ -2337,26 +2337,15 @@ wheels = [
 
 [[package]]
 name = "vmx"
-source = { editable = "../../vendor/vmx/langs/python" }
+version = "2.6.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "reactivex" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.8" },
-    { name = "mypy", marker = "extra == 'typing'", specifier = ">=1.8" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=7" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
-    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.23" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4" },
-    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=4" },
-    { name = "reactivex", specifier = ">=4.0.4" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
-    { name = "ruff", marker = "extra == 'lint'", specifier = ">=0.4" },
+sdist = { url = "https://files.pythonhosted.org/packages/64/c9/db2a96e0051935efb16e067dc089040258d355158eab79d7eb7bc085f7e4/vmx-2.6.0.tar.gz", hash = "sha256:d6fc8ff72194f8c4d86329f26abf6d32f6f556efdd3316328b445ff5a1a551f3", size = 169182, upload-time = "2026-06-17T00:17:29.441Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c9/55/f2f566143a3979016e62e0fed31ce44aac4228ae8b437708a4f536bba476/vmx-2.6.0-py3-none-any.whl", hash = "sha256:bad0cd0066951b925e05c87e1db31ca022116ab90d2caae8e5ac180e9eb2b6a8", size = 112274, upload-time = "2026-06-17T00:17:27.738Z" },
 ]
-provides-extras = ["dev", "lint", "test", "typing"]
 
 [[package]]
 name = "watchfiles"

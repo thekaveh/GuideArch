@@ -6,7 +6,8 @@ Python + NiceGUI 3.x implementation of GuideArch.
 
 - Python 3.11+ (`python3 --version`)
 - [uv](https://github.com/astral-sh/uv) (`uv --version`; install via `curl -LsSf https://astral.sh/uv/install.sh | sh`)
-- The VMx submodule initialised at `vendor/vmx/` (run `git submodule update --init` from the repo root if not)
+
+VMx is pulled from PyPI ([`vmx`](https://pypi.org/project/vmx/)) — `uv sync` resolves it automatically, so the `vendor/vmx/` submodule is **not** required for the Python impl. (Initialize it only to co-develop VMx via `tools/use-vmx-local.sh`.)
 
 ## Dev setup
 
@@ -42,11 +43,11 @@ The integration suite under `tests/integration/` and the VM-MVVM tests under `te
 
 ## Docker
 
-The `Dockerfile` at `langs/python/Dockerfile` builds the web UI into a self-contained image. Run from the **repo root** (the Docker context must include `vendor/vmx/`):
+The `Dockerfile` at `langs/python/Dockerfile` builds the web UI into a self-contained image. Because VMx now installs from PyPI, the build context is just `langs/python/` (no longer the repo root / `vendor/vmx/`):
 
 ```bash
-# Build
-docker build -f langs/python/Dockerfile -t guidearch:latest .
+# Build (context = langs/python)
+docker build -f langs/python/Dockerfile -t guidearch:latest langs/python
 
 # Run — web UI at http://localhost:8080
 docker run --rm -p 8080:8080 guidearch:latest

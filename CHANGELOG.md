@@ -9,6 +9,18 @@ The format is loosely [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). 
 Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
 behavior change a user-facing release note would call out.
 
+### Changed
+- Python now consumes VMx from the published PyPI package (`vmx>=2.6.0`)
+  instead of the `vendor/vmx/` git submodule. The `[tool.uv.sources]`
+  editable override is commented out by default, so a plain `uv sync`
+  resolves `vmx` from PyPI; `tools/use-vmx-local.sh` still restores the
+  editable submodule for VMx co-development. Knock-on simplifications: the
+  Python `Dockerfile` drops the `vendor/vmx` copy (build context is now
+  `langs/python/`), and `python.yml` no longer checks out submodules or
+  triggers on `vendor/vmx/**`. The submodule is retained for the TypeScript
+  and C# builds (their npm/NuGet packages are not yet published); see
+  ADR-0001's 2026-06-16 update.
+
 ### Security
 - Python `aiohttp` 3.13.5 → 3.14.1, closing CVE-2026-34993 and
   CVE-2026-47265. Unblocked by NiceGUI 3.13.0, which lifted its
