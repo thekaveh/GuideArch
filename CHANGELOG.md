@@ -92,6 +92,15 @@ behavior change a user-facing release note would call out.
   `register_theme` / C# `RegisterTheme` parity surface).
 
 ### Fixed
+- Python web mode: the NiceGUI `index()` page handler runs once per browser
+  connection but subscribes to the process-global `AppVM`/`ScenarioVM`
+  singletons. The three `property_changed` subscriptions were never disposed
+  and there was no disconnect teardown, so subscribers accumulated on the
+  shared subjects across reloads/clients (a slow leak; stale callbacks also
+  fired into dead element trees). The subscriptions are now collected and
+  released via `ui.context.client.on_disconnect`. Native mode (single client)
+  was effectively unaffected; TS (`$store`/`onMount` teardown) and C#
+  (app-lifetime window) were already correct.
 - All three impls now reject `NaN` / `±Infinity` at the
   `addProperty(weight)` / `updateProperty(weight)` /
   `updateCoefficient(lower, modal, upper)` mutation boundary.
