@@ -47,8 +47,10 @@
   </span>
   {#if $warningsStore.length > 0}
     <!-- Visible danger-red chip (design-system §5.6 / spec table; distinct
-         from the amber unsaved chip). Navigable; the region above announces. -->
-    <span class="warn-chip" title={$warningsStore.join('\n')}>
+         from the amber unsaved chip). Decorative: the sr-only region above
+         carries the accessible text, so this is aria-hidden to avoid a
+         double announcement and the bare ⚠ reading as "warning sign". -->
+    <span class="warn-chip" title={$warningsStore.join('\n')} aria-hidden="true">
       ⚠ {$warningsStore.length} warning{$warningsStore.length !== 1 ? 's' : ''}
     </span>
   {/if}
