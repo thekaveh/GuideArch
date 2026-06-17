@@ -722,6 +722,86 @@ public class VMTreeComprehensiveTests
     }
 
     [Fact]
+    public void Mutator_UpdateDependencyConstraint_ChangesEndpointsAndDirties()
+    {
+        var (vm, cmds) = CreateWithMinimalScenario();
+        var alts = vm.Model.Scenario!.Alternatives;
+        cmds.Mutator.AddDependencyConstraint(alts[0].Id, alts[1].Id);
+
+        cmds.Mutator.UpdateDependencyConstraint(0, alts[0].Id, alts[2].Id);
+
+        var dc = (DependencyConstraintM)vm.Model.Scenario!.Constraints[0];
+        Assert.Equal(alts[0].Id, dc.SourceAlternativeId);
+        Assert.Equal(alts[2].Id, dc.TargetAlternativeId);
+        Assert.True(vm.Model.IsDirty);
+
+        // null args preserve existing endpoints (no-op path).
+        cmds.Mutator.UpdateDependencyConstraint(0, null, null);
+        var dc2 = (DependencyConstraintM)vm.Model.Scenario!.Constraints[0];
+        Assert.Equal(alts[0].Id, dc2.SourceAlternativeId);
+        Assert.Equal(alts[2].Id, dc2.TargetAlternativeId);
+    }
+
+    [Fact]
+    public void Mutator_UpdateDependencyConstraint_RejectsSelfEdgeBadIndexAndWrongKind()
+    {
+        var (vm, cmds) = CreateWithMinimalScenario();
+        var alts = vm.Model.Scenario!.Alternatives;
+        cmds.Mutator.AddDependencyConstraint(alts[0].Id, alts[1].Id);
+
+        // Self-edge (source == target) is rejected at the mutation boundary.
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateDependencyConstraint(0, alts[1].Id, alts[1].Id));
+        // Out-of-range global index.
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateDependencyConstraint(5, alts[0].Id, alts[2].Id));
+        // Wrong kind: index 1 is a conflict, not a dependency.
+        cmds.Mutator.AddConflictConstraint(alts[0].Id, alts[2].Id);
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateDependencyConstraint(1, alts[0].Id, alts[1].Id));
+    }
+
+    [Fact]
+    public void Mutator_UpdateConflictConstraint_ChangesEndpointsAndDirties()
+    {
+        var (vm, cmds) = CreateWithMinimalScenario();
+        var alts = vm.Model.Scenario!.Alternatives;
+        cmds.Mutator.AddConflictConstraint(alts[0].Id, alts[1].Id);
+
+        cmds.Mutator.UpdateConflictConstraint(0, alts[0].Id, alts[2].Id);
+
+        var cc = (ConflictConstraintM)vm.Model.Scenario!.Constraints[0];
+        Assert.Equal(alts[0].Id, cc.AlternativeAId);
+        Assert.Equal(alts[2].Id, cc.AlternativeBId);
+        Assert.True(vm.Model.IsDirty);
+
+        // null args preserve existing endpoints (no-op path).
+        cmds.Mutator.UpdateConflictConstraint(0, null, null);
+        var cc2 = (ConflictConstraintM)vm.Model.Scenario!.Constraints[0];
+        Assert.Equal(alts[0].Id, cc2.AlternativeAId);
+        Assert.Equal(alts[2].Id, cc2.AlternativeBId);
+    }
+
+    [Fact]
+    public void Mutator_UpdateConflictConstraint_RejectsSelfEdgeBadIndexAndWrongKind()
+    {
+        var (vm, cmds) = CreateWithMinimalScenario();
+        var alts = vm.Model.Scenario!.Alternatives;
+        cmds.Mutator.AddConflictConstraint(alts[0].Id, alts[1].Id);
+
+        // Self-edge (A == B) is rejected at the mutation boundary.
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateConflictConstraint(0, alts[1].Id, alts[1].Id));
+        // Out-of-range global index.
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateConflictConstraint(5, alts[0].Id, alts[2].Id));
+        // Wrong kind: index 1 is a dependency, not a conflict.
+        cmds.Mutator.AddDependencyConstraint(alts[0].Id, alts[2].Id);
+        Assert.Throws<ScenarioMutationException>(
+            () => cmds.Mutator.UpdateConflictConstraint(1, alts[0].Id, alts[1].Id));
+    }
+
+    [Fact]
     public void Mutator_WeightAndCoefficient_RejectNonFiniteValues()
     {
         // NaN <= 0 is false, so a bare >0 guard would let NaN through and
