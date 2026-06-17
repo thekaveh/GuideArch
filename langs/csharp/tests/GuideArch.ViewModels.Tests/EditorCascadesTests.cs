@@ -382,4 +382,38 @@ public class EditorCascadesTests
         Assert.Throws<ScenarioMutationException>(
             () => mutator.AddProperty(name: null, kind: null, weight: -1.0));
     }
+
+    [Fact]
+    public void DeleteDecision_ScenarioValidatesAgainstSchema()
+    {
+        // spec/editors.md §6: after a delete cascade the scenario must still
+        // validate against the JSON schema. Save+reload runs the schema-
+        // validating loader, so a clean reload proves schema validity (not
+        // just the manual cross-reference checks above).
+        var vm = ScenarioVMFactory.Create();
+        var cmds = ScenarioVMFactory.GetCommands(vm);
+        cmds.OpenCmd.Execute(FindSasJsonPath());
+        var decision = vm.Model.Scenario!.Decisions[0];
+
+        cmds.Mutator.DeleteDecision(decision.Id);
+
+        var tempPath = Path.GetTempFileName() + ".json";
+        try
+        {
+            cmds.SaveAsCmd.Execute(tempPath);
+
+            var vm2 = ScenarioVMFactory.Create();
+            var cmds2 = ScenarioVMFactory.GetCommands(vm2);
+            cmds2.OpenCmd.Execute(tempPath);
+
+            // OpenCmd leaves Scenario null if the loader rejects the file
+            // (schema or invariant violation); a populated scenario == valid.
+            Assert.NotNull(vm2.Model.Scenario);
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+                File.Delete(tempPath);
+        }
+    }
 }

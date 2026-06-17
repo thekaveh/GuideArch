@@ -12,6 +12,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { fileURLToPath } from 'url';
 import { makeScenarioVm, ScenarioMutationError } from '../../src/viewmodels/scenario-vm.js';
 import type { ScenarioVM } from '../../src/viewmodels/scenario-vm.js';
@@ -86,6 +87,31 @@ describe('deleteDecision cascade', () => {
       } else if (c.kind === 'conflict') {
         expect(removedSet.has(c.alternativeAId)).toBe(false);
         expect(removedSet.has(c.alternativeBId)).toBe(false);
+      }
+    }
+  });
+
+  it('leaves a scenario that re-validates against the JSON schema', () => {
+    // spec/editors.md §6: the cascaded scenario must still validate against
+    // the JSON schema. Saving then reopening runs the schema-validating
+    // loader, so a clean reload proves schema validity (not just removal).
+    const tempPath = path.join(
+      os.tmpdir(),
+      `guidearch-cascade-${Date.now()}-${Math.random().toString(36).slice(2)}.json`,
+    );
+    try {
+      vm.saveAsCmd.execute(tempPath);
+      expect(fs.existsSync(tempPath)).toBe(true);
+
+      const vm2 = makeScenarioVm();
+      vm2.openCmd.execute(tempPath);
+      // openCmd leaves scenario undefined if the loader rejects the file.
+      expect(vm2.model.scenario).toBeDefined();
+    } finally {
+      try {
+        fs.unlinkSync(tempPath);
+      } catch {
+        // ignore cleanup failure
       }
     }
   });
