@@ -20,7 +20,7 @@ Three implementations of the same application, kept in conformance by a shared s
 | 2.2 | C# | [Avalonia 12](https://avaloniaui.net) | ✓ | deferred to v1.1 (see `spec/release.md` §1.2) |
 | 2.3 | Python | [NiceGUI 3.x](https://nicegui.io) | ✓ (pywebview) | ✓ |
 
-All three are built on the [VMx](https://github.com/thekaveh/VMx) MVVM framework, included as a git submodule at `vendor/vmx/`.
+All three are built on the [VMx](https://github.com/thekaveh/VMx) MVVM framework. The **Python** impl consumes VMx from its published [PyPI package](https://pypi.org/project/vmx/); the **TypeScript** and **C#** impls build VMx from the git submodule at `vendor/vmx/` (their npm/NuGet packages are not yet published). See [ADR-0001](spec/ADRs/0001-three-impls-vmx-submodule.md).
 
 ## 3. Documentation hub
 
@@ -62,7 +62,7 @@ Numbered rationale for each non-obvious design choice. Read when questioning *wh
 
 ```
 spec/                language-neutral spec (schema, algorithms, conformance corpus, ADRs)
-vendor/vmx/          VMx submodule (do not edit directly; PR upstream)
+vendor/vmx/          VMx submodule for the TS + C# builds, and optional Python co-dev (do not edit directly; PR upstream)
 langs/typescript/    TS + Tauri 2 + Svelte 5 implementation
 langs/csharp/        C# + Avalonia 12 implementation
 langs/python/        Python + NiceGUI 3.x implementation
@@ -70,11 +70,13 @@ tools/               cross-cutting scripts (VMx mode switch, legacy XML import)
 .github/             CI workflows, issue/PR templates, dependabot config
 ```
 
+Each implementation has its own README with language-specific setup, run, and test detail: [TypeScript](langs/typescript/README.md) · [C#](langs/csharp/README.md) · [Python](langs/python/README.md).
+
 ## 5. Quickstart
 
 ### 5.0 Clone with submodules
 
-VMx lives at `vendor/vmx/`. Without it initialized, every impl below fails because VMx imports won't resolve.
+The **TypeScript** and **C#** impls build VMx from the submodule at `vendor/vmx/`; without it initialized, those two fail because VMx imports won't resolve. The **Python** impl pulls VMx from PyPI and works from a plain clone — initialize the submodule only if you also build TS/C# or co-develop VMx's Python port via `tools/use-vmx-local.sh`.
 
 ```bash
 git clone --recurse-submodules https://github.com/thekaveh/GuideArch.git
@@ -189,7 +191,7 @@ The Python `--all-extras` flag installs the `dev` group (`pytest`, `mypy`, `ruff
 | TS web shows blank page | Stale build with module-init filesystem access | Pull latest; re-run `pnpm dev` |
 | `pnpm tauri dev` fails with cargo errors | Rust toolchain too old or missing Linux deps | Re-run rustup; on Ubuntu install `libwebkit2gtk-4.1-dev libsoup-3.0-dev` |
 | `dotnet run` says "must install .NET 8" | No .NET 8 runtime installed | Install .NET 8 runtime or rely on `RollForward=Major` (already set in `Directory.Build.props`) |
-| `uv run guidearch` fails on import | submodule not initialised | `git submodule update --init` |
+| `uv run guidearch` fails on `import vmx` | venv out of sync with the lockfile | Re-run `uv sync` (vmx installs from PyPI); if you switched to the editable submodule via `tools/use-vmx-local.sh`, ensure `vendor/vmx/` is initialised (`git submodule update --init`) |
 | OS file picker never appears | macOS file permissions for the terminal app | System Settings → Privacy → Files & Folders |
 
 ## 6. License

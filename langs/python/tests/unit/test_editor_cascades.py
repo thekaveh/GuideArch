@@ -158,6 +158,28 @@ def test_delete_decision_leaves_valid_cross_refs(vm: ScenarioVM) -> None:
     _assert_cross_refs_valid(vm)
 
 
+def test_delete_decision_scenario_validates_against_schema(vm: ScenarioVM, tmp_path: Path) -> None:
+    """spec/editors.md §6: the cascaded scenario must still validate against
+    the JSON schema. Saving then reopening runs the schema-validating loader,
+    so a clean reload proves schema validity (not just manual cross-refs)."""
+    s = vm.scenario
+    assert s is not None
+    vm.delete_decision(s.decisions[0].id)
+
+    save_path = tmp_path / "post_cascade.json"
+    vm.save_as_cmd.execute(str(save_path))
+    assert save_path.exists(), "save_as_cmd should have written the file"
+
+    vm2 = make_scenario_vm()
+    vm2.open_cmd.execute(str(save_path))
+    try:
+        # open_cmd leaves scenario None if the loader rejects the file
+        # (schema or invariant violation); a populated scenario == valid.
+        assert vm2.scenario is not None, "post-cascade scenario failed to reload"
+    finally:
+        vm2.dispose()
+
+
 def test_delete_decision_not_found_raises(vm: ScenarioVM) -> None:
     with pytest.raises(ValueError, match="not found"):
         vm.delete_decision("d-nonexistent")

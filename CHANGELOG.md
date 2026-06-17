@@ -9,7 +9,24 @@ The format is loosely [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). 
 Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
 behavior change a user-facing release note would call out.
 
+### Changed
+- Python now consumes VMx from the published PyPI package (`vmx>=2.6.0`)
+  instead of the `vendor/vmx/` git submodule. The `[tool.uv.sources]`
+  editable override is commented out by default, so a plain `uv sync`
+  resolves `vmx` from PyPI; `tools/use-vmx-local.sh` still restores the
+  editable submodule for VMx co-development. Knock-on simplifications: the
+  Python `Dockerfile` drops the `vendor/vmx` copy (build context is now
+  `langs/python/`), and `python.yml` no longer checks out submodules or
+  triggers on `vendor/vmx/**`. The submodule is retained for the TypeScript
+  and C# builds (their npm/NuGet packages are not yet published); see
+  ADR-0001's 2026-06-16 update.
+
 ### Security
+- Python `starlette` 1.2.0 → 1.3.1 (CVE-2026-54283, CVE-2026-54282) and
+  `python-multipart` 0.0.29 → 0.0.32 (CVE-2026-53540, CVE-2026-53539,
+  CVE-2026-53538), both transitive via NiceGUI. NiceGUI 3.13.0 already
+  allows `starlette>=0.49.1` and `python-multipart>=0.0.27`, so the bumps
+  are pure `uv.lock` upgrades; `pip-audit` on the project venv is now clean.
 - Python `aiohttp` 3.13.5 → 3.14.1, closing CVE-2026-34993 and
   CVE-2026-47265. Unblocked by NiceGUI 3.13.0, which lifted its
   `aiohttp` cap to `>=3.14.0`; the project's `nicegui` floor is now
@@ -20,7 +37,7 @@ behavior change a user-facing release note would call out.
   only `python-docker` (`packages: write`) and `release`
   (`contents: write`) escalate. `vmx-bump.yml`'s check job dropped an
   unused `contents: write` grant.
-- Python Docker base images (`python:3.12-slim`, `astral-sh/uv:0.8`)
+- Python Docker base images (`python:3.14-slim`, `astral-sh/uv:0.8`)
   are now digest-pinned for reproducible builds; Dependabot's docker
   ecosystem keeps digest pins fresh.
 - TypeScript `vitest` devDependency bumped from `^2.0.0` to `^3.2.6` to
@@ -62,8 +79,34 @@ behavior change a user-facing release note would call out.
   corpus tolerance change can't silently diverge from this suite any
   more. Missing expected files are now a conformance FAILURE rather
   than a silent skip, matching the TS + Python runners.
+- All three impls now assert the delete-cascade leaves a scenario that
+  re-validates against the JSON schema (spec/editors.md §6), via a
+  save+reload through the schema-validating loader — previously the
+  cascade tests only checked entity removal / manual cross-refs.
+- C# `VMTreeComprehensiveTests` cover the previously untested
+  `UpdateDependencyConstraint` / `UpdateConflictConstraint` mutators
+  (endpoint change + dirty, null-arg no-op, self-edge / out-of-range /
+  wrong-kind rejection), matching their threshold sibling's coverage.
+- TypeScript adds coverage for `_browserMarkSaved` (the browser
+  out-of-band save hook) and `registerTheme` (the Python
+  `register_theme` / C# `RegisterTheme` parity surface).
+- C# conformance suite no longer risks a vacuously-green pass: the
+  `ScenarioNames()` `[MemberData]` provider previously swallowed a missing
+  corpus directory and returned an empty set (xUnit then ran zero theory
+  cases and reported PASS). It now lets a missing corpus throw — matching
+  the TS and Python runners — and a new `ConformanceCorpus_IsDiscoveredAndNonEmpty`
+  guard test pins that `sas`/`eds` are discovered.
 
 ### Fixed
+- Python web mode: the NiceGUI `index()` page handler runs once per browser
+  connection but subscribes to the process-global `AppVM`/`ScenarioVM`
+  singletons. The three `property_changed` subscriptions were never disposed
+  and there was no disconnect teardown, so subscribers accumulated on the
+  shared subjects across reloads/clients (a slow leak; stale callbacks also
+  fired into dead element trees). The subscriptions are now collected and
+  released via `ui.context.client.on_disconnect`. Native mode (single client)
+  was effectively unaffected; TS (`$store`/`onMount` teardown) and C#
+  (app-lifetime window) were already correct.
 - All three impls now reject `NaN` / `±Infinity` at the
   `addProperty(weight)` / `updateProperty(weight)` /
   `updateCoefficient(lower, modal, upper)` mutation boundary.
@@ -459,12 +502,30 @@ behavior change a user-facing release note would call out.
   announced when it changes; the tab strip's `Author` / `Analysis`
   group labels carry `role="heading"` `aria-level="3"` so screen
   readers can jump between the two groups.
+- TypeScript Svelte view: further a11y refinements — the active tab
+  button now carries `aria-current="page"`; and the status-bar warning
+  announcement moved from a conditionally-mounted `aria-live` chip to an
+  always-mounted visually-hidden (`position:absolute`) live region, so a
+  0→N warning transition is reliably announced (a freshly-mounted,
+  already-populated live region can be missed by assistive tech).
 - C# `Solver.AltContribution` now emits `Console.Error.WriteLine` when
   a per-property normalizer is zero, with the same message text as the
   Python `warnings.warn` and TS `console.warn` (invariants.md §10.1).
   Previously C# was the only impl that skipped the property silently.
 
 ### Docs
+- `spec/viewmodels.md` reconciled with the impls: §5.3 now blesses
+  TypeScript's per-field property-update surface
+  (`updatePropertyName`/`updatePropertyKind`/`updatePropertyWeight`) as
+  equivalent to the combined `update_property`/`UpdateProperty`, mirroring
+  §5.5's constraint-mutator split; §3.4 drops the stale
+  "(Python adds a sixth on `mode`)" note — mode-immutability is mandatory
+  test 5 for all impls. `spec/ADRs/0001` documents the accepted, temporary
+  VMx version skew (Python 2.6.0 via PyPI vs TS/C# 2.1.x via submodule),
+  which the conformance corpus proves behaviour-equivalent.
+- `README.md` now links each `langs/<impl>/README.md` (TypeScript / C# /
+  Python) right after the repository-layout block, so the per-impl setup
+  docs are reachable from the entry point, not just named.
 - `CONTRIBUTING.md` visual-harness setup now reads
   `uv sync --all-extras --group visual` (was missing `--all-extras`;
   per the project's documented invariant, plain `uv sync` strips the

@@ -1,5 +1,10 @@
 name: vmx-bump
 
+# Nudges bumping the vendor/vmx submodule commit pin, which now governs only the
+# TypeScript and C# builds — the Python impl tracks VMx via the PyPI `vmx` pin in
+# langs/python/pyproject.toml (bump that separately, e.g. via Dependabot's pip
+# ecosystem), independent of the submodule SHA.
+
 on:
   schedule:
     - cron: '0 8 * * 1'  # Mondays at 08:00 UTC
@@ -72,5 +77,5 @@ jobs:
               owner: context.repo.owner, repo: context.repo.repo,
               title,
               labels: ['vmx-bump'],
-              body: `VMx submodule is pinned at \`${currentDesc}\` (\`${shortCurrent}\`), but upstream \`main\` is at \`${upstreamDesc}\` (\`${shortUpstream}\`).\n\nTo bump:\n\`\`\`bash\ncd vendor/vmx && git checkout ${upstreamSha} && cd ../..\ngit add vendor/vmx && git commit -m "build: bump VMx submodule to ${shortUpstream} (${upstreamDesc})"\n\`\`\``
+              body: `VMx submodule is pinned at \`${currentDesc}\` (\`${shortCurrent}\`), but upstream \`main\` is at \`${upstreamDesc}\` (\`${shortUpstream}\`).\n\nThis pin drives the **TypeScript** and **C#** builds only — the **Python** impl tracks the PyPI \`vmx\` package via \`langs/python/pyproject.toml\` and is unaffected by this bump.\n\nTo bump:\n\`\`\`bash\ncd vendor/vmx && git checkout ${upstreamSha} && cd ../..\ngit add vendor/vmx && git commit -m "build: bump VMx submodule to ${shortUpstream} (${upstreamDesc})"\n\`\`\``
             });

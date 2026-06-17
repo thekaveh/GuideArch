@@ -55,12 +55,25 @@ public class ConformanceTests
 
     public static IEnumerable<object[]> ScenarioNames()
     {
-        string specDir;
-        try { specDir = FindSpecConformanceDir(); }
-        catch { return Enumerable.Empty<object[]>(); }
-
+        // Do NOT swallow a missing corpus here: if FindSpecConformanceDir threw
+        // and we returned an empty set, xUnit would run zero theory cases and
+        // report conformance vacuously GREEN. The TS and Python runners throw on
+        // a missing corpus; matching that, a path regression must fail loudly.
+        string specDir = FindSpecConformanceDir();
         var files = Directory.GetFiles(Path.Combine(specDir, "scenarios"), "*.json");
         return files.Select(f => new object[] { Path.GetFileNameWithoutExtension(f).ToLowerInvariant() });
+    }
+
+    [Fact]
+    public void ConformanceCorpus_IsDiscoveredAndNonEmpty()
+    {
+        // Guards against a vacuously-green conformance suite: if the corpus
+        // directory moved or emptied, the [Theory] above would silently run
+        // zero cases. This fails loudly instead, and pins the known scenarios.
+        var names = ScenarioNames().Select(row => (string)row[0]).ToList();
+        Assert.NotEmpty(names);
+        Assert.Contains("sas", names);
+        Assert.Contains("eds", names);
     }
 
     [Theory]

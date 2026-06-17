@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - 'langs/python/**'
-      - 'vendor/vmx/**'
       - 'spec/**'
       - '.github/workflows/python.yml'
   pull_request:
@@ -30,9 +29,10 @@ jobs:
       run:
         working-directory: langs/python
     steps:
+      # vmx is resolved from PyPI, so this build no longer needs the vendor/vmx
+      # submodule checked out (unlike conformance.yml / release.yml, which still
+      # build the TS and C# impls from the submodule).
       - uses: actions/checkout@v6
-        with:
-          submodules: recursive
 
       - uses: actions/setup-python@v6
         with:

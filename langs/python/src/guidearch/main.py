@@ -37,6 +37,7 @@ from collections.abc import Callable
 from typing import Any
 
 from nicegui import ui
+from reactivex.abc import DisposableBase
 
 from guidearch.view.theme import inject_css
 from guidearch.viewmodels.app_vm import AppVM, Mode, make_app_vm
@@ -1606,6 +1607,13 @@ def index() -> None:
     app_vm = _get_app_vm()
     vm = app_vm.scenario
 
+    # index() runs once per browser connection (ui.page("/")), but app_vm/vm are
+    # process-global singletons. Collect every view-layer subscription on their
+    # shared subjects here and dispose them on client disconnect — otherwise
+    # subscribers accumulate across reloads/clients and stale callbacks keep
+    # firing into dead element trees (web mode).
+    _subs: list[DisposableBase] = []
+
     # Theme observable → NiceGUI Quasar dark mode. AppVM owns the source
     # of truth; we apply it here so a future theme picker can flip
     # ui.dark_mode() from one place.
@@ -1622,7 +1630,7 @@ def index() -> None:
             _apply_theme()
 
     _apply_theme()
-    app_vm.property_changed.subscribe(on_next=_on_property_changed)
+    _subs.append(app_vm.property_changed.subscribe(on_next=_on_property_changed))
     inject_css()
     ui.add_head_html("<style>.sticky-top { position: sticky; top: 0; z-index: 10; }</style>")
 
@@ -1791,7 +1799,7 @@ def index() -> None:
                     return
                 theme_btn.props(f"icon={'dark_mode' if app_vm.theme == 'light' else 'light_mode'}")
 
-            app_vm.property_changed.subscribe(on_next=_refresh_theme_icon)
+            _subs.append(app_vm.property_changed.subscribe(on_next=_refresh_theme_icon))
 
             # §5.1 Primary button: accent bg, accent-on text, 8/16 padding, 6px radius
             ui.button(
@@ -1923,7 +1931,15 @@ def index() -> None:
             else:
                 save_btn.props(add="disabled")
 
-    vm.property_changed.subscribe(on_next=_on_vm_change)
+    _subs.append(vm.property_changed.subscribe(on_next=_on_vm_change))
+
+    # Release every collected subscription when this client disconnects, so the
+    # process-global VM subjects don't accumulate subscribers across reloads.
+    def _dispose_subs() -> None:
+        for _s in _subs:
+            _s.dispose()
+
+    ui.context.client.on_disconnect(_dispose_subs)
 
     # v1.0: no debounce timer — re-solve happens synchronously inside
     # ScenarioVM._apply_scenario_mutation when an editor calls a mutator.

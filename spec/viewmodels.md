@@ -82,7 +82,7 @@ Each impl round-trips the active theme through its native preferences location, 
 
 ### 3.4 Conformance requirements
 
-Every impl ships at least the five mandatory unit tests below (Python adds a sixth on the read-only `mode` property):
+Every impl ships the five mandatory unit tests below (mode-immutability is test 5, shared by all impls), plus the sixth probe noted after:
 
 1. Default theme = `"dark"` when persistence is empty.
 2. Theme round-trips through the persistence layer (write via one `AppVM`, read by a fresh one).
@@ -160,9 +160,16 @@ Implementation guidance for v1.0: re-solve **synchronously** on each mutation (s
 - Observable: `id` (read-only), `name` (read-write), `kind` (read-write `'min' | 'max'`), `weight` (read-write `> 0`).
 - Changing `kind` or `weight` triggers a solve.
 - **Mutator boundary:** the `weight > 0` invariant is enforced on **both**
-  the Add and Update paths in every impl (`addProperty`/`add_property`/
-  `AddProperty` and `updateProperty`/`update_property`/`UpdateProperty`).
-  A caller passing `weight <= 0` to any of these gets `ScenarioMutationError`
+  the Add and Update paths in every impl. Two equivalent update surfaces are
+  permitted (mirroring the constraint-mutator split in §5.5):
+  - **Combined (Python, C#):** a single `update_property`/`UpdateProperty`
+    taking `(id, name?, kind?, weight?)`.
+  - **Per-field (TypeScript):** `updatePropertyName` / `updatePropertyKind` /
+    `updatePropertyWeight`, matching the reactive per-field commit the Svelte
+    Properties tab performs on blur.
+
+  Whichever surface an impl exposes, the weight-setting path enforces the
+  boundary: a caller passing `weight <= 0` gets `ScenarioMutationError`
   (TS+Py) or `ScenarioMutationException` (C#) at the mutation boundary —
   not silently accepted to fail later at save-time schema validation. The
   add-side surface in all three impls takes the same three optional

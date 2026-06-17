@@ -37,8 +37,20 @@
   {#if $isDirtyStore}
     <span class="dirty-chip">unsaved</span>
   {/if}
+  <!-- Always-mounted visually-hidden live region: announcing changed text
+       inside a persistent region is more reliable than mounting an already-
+       populated one, so a 0->N warning transition is announced. -->
+  <span class="sr-only" aria-live="polite" aria-atomic="true">
+    {#if $warningsStore.length > 0}
+      {$warningsStore.length} warning{$warningsStore.length !== 1 ? 's' : ''}
+    {/if}
+  </span>
   {#if $warningsStore.length > 0}
-    <span class="warn-chip" title={$warningsStore.join('\n')} aria-live="polite" aria-atomic="true">
+    <!-- Visible danger-red chip (design-system §5.6 / spec table; distinct
+         from the amber unsaved chip). Decorative: the sr-only region above
+         carries the accessible text, so this is aria-hidden to avoid a
+         double announcement and the bare ⚠ reading as "warning sign". -->
+    <span class="warn-chip" title={$warningsStore.join('\n')} aria-hidden="true">
       ⚠ {$warningsStore.length} warning{$warningsStore.length !== 1 ? 's' : ''}
     </span>
   {/if}
@@ -107,6 +119,20 @@
     border-radius: 10px;
     font-size: 11px;
     font-weight: 500;
+  }
+
+  /* Visually-hidden live region. position:absolute keeps the always-mounted
+     host out of the flex flow so it adds no gap when empty. */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .warn-chip {
