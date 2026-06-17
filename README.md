@@ -70,6 +70,8 @@ tools/               cross-cutting scripts (VMx mode switch, legacy XML import)
 .github/             CI workflows, issue/PR templates, dependabot config
 ```
 
+Each implementation has its own README with language-specific setup, run, and test detail: [TypeScript](langs/typescript/README.md) · [C#](langs/csharp/README.md) · [Python](langs/python/README.md).
+
 ## 5. Quickstart
 
 ### 5.0 Clone with submodules

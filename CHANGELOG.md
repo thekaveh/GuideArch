@@ -79,6 +79,17 @@ behavior change a user-facing release note would call out.
   corpus tolerance change can't silently diverge from this suite any
   more. Missing expected files are now a conformance FAILURE rather
   than a silent skip, matching the TS + Python runners.
+- All three impls now assert the delete-cascade leaves a scenario that
+  re-validates against the JSON schema (spec/editors.md §6), via a
+  save+reload through the schema-validating loader — previously the
+  cascade tests only checked entity removal / manual cross-refs.
+- C# `VMTreeComprehensiveTests` cover the previously untested
+  `UpdateDependencyConstraint` / `UpdateConflictConstraint` mutators
+  (endpoint change + dirty, null-arg no-op, self-edge / out-of-range /
+  wrong-kind rejection), matching their threshold sibling's coverage.
+- TypeScript adds coverage for `_browserMarkSaved` (the browser
+  out-of-band save hook) and `registerTheme` (the Python
+  `register_theme` / C# `RegisterTheme` parity surface).
 
 ### Fixed
 - All three impls now reject `NaN` / `±Infinity` at the
@@ -476,12 +487,30 @@ behavior change a user-facing release note would call out.
   announced when it changes; the tab strip's `Author` / `Analysis`
   group labels carry `role="heading"` `aria-level="3"` so screen
   readers can jump between the two groups.
+- TypeScript Svelte view: further a11y refinements — the active tab
+  button now carries `aria-current="page"`; and the status-bar warning
+  announcement moved from a conditionally-mounted `aria-live` chip to an
+  always-mounted visually-hidden (`position:absolute`) live region, so a
+  0→N warning transition is reliably announced (a freshly-mounted,
+  already-populated live region can be missed by assistive tech).
 - C# `Solver.AltContribution` now emits `Console.Error.WriteLine` when
   a per-property normalizer is zero, with the same message text as the
   Python `warnings.warn` and TS `console.warn` (invariants.md §10.1).
   Previously C# was the only impl that skipped the property silently.
 
 ### Docs
+- `spec/viewmodels.md` reconciled with the impls: §5.3 now blesses
+  TypeScript's per-field property-update surface
+  (`updatePropertyName`/`updatePropertyKind`/`updatePropertyWeight`) as
+  equivalent to the combined `update_property`/`UpdateProperty`, mirroring
+  §5.5's constraint-mutator split; §3.4 drops the stale
+  "(Python adds a sixth on `mode`)" note — mode-immutability is mandatory
+  test 5 for all impls. `spec/ADRs/0001` documents the accepted, temporary
+  VMx version skew (Python 2.6.0 via PyPI vs TS/C# 2.1.x via submodule),
+  which the conformance corpus proves behaviour-equivalent.
+- `README.md` now links each `langs/<impl>/README.md` (TypeScript / C# /
+  Python) right after the repository-layout block, so the per-impl setup
+  docs are reachable from the entry point, not just named.
 - `CONTRIBUTING.md` visual-harness setup now reads
   `uv sync --all-extras --group visual` (was missing `--all-extras`;
   per the project's documented invariant, plain `uv sync` strips the
