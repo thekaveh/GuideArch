@@ -37,16 +37,21 @@
   {#if $isDirtyStore}
     <span class="dirty-chip">unsaved</span>
   {/if}
-  <!-- Persistent live region: the wrapper stays mounted so a 0->N warning
-       transition is announced. The visible danger-red chip (per design-system
-       §5.6 / spec table; distinct from the amber unsaved chip) renders inside. -->
-  <span class="warn-live" aria-live="polite" aria-atomic="true">
+  <!-- Always-mounted visually-hidden live region: announcing changed text
+       inside a persistent region is more reliable than mounting an already-
+       populated one, so a 0->N warning transition is announced. -->
+  <span class="sr-only" aria-live="polite" aria-atomic="true">
     {#if $warningsStore.length > 0}
-      <span class="warn-chip" title={$warningsStore.join('\n')}>
-        ⚠ {$warningsStore.length} warning{$warningsStore.length !== 1 ? 's' : ''}
-      </span>
+      {$warningsStore.length} warning{$warningsStore.length !== 1 ? 's' : ''}
     {/if}
   </span>
+  {#if $warningsStore.length > 0}
+    <!-- Visible danger-red chip (design-system §5.6 / spec table; distinct
+         from the amber unsaved chip). Navigable; the region above announces. -->
+    <span class="warn-chip" title={$warningsStore.join('\n')}>
+      ⚠ {$warningsStore.length} warning{$warningsStore.length !== 1 ? 's' : ''}
+    </span>
+  {/if}
 </footer>
 
 <style>
@@ -114,10 +119,18 @@
     font-weight: 500;
   }
 
-  /* Wrapper is display:contents so the always-mounted live region adds no
-     flex gap when empty; the visible chip lays out as before. */
-  .warn-live {
-    display: contents;
+  /* Visually-hidden live region. position:absolute keeps the always-mounted
+     host out of the flex flow so it adds no gap when empty. */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .warn-chip {

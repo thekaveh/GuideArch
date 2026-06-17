@@ -10,7 +10,12 @@
 import { describe, it, expect } from 'vitest';
 import { MessageHub, PropertyChangedMessage } from 'vmx';
 
-import { makeAppVm, DEFAULT_THEME, registerTheme } from '../../src/viewmodels/app-vm.js';
+import {
+  makeAppVm,
+  DEFAULT_THEME,
+  registerTheme,
+  KNOWN_THEMES,
+} from '../../src/viewmodels/app-vm.js';
 
 function makeStubPersistence() {
   let stored: string | null = null;
@@ -128,19 +133,23 @@ describe('AppVM', () => {
 
   it('registerTheme makes a custom theme acceptable to setTheme', () => {
     // Mirrors Python register_theme / C# RegisterTheme parity surface.
-    // Use a name no other test treats as "unknown".
+    // registerTheme mutates the module-global KNOWN_THEMES set, so restore it
+    // in finally to keep the test order-independent.
     registerTheme('high-contrast');
+    try {
+      const stub = makeStubPersistence();
+      const app = makeAppVm({
+        loadTheme: stub.load,
+        persistTheme: stub.save,
+        mode: 'web',
+      });
 
-    const stub = makeStubPersistence();
-    const app = makeAppVm({
-      loadTheme: stub.load,
-      persistTheme: stub.save,
-      mode: 'web',
-    });
-
-    app.setTheme('high-contrast');
-    expect(app.model.theme).toBe('high-contrast');
-    expect(app.model.warnings.length).toBe(0);
-    expect(stub.peek()).toBe('high-contrast');
+      app.setTheme('high-contrast');
+      expect(app.model.theme).toBe('high-contrast');
+      expect(app.model.warnings.length).toBe(0);
+      expect(stub.peek()).toBe('high-contrast');
+    } finally {
+      KNOWN_THEMES.delete('high-contrast');
+    }
   });
 });
