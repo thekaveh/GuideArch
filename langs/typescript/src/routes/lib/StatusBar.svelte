@@ -37,11 +37,16 @@
   {#if $isDirtyStore}
     <span class="dirty-chip">unsaved</span>
   {/if}
-  {#if $warningsStore.length > 0}
-    <span class="warn-chip" title={$warningsStore.join('\n')} aria-live="polite" aria-atomic="true">
-      ⚠ {$warningsStore.length} warning{$warningsStore.length !== 1 ? 's' : ''}
-    </span>
-  {/if}
+  <!-- Persistent live region: the wrapper stays mounted so a 0->N warning
+       transition is announced. The visible danger-red chip (per design-system
+       §5.6 / spec table; distinct from the amber unsaved chip) renders inside. -->
+  <span class="warn-live" aria-live="polite" aria-atomic="true">
+    {#if $warningsStore.length > 0}
+      <span class="warn-chip" title={$warningsStore.join('\n')}>
+        ⚠ {$warningsStore.length} warning{$warningsStore.length !== 1 ? 's' : ''}
+      </span>
+    {/if}
+  </span>
 </footer>
 
 <style>
@@ -107,6 +112,12 @@
     border-radius: 10px;
     font-size: 11px;
     font-weight: 500;
+  }
+
+  /* Wrapper is display:contents so the always-mounted live region adds no
+     flex gap when empty; the visible chip lays out as before. */
+  .warn-live {
+    display: contents;
   }
 
   .warn-chip {

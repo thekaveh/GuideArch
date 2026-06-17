@@ -58,7 +58,12 @@
     {#if i === 0}
       <span class="group-label" role="heading" aria-level="3">Author</span>
     {/if}
-    <button class="tab-btn" class:active={tab === active} on:click={() => onSelect(tab)}>
+    <button
+      class="tab-btn"
+      class:active={tab === active}
+      aria-current={tab === active ? 'page' : undefined}
+      on:click={() => onSelect(tab)}
+    >
       <svg
         class="tab-icon"
         width="14"

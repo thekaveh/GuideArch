@@ -91,6 +91,8 @@
               {#each top50 as c (c.rank)}
                 <tr
                   class:selected={c.rank === $selectedIndexStore}
+                  role="button"
+                  aria-pressed={c.rank === $selectedIndexStore}
                   tabindex={0}
                   on:click={() => vm.setSelectedCandidateIndex(c.rank)}
                   on:keydown={(e) => {

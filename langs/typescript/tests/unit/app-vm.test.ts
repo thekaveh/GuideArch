@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { MessageHub, PropertyChangedMessage } from 'vmx';
 
-import { makeAppVm, DEFAULT_THEME } from '../../src/viewmodels/app-vm.js';
+import { makeAppVm, DEFAULT_THEME, registerTheme } from '../../src/viewmodels/app-vm.js';
 
 function makeStubPersistence() {
   let stored: string | null = null;
@@ -124,5 +124,23 @@ describe('AppVM', () => {
     const before = app.scenario;
     app.setTheme('light');
     expect(app.scenario).toBe(before);
+  });
+
+  it('registerTheme makes a custom theme acceptable to setTheme', () => {
+    // Mirrors Python register_theme / C# RegisterTheme parity surface.
+    // Use a name no other test treats as "unknown".
+    registerTheme('high-contrast');
+
+    const stub = makeStubPersistence();
+    const app = makeAppVm({
+      loadTheme: stub.load,
+      persistTheme: stub.save,
+      mode: 'web',
+    });
+
+    app.setTheme('high-contrast');
+    expect(app.model.theme).toBe('high-contrast');
+    expect(app.model.warnings.length).toBe(0);
+    expect(stub.peek()).toBe('high-contrast');
   });
 });

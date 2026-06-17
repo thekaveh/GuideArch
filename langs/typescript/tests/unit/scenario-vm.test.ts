@@ -95,4 +95,30 @@ describe('ScenarioVM — sas.json integration', () => {
     const vm = makeScenarioVm();
     expect(vm.saveCmd.canExecute()).toBe(false);
   });
+
+  describe('_browserMarkSaved (browser out-of-band save hook)', () => {
+    it('clears isDirty and sets filePath when a path is given', () => {
+      const vm = makeScenarioVm();
+      vm.openCmd.execute(SAS_JSON);
+      vm.addDecision('Dirtying edit');
+      expect(vm.model.isDirty).toBe(true);
+
+      vm._browserMarkSaved('/downloads/sas-copy.json');
+
+      expect(vm.model.isDirty).toBe(false);
+      expect(vm.model.filePath).toBe('/downloads/sas-copy.json');
+    });
+
+    it('clears isDirty but leaves filePath unchanged when no path is given', () => {
+      const vm = makeScenarioVm();
+      vm.openCmd.execute(SAS_JSON);
+      vm.addDecision('Dirtying edit');
+      expect(vm.model.isDirty).toBe(true);
+
+      vm._browserMarkSaved();
+
+      expect(vm.model.isDirty).toBe(false);
+      expect(vm.model.filePath).toBe(SAS_JSON);
+    });
+  });
 });
