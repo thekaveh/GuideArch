@@ -90,6 +90,12 @@ behavior change a user-facing release note would call out.
 - TypeScript adds coverage for `_browserMarkSaved` (the browser
   out-of-band save hook) and `registerTheme` (the Python
   `register_theme` / C# `RegisterTheme` parity surface).
+- C# conformance suite no longer risks a vacuously-green pass: the
+  `ScenarioNames()` `[MemberData]` provider previously swallowed a missing
+  corpus directory and returned an empty set (xUnit then ran zero theory
+  cases and reported PASS). It now lets a missing corpus throw — matching
+  the TS and Python runners — and a new `ConformanceCorpus_IsDiscoveredAndNonEmpty`
+  guard test pins that `sas`/`eds` are discovered.
 
 ### Fixed
 - Python web mode: the NiceGUI `index()` page handler runs once per browser
