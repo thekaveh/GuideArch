@@ -654,7 +654,7 @@ requires-dist = [
     { name = "pywebview", specifier = ">=5.0" },
     { name = "reactivex", specifier = ">=4.0.4" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.17" },
-    { name = "vmx", specifier = ">=2.6.0" },
+    { name = "vmx", specifier = ">=2.6.1" },
 ]
 provides-extras = ["dev"]
 
@@ -2337,14 +2337,14 @@ wheels = [
 
 [[package]]
 name = "vmx"
-version = "2.6.0"
+version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "reactivex" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/64/c9/db2a96e0051935efb16e067dc089040258d355158eab79d7eb7bc085f7e4/vmx-2.6.0.tar.gz", hash = "sha256:d6fc8ff72194f8c4d86329f26abf6d32f6f556efdd3316328b445ff5a1a551f3", size = 169182, upload-time = "2026-06-17T00:17:29.441Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/40/ab/353333efd9ef565f69288e11aeadef90aaea6fa30d2c3f835ac3b421a947/vmx-2.6.1.tar.gz", hash = "sha256:df918db60f87f9e4406a44107f4c25ed7097c2de0e91c38b7922ef52f5875f8a", size = 170234, upload-time = "2026-06-17T02:28:59.652Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/55/f2f566143a3979016e62e0fed31ce44aac4228ae8b437708a4f536bba476/vmx-2.6.0-py3-none-any.whl", hash = "sha256:bad0cd0066951b925e05c87e1db31ca022116ab90d2caae8e5ac180e9eb2b6a8", size = 112274, upload-time = "2026-06-17T00:17:27.738Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/77/055d99bd02707c1fbf7752e613cca5bb7b34475b6edb3a790a552c487499/vmx-2.6.1-py3-none-any.whl", hash = "sha256:7fb6937046197bdd3b28537ca7a7204236354aa6c289b77301cc843eb552fc4c", size = 112362, upload-time = "2026-06-17T02:28:58.256Z" },
 ]
 
 [[package]]
