@@ -194,9 +194,11 @@ def _hero_illustration_svg() -> str:
     """Inline SVG for the three-triangle hero motif.
 
     Matches the TS EmptyState and C# hero Path geometry so the apps read
-    as the same product in side-by-side screenshots.
+    as the same product in side-by-side screenshots. The accent color is the
+    `--accent` CSS variable (not a literal) so the motif retints with the
+    active theme exactly like the TS hero.
     """
-    accent = "#8b5cf6"
+    accent = "var(--accent)"
     return (
         '<svg width="120" height="96" viewBox="0 0 120 96" fill="none" '
         'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
