@@ -1811,7 +1811,7 @@ def index() -> None:
                 "Solve",
                 icon="play_arrow",
                 on_click=lambda: _do_explicit_solve(vm),
-            ).props("color=primary")
+            ).props("color=primary").classes("guidearch-solve")
 
         # ── Tab strip (§5.4: 40px tall, border-subtle underline) ───────────
         # Material icons mirror the TS and C# tab icon assignments so the

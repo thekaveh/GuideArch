@@ -202,6 +202,41 @@ body {{
   font-weight: 600 !important;
 }}
 
+/* §3.2 Solve — the single loudest control. Dark = accent gradient + glow. */
+.guidearch-solve {{
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover)) !important;
+  color: var(--accent-on) !important;
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 2px 12px color-mix(in srgb, var(--accent) 45%, transparent) !important;
+  transition: box-shadow 120ms ease-out, filter 120ms ease-out !important;
+}}
+.guidearch-solve:hover {{
+  filter: brightness(1.05);
+  box-shadow:
+    0 0 0 1px var(--accent-hover),
+    0 4px 18px color-mix(in srgb, var(--accent) 55%, transparent) !important;
+}}
+.guidearch-solve.disabled,
+.guidearch-solve[disabled] {{
+  box-shadow: none !important;
+  filter: none !important;
+}}
+
+/* Light theme: flat accent fill + soft drop-shadow (no gradient, no glow). */
+body.body--light .guidearch-solve {{
+  background: var(--accent) !important;
+  box-shadow:
+    0 1px 3px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}}
+body.body--light .guidearch-solve:hover {{
+  background: var(--accent-hover) !important;
+  box-shadow:
+    0 2px 6px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}}
+
 /* Disable Quasar table zebra stripes */
 .q-table tbody tr:nth-child(even) {{
   background: var(--bg-page) !important;
