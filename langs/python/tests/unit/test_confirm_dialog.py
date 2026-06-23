@@ -11,7 +11,7 @@ def _func_body(name: str) -> str:
     return _SRC[start : nxt if nxt != -1 else len(_SRC)]
 
 
-def test_branded_dialog_helper_exists_with_spec_styling():
+def test_branded_dialog_helper_exists_with_spec_styling() -> None:
     body = _func_body("_branded_confirm_dialog")
     # §5.10 card: surface-3 fill, border-strong, max-width 28rem.
     assert "bg-[var(--bg-surface-3)]" in body
@@ -25,7 +25,7 @@ def test_branded_dialog_helper_exists_with_spec_styling():
     assert "keydown.esc" in body or "Escape" in body
 
 
-def test_delete_flows_route_through_the_branded_helper():
+def test_delete_flows_route_through_the_branded_helper() -> None:
     for fn in ("_do_delete_decision", "_do_delete_alternative", "_do_delete_property"):
         body = _func_body(fn)
         assert "_branded_confirm_dialog(" in body, (

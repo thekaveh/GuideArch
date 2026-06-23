@@ -12,14 +12,14 @@ def _chart_tabs_line() -> str:
     return _SRC[start:idx]
 
 
-def test_chart_subtabs_not_a_filled_pill():
+def test_chart_subtabs_not_a_filled_pill() -> None:
     line = _chart_tabs_line()
     assert "bg-[var(--bg-surface-2)]" not in line, (
         "right-rail sub-tabs must use the underline idiom, not a surface-2 pill (§6.4)"
     )
 
 
-def test_chart_subtabs_carry_strip_hairline():
+def test_chart_subtabs_carry_strip_hairline() -> None:
     line = _chart_tabs_line()
     assert "border-b" in line and "border-[var(--border-subtle)]" in line, (
         "right-rail sub-tab strip must carry the border-subtle underline"

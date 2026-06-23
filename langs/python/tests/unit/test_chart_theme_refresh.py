@@ -4,13 +4,13 @@ _MAIN = Path(__file__).resolve().parents[2] / "src" / "guidearch" / "main.py"
 _SRC = _MAIN.read_text(encoding="utf-8")
 
 
-def test_no_plan5_todo_marker_remains():
+def test_no_plan5_todo_marker_remains() -> None:
     assert "TODO(plan5)" not in _SRC, (
         "the plan5 chart-refresh deferral must be wired, not left as a marker"
     )
 
 
-def test_theme_toggle_re_renders_the_results_container():
+def test_theme_toggle_re_renders_the_results_container() -> None:
     # On a theme change, the results tab is cleared + re-rendered so the
     # mounted echarts rebuild from active_chart_tokens(theme). We assert the
     # index() body wires an app_vm theme subscription that re-renders
@@ -26,7 +26,7 @@ def test_theme_toggle_re_renders_the_results_container():
     assert "active_chart_tokens" in body
 
 
-def test_theme_subscription_is_disposed():
+def test_theme_subscription_is_disposed() -> None:
     # Any new app_vm subscription must be appended to _subs for disconnect cleanup.
     idx = _SRC.index("def index(")
     body = _SRC[idx:]

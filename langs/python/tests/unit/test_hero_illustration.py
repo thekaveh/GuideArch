@@ -10,13 +10,13 @@ def _func_body(name: str) -> str:
     return _SRC[start : nxt if nxt != -1 else len(_SRC)]
 
 
-def test_hero_illustration_uses_the_accent_token_not_hardcoded_hex():
+def test_hero_illustration_uses_the_accent_token_not_hardcoded_hex() -> None:
     body = _func_body("_hero_illustration_svg")
     assert "var(--accent)" in body, "hero motif must use var(--accent) so it retints"
     assert "#8b5cf6" not in body, "hero motif must not hardcode the dark accent hex"
 
 
-def test_hero_illustration_keeps_the_three_triangle_opacities():
+def test_hero_illustration_keeps_the_three_triangle_opacities() -> None:
     body = _func_body("_hero_illustration_svg")
     for op in ("0.08", "0.16", "0.24"):
         assert op in body, f"hero motif must keep fill-opacity {op} (§6.2)"
