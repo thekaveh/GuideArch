@@ -2,6 +2,7 @@
   import type { ScenarioVM } from '../../viewmodels/scenario-vm.js';
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import EmptyState from './EmptyState.svelte';
+  import SectionHeader from './SectionHeader.svelte';
 
   export let vm: ScenarioVM;
 
@@ -32,6 +33,10 @@
       body="Critical-constraint analysis shows which constraints eliminate the most candidates. Add a constraint on the Constraints tab and Solve to see its impact ranked here."
     />
   {:else}
+    <SectionHeader
+      title="Critical Constraints"
+      subtitle="Which constraints eliminate the most candidates — ranked descending; redundant rows are faded."
+    />
     <div class="table-wrap">
       <table>
         <thead>

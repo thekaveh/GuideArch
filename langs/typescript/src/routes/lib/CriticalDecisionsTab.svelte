@@ -2,6 +2,7 @@
   import type { ScenarioVM } from '../../viewmodels/scenario-vm.js';
   import { vmxToStore } from '../../view/adapters/vmx-to-svelte.js';
   import EmptyState from './EmptyState.svelte';
+  import SectionHeader from './SectionHeader.svelte';
 
   export let vm: ScenarioVM;
 
@@ -47,6 +48,10 @@
       </div>
     </div>
   {:else}
+    <SectionHeader
+      title="Critical Decisions"
+      subtitle="Which architectural choices move the result most — ranked ascending by rank (lower score = more critical)."
+    />
     <div class="table-wrap">
       <table>
         <thead>
