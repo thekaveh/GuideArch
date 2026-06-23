@@ -48,6 +48,38 @@ TOKENS: dict[str, str] = {
     "fuzzy-negative": "#fb7185",
 }
 
+# §2-light — elevated light theme. Same keys as TOKENS; values retuned for
+# contrast on white. Applied via a body.body--light override block (Quasar
+# adds that class when ui.dark_mode() is disabled).
+LIGHT_TOKENS: dict[str, str] = {
+    # §2.1 Surface
+    "bg-page": "#ffffff",
+    "bg-surface": "#fbfbfd",
+    "bg-surface-2": "#f3f4f8",
+    "bg-surface-3": "#eaecf3",
+    "border-subtle": "#eef0f4",
+    "border-strong": "#dfe2ec",
+    # §2.2 Text
+    "text-primary": "#1a1f36",
+    "text-secondary": "#5a6072",
+    "text-muted": "#8a90a2",
+    "text-inverse": "#ffffff",
+    # §2.3 Accent
+    "accent": "#6b4ce0",
+    "accent-hover": "#5a3dd0",
+    "accent-muted": "#f0ecfd",
+    "accent-on": "#ffffff",
+    # §2.4 Semantic
+    "success": "#0ea371",
+    "warning": "#b8801a",
+    "danger": "#dc3a3a",
+    "info": "#3a6fd8",
+    # §2.5 Fuzzy axes (charts only)
+    "fuzzy-positive": "#0ea371",
+    "fuzzy-average": "#d9a014",
+    "fuzzy-negative": "#e5566f",
+}
+
 # ---------------------------------------------------------------------------
 # §3 Type families
 # ---------------------------------------------------------------------------
@@ -65,10 +97,18 @@ def inject_css() -> None:
     """
     # Build :root CSS-variable block from TOKENS
     css_vars = "\n".join(f"  --{name}: {value};" for name, value in TOKENS.items())
+    light_vars = "\n".join(
+        f"  --{name}: {value};" for name, value in LIGHT_TOKENS.items()
+    )
 
     css = f"""
 :root {{
 {css_vars}
+}}
+
+/* §2-light — Quasar toggles body.body--light when dark mode is disabled */
+body.body--light {{
+{light_vars}
 }}
 
 body {{
