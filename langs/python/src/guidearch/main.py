@@ -284,6 +284,64 @@ def _render_empty_state(
 
 
 # ---------------------------------------------------------------------------
+# Branded confirm dialog (§5.10)
+# ---------------------------------------------------------------------------
+
+
+def _branded_confirm_dialog(
+    *,
+    title: str,
+    body: str,
+    confirm_label: str,
+    destructive: bool,
+    on_confirm: Callable[[], None],
+) -> None:
+    """Render a §5.10-branded confirm dialog and open it.
+
+    Card: bg-surface-3, border-strong, 8px radius, 20/24 padding, max-w 28rem.
+    Title row: danger-triangle (destructive) / info-circle (otherwise) icon +
+    15/600 headline. Body: 13px text-secondary. Buttons: right-aligned ghost
+    Cancel + accent/danger Confirm. Esc cancels, Enter confirms.
+    """
+
+    def _confirm_then_close() -> None:
+        on_confirm()
+        dlg.close()
+
+    with (
+        ui.dialog() as dlg,
+        ui.card().classes(
+            "bg-[var(--bg-surface-3)] border border-[var(--border-strong)] "
+            "rounded-lg p-6 max-w-[28rem] gap-3"
+        ),
+    ):
+        with ui.row().classes("items-center gap-2 w-full"):
+            ui.icon("warning" if destructive else "info").classes(
+                "text-[var(--danger)]" if destructive else "text-[var(--accent-hover)]"
+            )
+            ui.label(title).classes(
+                "text-[var(--text-primary)] text-[15px] font-semibold"
+            )
+        ui.label(body).classes("text-[var(--text-secondary)] text-[13px] leading-relaxed")
+        with ui.row().classes("w-full justify-end gap-2 mt-1"):
+            ui.button("Cancel", on_click=dlg.close).props("flat").classes(
+                "text-[var(--text-secondary)]"
+            )
+            confirm_btn = ui.button(
+                confirm_label, on_click=_confirm_then_close
+            ).props(
+                ("color=negative unelevated" if destructive else "color=primary unelevated")
+                + " autofocus"
+            )
+
+    # Esc cancels, Enter confirms (Enter via the autofocused primary button).
+    dlg.on("keydown.esc", dlg.close)
+    dlg.on("keydown.enter", _confirm_then_close)
+    _ = confirm_btn  # keep the reference; autofocus handles Enter fallback
+    dlg.open()
+
+
+# ---------------------------------------------------------------------------
 # Status bar
 # ---------------------------------------------------------------------------
 
@@ -418,35 +476,19 @@ def _do_update_decision_name(vm: ScenarioVM, decision_id: str, name: str, refres
 
 def _do_delete_decision(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
     def _confirmed() -> None:
-        # Was `async def` previously, called inside a lambda that returned
-        # the unawaited coroutine — NiceGUI just dropped it and the Delete
-        # button silently no-op'd. Sync function now actually fires.
         try:
             vm.delete_decision(decision_id)
             refresh()
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    def _confirmed_then_close() -> None:
-        # Sequential helper so the button's on_click lambda returns None
-        # (mypy disallows tuple-of-None constructions).
-        _confirmed()
-        dlg.close()
-
-    with (
-        ui.dialog() as dlg,
-        ui.card().classes("bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"),
-    ):
-        ui.label("Delete this decision and all its alternatives?").classes(
-            "text-[var(--text-primary)] text-base mb-4"
-        )
-        with ui.row():
-            ui.button(
-                "Delete",
-                on_click=lambda: _confirmed_then_close(),
-            ).props("color=negative")
-            ui.button("Cancel", on_click=dlg.close).props("flat")
-    dlg.open()
+    _branded_confirm_dialog(
+        title="Delete decision?",
+        body="Delete this decision and all its alternatives?",
+        confirm_label="Delete",
+        destructive=True,
+        on_confirm=_confirmed,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -539,21 +581,13 @@ def _do_delete_alternative(vm: ScenarioVM, alt_id: str, refresh: Any) -> None:
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    def _confirmed_then_close() -> None:
-        _confirmed()
-        dlg.close()
-
-    with (
-        ui.dialog() as dlg,
-        ui.card().classes("bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"),
-    ):
-        ui.label("Delete this alternative and its coefficients?").classes(
-            "text-[var(--text-primary)] text-base mb-4"
-        )
-        with ui.row():
-            ui.button("Delete", on_click=lambda: _confirmed_then_close()).props("color=negative")
-            ui.button("Cancel", on_click=dlg.close).props("flat")
-    dlg.open()
+    _branded_confirm_dialog(
+        title="Delete alternative?",
+        body="Delete this alternative and its coefficients?",
+        confirm_label="Delete",
+        destructive=True,
+        on_confirm=_confirmed,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -680,21 +714,13 @@ def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    def _confirmed_then_close() -> None:
-        _confirmed()
-        dlg.close()
-
-    with (
-        ui.dialog() as dlg,
-        ui.card().classes("bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"),
-    ):
-        ui.label("Delete this property and its coefficients?").classes(
-            "text-[var(--text-primary)] text-base mb-4"
-        )
-        with ui.row():
-            ui.button("Delete", on_click=lambda: _confirmed_then_close()).props("color=negative")
-            ui.button("Cancel", on_click=dlg.close).props("flat")
-    dlg.open()
+    _branded_confirm_dialog(
+        title="Delete property?",
+        body="Delete this property and its coefficients?",
+        confirm_label="Delete",
+        destructive=True,
+        on_confirm=_confirmed,
+    )
 
 
 # ---------------------------------------------------------------------------
