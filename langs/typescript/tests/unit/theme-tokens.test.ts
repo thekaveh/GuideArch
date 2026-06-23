@@ -2,10 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 
-const css = readFileSync(
-  fileURLToPath(new URL('../../src/app.css', import.meta.url)),
-  'utf8',
-);
+const css = readFileSync(fileURLToPath(new URL('../../src/app.css', import.meta.url)), 'utf8');
 
 /** Extract the `--token` names declared inside the first `{…}` after `selector`. */
 function tokensIn(selector: string): Set<string> {
@@ -18,11 +15,27 @@ function tokensIn(selector: string): Set<string> {
 }
 
 const COLOR_TOKENS = [
-  'bg-page', 'bg-surface', 'bg-surface-2', 'bg-surface-3', 'border-subtle', 'border-strong',
-  'text-primary', 'text-secondary', 'text-muted', 'text-inverse',
-  'accent', 'accent-hover', 'accent-muted', 'accent-on',
-  'success', 'warning', 'danger', 'info',
-  'fuzzy-positive', 'fuzzy-average', 'fuzzy-negative',
+  'bg-page',
+  'bg-surface',
+  'bg-surface-2',
+  'bg-surface-3',
+  'border-subtle',
+  'border-strong',
+  'text-primary',
+  'text-secondary',
+  'text-muted',
+  'text-inverse',
+  'accent',
+  'accent-hover',
+  'accent-muted',
+  'accent-on',
+  'success',
+  'warning',
+  'danger',
+  'info',
+  'fuzzy-positive',
+  'fuzzy-average',
+  'fuzzy-negative',
 ];
 
 describe('design-system color tokens', () => {
