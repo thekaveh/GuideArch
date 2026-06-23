@@ -2,6 +2,8 @@
 
 TypeScript + SvelteKit (Svelte 5 runes) + Tauri 2 implementation of GuideArch.
 
+The UI renders the shared two-theme design system (`spec/design-system.md`) via Svelte CSS custom properties — an elevated dark default and a fully-retinted light theme, toggled from the toolbar.
+
 ## Prerequisites
 
 - Node 22+ (`node --version`)

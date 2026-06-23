@@ -2,6 +2,8 @@
 
 Python + NiceGUI 3.x implementation of GuideArch.
 
+The UI renders the shared two-theme design system (`spec/design-system.md`) via NiceGUI/Tailwind CSS variables — dark default + light, toggled from the toolbar (results charts re-render on toggle).
+
 ## Prerequisites
 
 - Python 3.11+ (`python3 --version`)
