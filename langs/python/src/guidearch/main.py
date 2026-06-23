@@ -1453,7 +1453,6 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                         "click",
                         lambda e, v=vm, cands=candidates: _on_chart_c_click(v, cands, e),
                     )
-            # TODO(plan5): push rebuilt echart option on live theme toggle
 
 
 def _on_candidate_row_click(vm: ScenarioVM, event: Any) -> None:
@@ -1984,6 +1983,21 @@ def index() -> None:
                 save_btn.props(add="disabled")
 
     _subs.append(vm.property_changed.subscribe(on_next=_on_vm_change))
+
+    # Theme toggle retints the page CSS vars instantly, but the mounted
+    # ECharts bake their colors at option-build time (chart_data.py reads
+    # active_chart_tokens(theme)). Re-render the results tab on a theme flip
+    # so the charts rebuild with the active-theme tokens — the same
+    # clear+re-render the candidate/selection path already uses.
+    def _on_theme_change(prop: str) -> None:
+        if prop != "theme":
+            return
+        if vm.scenario is not None and vm.candidates:
+            res_container.clear()
+            with res_container:
+                _render_results_tab(vm, res_container)
+
+    _subs.append(app_vm.property_changed.subscribe(on_next=_on_theme_change))
 
     # Release every collected subscription when this client disconnects, so the
     # process-global VM subjects don't accumulate subscribers across reloads.
