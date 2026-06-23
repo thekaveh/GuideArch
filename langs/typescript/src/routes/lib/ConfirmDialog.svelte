@@ -97,16 +97,6 @@
     align-items: center;
     justify-content: center;
     z-index: 100;
-    animation: overlay-in 80ms ease-out;
-  }
-
-  @keyframes overlay-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
   }
 
   .confirm {
@@ -117,18 +107,6 @@
     max-width: 28rem;
     width: 90vw;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-    animation: dialog-in 120ms ease-out;
-  }
-
-  @keyframes dialog-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px) scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
   }
 
   .title-row {
