@@ -1254,6 +1254,14 @@ public partial class MainWindow : Window
             Content = scrim,
         };
 
+        // §5.10: click-scrim = Cancel. Mirror the TS ConfirmDialog, where the
+        // overlay's on:click cancels and the card has on:click|stopPropagation.
+        // Card clicks set e.Handled so they don't bubble to the scrim handler;
+        // a press that reaches the scrim closes the window (ShowConfirmAsync's
+        // result stays false = Cancel; ShowErrorAsync just closes).
+        card.PointerPressed += (_, e) => e.Handled = true;
+        scrim.PointerPressed += (_, _) => window.Close();
+
         return (window, buttons);
     }
 
