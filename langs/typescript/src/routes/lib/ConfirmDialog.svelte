@@ -188,7 +188,7 @@
   .btn-confirm.destructive {
     background: var(--danger);
     border-color: var(--danger);
-    color: #ffffff;
+    color: var(--accent-on);
   }
 
   .btn-confirm.destructive:hover {
