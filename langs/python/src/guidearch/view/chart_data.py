@@ -10,6 +10,7 @@ from typing import Any
 from guidearch.models.candidate import CandidateM
 from guidearch.models.coefficient import CoefficientM
 from guidearch.models.property import PropertyM
+from guidearch.view.theme import TOKENS
 
 # ---------------------------------------------------------------------------
 # Chart A — ranked candidates score bar chart
@@ -21,6 +22,7 @@ def candidates_bar_option(
     alt_name_map: dict[str, str],
     selected_index: int | None,
     max_items: int = 30,
+    tokens: dict[str, str] = TOKENS,
 ) -> dict[str, Any]:
     """Return an ECharts option dict for Chart A (horizontal bar, top N candidates).
 
@@ -46,13 +48,15 @@ def candidates_bar_option(
     # Y-axis labels: rank number
     y_labels = [str(c.rank) for c in top]
 
-    # Bar data: score value, with itemStyle for gradient + selection highlight
-    # Design-system tokens (§2.3 accent, §2.5 fuzzy axes)
-    _ACCENT = "#8b5cf6"  # accent
-    _ACCENT_MUTED = "#3d2a6b"  # accent-muted (selected highlight)
-    _ACCENT_HOVER = "#a78bfa"  # accent-hover
-    _TEXT_SEC = "#9298a8"  # text-secondary
-    _BORDER_SUB = "#262b36"  # border-subtle
+    # Resolve per-theme colors from the token dict (§5.7).
+    accent = tokens["accent"]
+    accent_hover = tokens["accent-hover"]
+    text_sec = tokens["text-secondary"]
+    border_sub = tokens["border-subtle"]
+    bg_surface = tokens["bg-surface"]
+    bg_surface_3 = tokens["bg-surface-3"]
+    border_strong = tokens["border-strong"]
+    text_primary = tokens["text-primary"]
 
     bar_data: list[dict[str, Any]] = []
     for i, cand in enumerate(top):
@@ -66,9 +70,9 @@ def candidates_bar_option(
         is_selected = selected_index is not None and i == selected_index
         # Selected: accent-hover highlight; others: accent at varying opacity
         if is_selected:
-            color = _ACCENT_HOVER
+            color = accent_hover
         else:
-            r, g, b = 0x8B, 0x5C, 0xF6
+            r, g, b = int(accent[1:3], 16), int(accent[3:5], 16), int(accent[5:7], 16)
             color = f"rgba({r},{g},{b},{opacity:.3f})"
         alt_names = [alt_name_map.get(aid, aid[:8]) for aid in cand.alternative_ids]
         bar_data.append(
@@ -82,38 +86,38 @@ def candidates_bar_option(
         )
 
     option: dict[str, Any] = {
-        "backgroundColor": "#13161d",  # bg-surface per §5.7
+        "backgroundColor": bg_surface,  # bg-surface per §5.7
         "tooltip": {
             "trigger": "item",
-            "backgroundColor": "#252a36",
-            "borderColor": "#363c4a",
-            "textStyle": {"color": "#e6e7ed", "fontSize": 12},
+            "backgroundColor": bg_surface_3,
+            "borderColor": border_strong,
+            "textStyle": {"color": text_primary, "fontSize": 12},
         },
         "grid": {"left": "8%", "right": "5%", "top": "5%", "bottom": "10%", "containLabel": True},
         "xAxis": {
             "type": "value",
             "name": "Score",
             "max": round(max_score * 1.05, 6),
-            "axisLabel": {"color": _TEXT_SEC, "fontSize": 10},
-            "splitLine": {"lineStyle": {"color": _BORDER_SUB, "opacity": 0.5}},
-            "nameTextStyle": {"color": _TEXT_SEC, "fontSize": 10},
-            "axisLine": {"lineStyle": {"color": _BORDER_SUB}},
+            "axisLabel": {"color": text_sec, "fontSize": 10},
+            "splitLine": {"lineStyle": {"color": border_sub, "opacity": 0.5}},
+            "nameTextStyle": {"color": text_sec, "fontSize": 10},
+            "axisLine": {"lineStyle": {"color": border_sub}},
         },
         "yAxis": {
             "type": "category",
             "data": y_labels,
             "name": "Rank",
             "inverse": True,
-            "axisLabel": {"color": _TEXT_SEC, "fontSize": 10},
-            "nameTextStyle": {"color": _TEXT_SEC, "fontSize": 10},
-            "axisLine": {"lineStyle": {"color": _BORDER_SUB}},
+            "axisLabel": {"color": text_sec, "fontSize": 10},
+            "nameTextStyle": {"color": text_sec, "fontSize": 10},
+            "axisLine": {"lineStyle": {"color": border_sub}},
         },
         "series": [
             {
                 "type": "bar",
                 "data": bar_data,
                 "barMaxWidth": 16,
-                "emphasis": {"itemStyle": {"color": _ACCENT_HOVER}},
+                "emphasis": {"itemStyle": {"color": accent_hover}},
             }
         ],
     }
@@ -124,34 +128,13 @@ def candidates_bar_option(
 # Chart B — fuzzy-value triangle visualizer
 # ---------------------------------------------------------------------------
 
-# Design-system tokens used by charts (§2.3 accent, §2.5 fuzzy axes)
-_DS_ACCENT = "#8b5cf6"
-_DS_TEXT_SEC = "#9298a8"
-_DS_BORDER_SUB = "#262b36"
-_DS_FUZZY_POS = "#34d399"  # fuzzy-positive
-_DS_FUZZY_AVG = "#fbbf24"  # fuzzy-average
-_DS_FUZZY_NEG = "#fb7185"  # fuzzy-negative
-
-# Distinguishable colours for chart series (accent-based palette)
-_PALETTE = [
-    "#8b5cf6",  # accent (violet)
-    "#34d399",  # fuzzy-positive (emerald)
-    "#a78bfa",  # accent-hover
-    "#fbbf24",  # fuzzy-average (amber)
-    "#fb7185",  # fuzzy-negative (rose)
-    "#60a5fa",  # blue
-    "#f59e0b",  # warning (orange-amber)
-    "#22d3ee",  # cyan
-    "#fb923c",  # orange
-    "#e879f9",  # fuchsia
-]
-
 
 def triangle_option(
     candidate: CandidateM,
     properties: tuple[PropertyM, ...],
     coefficients: tuple[CoefficientM, ...],
     alt_name_map: dict[str, str],
+    tokens: dict[str, str] = TOKENS,
 ) -> dict[str, Any]:
     """Return an ECharts option dict for Chart B (triangle visualizer).
 
@@ -182,6 +165,26 @@ def triangle_option(
         f", +{len(alt_labels) - 4}" if len(alt_labels) > 4 else ""
     )
 
+    # Resolve per-theme colors from the token dict (§5.7).
+    text_primary = tokens["text-primary"]
+    text_sec = tokens["text-secondary"]
+    border_sub = tokens["border-subtle"]
+    border_strong = tokens["border-strong"]
+    bg_surface = tokens["bg-surface"]
+    bg_surface_3 = tokens["bg-surface-3"]
+
+    # §5.7 — first three properties take the three fuzzy-axis tokens; rest cycle.
+    palette = [
+        tokens["fuzzy-positive"],
+        tokens["fuzzy-average"],
+        tokens["fuzzy-negative"],
+        tokens["accent"],
+        tokens["accent-hover"],
+        tokens["info"],
+        tokens["success"],
+        tokens["warning"],
+    ]
+
     # (alt_id, prop_id) → CoefficientM for O(1) lookup.
     coeff_index: dict[tuple[str, str], CoefficientM] = {
         (c.alternative_id, c.property_id): c for c in coefficients
@@ -199,7 +202,7 @@ def triangle_option(
                 sum_lower += coeff.value.lower
                 sum_modal += coeff.value.modal
                 sum_upper += coeff.value.upper
-        color = _PALETTE[idx % len(_PALETTE)]
+        color = palette[idx % len(palette)]
         series.append(
             {
                 "type": "line",
@@ -219,19 +222,19 @@ def triangle_option(
         )
 
     option: dict[str, Any] = {
-        "backgroundColor": "#13161d",  # bg-surface per §5.7
+        "backgroundColor": bg_surface,  # bg-surface per §5.7
         "title": {
             "text": f"Rank {candidate.rank}   score {candidate.score:.6g}",
             "subtext": subtitle,
             "left": "center",
-            "textStyle": {"color": "#e6e7ed", "fontSize": 11, "fontWeight": "500"},
-            "subtextStyle": {"color": _DS_TEXT_SEC, "fontSize": 9},
+            "textStyle": {"color": text_primary, "fontSize": 11, "fontWeight": "500"},
+            "subtextStyle": {"color": text_sec, "fontSize": 9},
         },
         "tooltip": {
             "trigger": "axis",
-            "backgroundColor": "#252a36",
-            "borderColor": "#363c4a",
-            "textStyle": {"color": "#e6e7ed", "fontSize": 11},
+            "backgroundColor": bg_surface_3,
+            "borderColor": border_strong,
+            "textStyle": {"color": text_primary, "fontSize": 11},
         },
         "legend": {
             "show": True,
@@ -239,26 +242,26 @@ def triangle_option(
             "right": "2%",
             "top": "middle",
             "orient": "vertical",
-            "textStyle": {"color": _DS_TEXT_SEC, "fontSize": 10},
+            "textStyle": {"color": text_sec, "fontSize": 10},
         },
         "grid": {"left": "8%", "right": "22%", "top": "20%", "bottom": "10%", "containLabel": True},
         "xAxis": {
             "type": "value",
             "name": "Value",
-            "axisLabel": {"color": _DS_TEXT_SEC, "fontSize": 10},
-            "splitLine": {"lineStyle": {"color": _DS_BORDER_SUB, "opacity": 0.5}},
-            "nameTextStyle": {"color": _DS_TEXT_SEC, "fontSize": 10},
-            "axisLine": {"lineStyle": {"color": _DS_BORDER_SUB}},
+            "axisLabel": {"color": text_sec, "fontSize": 10},
+            "splitLine": {"lineStyle": {"color": border_sub, "opacity": 0.5}},
+            "nameTextStyle": {"color": text_sec, "fontSize": 10},
+            "axisLine": {"lineStyle": {"color": border_sub}},
         },
         "yAxis": {
             "type": "value",
             "name": "μ",
             "min": 0.0,
             "max": 1.1,
-            "axisLabel": {"color": _DS_TEXT_SEC, "fontSize": 10},
-            "splitLine": {"lineStyle": {"color": _DS_BORDER_SUB, "opacity": 0.5}},
-            "nameTextStyle": {"color": _DS_TEXT_SEC, "fontSize": 10},
-            "axisLine": {"lineStyle": {"color": _DS_BORDER_SUB}},
+            "axisLabel": {"color": text_sec, "fontSize": 10},
+            "splitLine": {"lineStyle": {"color": border_sub, "opacity": 0.5}},
+            "nameTextStyle": {"color": text_sec, "fontSize": 10},
+            "axisLine": {"lineStyle": {"color": border_sub}},
         },
         "series": series,
     }
@@ -297,6 +300,7 @@ def comparison_option(
     coefficients: tuple[CoefficientM, ...],
     selected_index: int | None,
     top_n: int = DEFAULT_COMPARISON_TOP_N,
+    tokens: dict[str, str] = TOKENS,
 ) -> dict[str, Any]:
     """Return an ECharts option dict for Chart C (top-N candidate comparison).
 
@@ -317,6 +321,15 @@ def comparison_option(
     n = min(top_n, len(candidates), len(COMPARISON_PALETTE))
     if n == 0 or not properties:
         return {}
+
+    # Resolve per-theme colors from the token dict (§5.7).
+    # Series line colors stay COMPARISON_PALETTE[i] (Tableau-10 — do not theme).
+    text_primary = tokens["text-primary"]
+    text_sec = tokens["text-secondary"]
+    border_sub = tokens["border-subtle"]
+    border_strong = tokens["border-strong"]
+    bg_surface = tokens["bg-surface"]
+    bg_surface_3 = tokens["bg-surface-3"]
 
     # Coefficient lookup: (alt_id, prop_id) -> modal value.
     coeff_modal: dict[tuple[str, str], float] = {
@@ -356,23 +369,23 @@ def comparison_option(
         )
 
     option: dict[str, Any] = {
-        "backgroundColor": "#13161d",
+        "backgroundColor": bg_surface,  # bg-surface per §5.7
         "title": {
             "text": "Top 10 candidates — modal per property",
             "left": "center",
-            "textStyle": {"color": "#e6e7ed", "fontSize": 11, "fontWeight": "500"},
+            "textStyle": {"color": text_primary, "fontSize": 11, "fontWeight": "500"},
         },
         "tooltip": {
             "trigger": "axis",
-            "backgroundColor": "#252a36",
-            "borderColor": "#363c4a",
-            "textStyle": {"color": "#e6e7ed", "fontSize": 11},
+            "backgroundColor": bg_surface_3,
+            "borderColor": border_strong,
+            "textStyle": {"color": text_primary, "fontSize": 11},
         },
         "legend": {
             "show": True,
             "type": "scroll",
             "bottom": 0,
-            "textStyle": {"color": _DS_TEXT_SEC, "fontSize": 10},
+            "textStyle": {"color": text_sec, "fontSize": 10},
         },
         "grid": {
             "left": "6%",
@@ -384,17 +397,17 @@ def comparison_option(
         "xAxis": {
             "type": "category",
             "data": prop_names,
-            "axisLabel": {"color": _DS_TEXT_SEC, "fontSize": 10},
+            "axisLabel": {"color": text_sec, "fontSize": 10},
             "splitLine": {"show": False},
-            "axisLine": {"lineStyle": {"color": _DS_BORDER_SUB}},
+            "axisLine": {"lineStyle": {"color": border_sub}},
         },
         "yAxis": {
             "type": "value",
             "name": "Modal sum",
-            "axisLabel": {"color": _DS_TEXT_SEC, "fontSize": 10},
-            "splitLine": {"lineStyle": {"color": _DS_BORDER_SUB, "opacity": 0.5}},
-            "nameTextStyle": {"color": _DS_TEXT_SEC, "fontSize": 10},
-            "axisLine": {"lineStyle": {"color": _DS_BORDER_SUB}},
+            "axisLabel": {"color": text_sec, "fontSize": 10},
+            "splitLine": {"lineStyle": {"color": border_sub, "opacity": 0.5}},
+            "nameTextStyle": {"color": text_sec, "fontSize": 10},
+            "axisLine": {"lineStyle": {"color": border_sub}},
         },
         "series": series,
     }

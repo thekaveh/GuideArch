@@ -1382,6 +1382,9 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                 comparison_option,
                 triangle_option,
             )
+            from guidearch.view.theme import active_chart_tokens
+
+            _tok = active_chart_tokens(_get_app_vm().theme)
 
             with ui.tabs().classes(
                 "w-full bg-transparent border-b border-[var(--border-subtle)] "
@@ -1398,7 +1401,9 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
             ):
                 with ui.tab_panel(tab_rank).classes("p-0"):
                     # Chart A — bar chart
-                    chart_a_opt = candidates_bar_option(top30, alt_map, vm.selected_candidate_index)
+                    chart_a_opt = candidates_bar_option(
+                        top30, alt_map, vm.selected_candidate_index, tokens=_tok
+                    )
                     chart_a = (
                         ui.echart(chart_a_opt)
                         .classes("w-full rounded border border-[var(--border-strong)]")
@@ -1422,6 +1427,7 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                         tuple(scenario.properties),
                         tuple(scenario.coefficients),
                         alt_map,
+                        tokens=_tok,
                     )
                     (
                         ui.echart(chart_b_opt)
@@ -1436,6 +1442,7 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                         tuple(scenario.properties),
                         tuple(scenario.coefficients),
                         vm.selected_candidate_index,
+                        tokens=_tok,
                     )
                     chart_c = (
                         ui.echart(chart_c_opt)
@@ -1446,6 +1453,7 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                         "click",
                         lambda e, v=vm, cands=candidates: _on_chart_c_click(v, cands, e),
                     )
+            # TODO(plan5): push rebuilt echart option on live theme toggle
 
 
 def _on_candidate_row_click(vm: ScenarioVM, event: Any) -> None:

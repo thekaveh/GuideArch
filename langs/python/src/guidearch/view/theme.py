@@ -295,3 +295,14 @@ body.body--light .guidearch-solve:hover {{
         info=TOKENS["info"],
         warning=TOKENS["warning"],
     )
+
+
+def active_chart_tokens(theme: str) -> dict[str, str]:
+    """Return the token→hex map for the active theme.
+
+    Chart option builders (chart_data.py) read concrete hex from this map so
+    ECharts plots use the correct per-theme colors. The TS/C# charts retint via
+    CSS vars / theme brushes; Python's ECharts options are JSON, so we resolve
+    the active theme's hex here at option-build time.
+    """
+    return LIGHT_TOKENS if theme == "light" else TOKENS
