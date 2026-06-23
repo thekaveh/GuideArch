@@ -225,7 +225,9 @@ def _render_section_header(
     top of each editor-tab body, above any sub-tabs or tables.
     """
     with ui.row().classes(
-        "items-center justify-between w-full gap-4 pb-3 mb-3 border-b border-[var(--border-subtle)]"
+        "items-center justify-between w-full gap-4 "
+        "pt-4 pr-6 pb-3 pl-6 mb-3 "
+        "border-b border-[var(--border-subtle)]"
     ):
         with ui.column().classes("gap-0 min-w-0"):
             ui.label(title).classes(
@@ -1291,6 +1293,14 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
         },
     ]
 
+    _render_section_header(
+        title="Results",
+        subtitle=(
+            "Ranked candidates with their fuzzy-TOPSIS score; pick one to "
+            "inspect its profile and compare against the field."
+        ),
+    )
+
     # ── Split layout ─────────────────────────────────────────────────────────
     with ui.row().classes("w-full gap-4 items-start"):
         # Left: table (~58%)
@@ -1507,11 +1517,12 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
             }
         )
 
-    ui.label("Critical Decisions").classes(
-        "text-base font-semibold text-[var(--text-primary)] mb-2"
-    )
-    ui.label("Sorted ascending by rank (lower score = more critical)").classes(
-        "text-xs text-[var(--text-muted)] mb-3"
+    _render_section_header(
+        title="Critical Decisions",
+        subtitle=(
+            "Which architectural choices move the result most — ranked "
+            "ascending by rank (lower score = more critical)."
+        ),
     )
     ui.table(columns=columns, rows=rows, row_key="rank").classes(
         "w-full max-h-screen overflow-y-auto"
@@ -1559,13 +1570,13 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
             }
         )
 
-    ui.label("Critical Constraints").classes(
-        "text-base font-semibold text-[var(--text-primary)] mb-2"
+    _render_section_header(
+        title="Critical Constraints",
+        subtitle=(
+            "Which constraints eliminate the most candidates — ranked "
+            "descending; redundant rows are faded."
+        ),
     )
-    ui.label(
-        "Sorted descending by eliminated (most-binding first). "
-        "Redundant rows shown with faded background."
-    ).classes("text-xs text-[var(--text-muted)] mb-3")
 
     # Render as a custom table to support per-row background styling
     with ui.scroll_area().classes("w-full max-h-screen"):
