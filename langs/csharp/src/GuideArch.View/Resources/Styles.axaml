@@ -237,6 +237,8 @@
   <Style Selector="TabControl">
     <Setter Property="Background" Value="{DynamicResource BgPageBrush}" />
     <Setter Property="Padding" Value="0" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
   </Style>
 
   <Style Selector="TabItem">
@@ -246,6 +248,8 @@
     <Setter Property="Padding" Value="16,12" />
     <Setter Property="Height" Value="40" />
     <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0,0,0,2" />
   </Style>
 
   <Style Selector="TabItem:pointerover">
@@ -257,6 +261,13 @@
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,2" />
+  </Style>
+
+  <!-- Suppress Fluent's built-in selection pipe so it doesn't double up with the 2px accent underline -->
+  <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+    <Setter Property="IsVisible" Value="False" />
   </Style>
 
   <!-- ── §5.5 Card borders ──────────────────────────────────────────── -->
