@@ -1725,9 +1725,9 @@ def index() -> None:
             _brand_svg = (
                 '<svg width="22" height="18" viewBox="0 0 22 18" fill="none" '
                 'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
-                '<path d="M2 16 L8 4 L14 16 Z" fill="#8b5cf6" fill-opacity="0.35"/>'
-                '<path d="M8 16 L13 2 L18 16 Z" fill="#8b5cf6" fill-opacity="0.6"/>'
-                '<path d="M13 16 L18 7 L22 16 Z" fill="#8b5cf6" fill-opacity="0.95"/>'
+                '<path d="M2 16 L8 4 L14 16 Z" fill="var(--accent)" fill-opacity="0.35"/>'
+                '<path d="M8 16 L13 2 L18 16 Z" fill="var(--accent)" fill-opacity="0.6"/>'
+                '<path d="M13 16 L18 7 L22 16 Z" fill="var(--accent)" fill-opacity="0.95"/>'
                 "</svg>"
             )
             with ui.row().classes("items-center gap-2 mr-3"):

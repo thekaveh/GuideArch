@@ -13,6 +13,22 @@ def _toolbar_region() -> str:
     return _SRC[start:end]
 
 
+def test_toolbar_brand_svg_uses_accent_token_not_hardcoded_hex():
+    region = _toolbar_region()
+    assert "var(--accent)" in region, (
+        "toolbar brand-mark polygons must fill via var(--accent) so they retint (§6.2)"
+    )
+    assert "#8b5cf6" not in region, (
+        "toolbar brand-mark must not hardcode the dark accent hex #8b5cf6"
+    )
+
+
+def test_toolbar_brand_svg_keeps_the_three_triangle_opacities():
+    region = _toolbar_region()
+    for op in ("0.35", "0.6", "0.95"):
+        assert op in region, f"toolbar brand-mark must keep fill-opacity {op} (§6.2)"
+
+
 def test_toolbar_ghost_buttons_drop_color_white():
     region = _toolbar_region()
     assert "color=white" not in region, (
