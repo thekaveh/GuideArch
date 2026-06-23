@@ -961,11 +961,13 @@ public partial class MainWindow : Window
     // Toolbar handlers
     // -----------------------------------------------------------------------
 
-    private void OnNewClicked(object? sender, RoutedEventArgs e)
+    private async void OnNewClicked(object? sender, RoutedEventArgs e)
     {
-        bool wasDirty = _vm.Model.IsDirty;
+        if (_vm.Model.IsDirty && !await ShowConfirmAsync("Discard unsaved changes?",
+                "Creating a new scenario will replace your unsaved changes. Continue?",
+                destructive: false))
+            return;
         _cmds.NewCmd.Execute(null);
-        if (wasDirty) StampDiscardWarning("Create a new scenario");
     }
 
     private async void OnOpenClicked(object? sender, RoutedEventArgs e)
@@ -985,34 +987,16 @@ public partial class MainWindow : Window
             var path = files[0].TryGetLocalPath();
             if (path is not null)
             {
-                bool wasDirty = _vm.Model.IsDirty;
+                if (_vm.Model.IsDirty && !await ShowConfirmAsync(
+                        "Discard unsaved changes?",
+                        "Opening a scenario will replace your unsaved changes. Continue?",
+                        destructive: false))
+                    return;
                 _cmds.OpenCmd.Execute(path);
-                // Only stamp the discard warning when the Open actually
-                // succeeded — OpenCmd's catch path leaves the model
-                // unchanged (IsDirty stays true), and a corrupt-file load
-                // shouldn't claim "replaced unsaved changes" alongside
-                // the legitimate "Open failed: …" message.
-                if (wasDirty && !_vm.Model.IsDirty) StampDiscardWarning("Open a scenario");
             }
         }
     }
 
-    // TODO(plan5): route discard through ShowConfirmAsync as a pre-action
-    // confirm (audit §4.2 "Discard flow"); ShowConfirmAsync already exists.
-    /// <summary>
-    /// Records a warning that the just-completed action discarded unsaved
-    /// changes. Mirrors the TS Toolbar._confirmDiscardIfDirty + Python
-    /// _confirm_discard_if_dirty user-facing UX (a real modal-confirm is on
-    /// the v1.1 backlog for all three impls). Call AFTER the action
-    /// completes so a cancelled file-picker doesn't leave a phantom
-    /// "discarded changes" warning.
-    /// </summary>
-    private void StampDiscardWarning(string action)
-        // Must go through the Mutator so the factory's closure state is
-        // updated — a direct _vm.Model write is silently dropped by the
-        // factory's next SetState (any mutation or solve).
-        => Mutator.AddWarning(
-            $"{action} replaced unsaved changes — last revision discarded.");
 
     private void OnSaveClicked(object? sender, RoutedEventArgs e)
         => _cmds.SaveCmd.Execute(null);
@@ -1040,18 +1024,24 @@ public partial class MainWindow : Window
     private void OnSolveClicked(object? sender, RoutedEventArgs e)
         => _cmds.SolveCmd.Execute(null);
 
-    private void OnOpenSampleSasClicked(object? sender, RoutedEventArgs e)
+    private async void OnOpenSampleSasClicked(object? sender, RoutedEventArgs e)
     {
-        bool wasDirty = _vm.Model.IsDirty;
+        if (_vm.Model.IsDirty && !await ShowConfirmAsync(
+                "Discard unsaved changes?",
+                "Opening Sample SAS will replace your unsaved changes. Continue?",
+                destructive: false))
+            return;
         OpenSample(SampleScenarios.All[0]);
-        if (wasDirty && !_vm.Model.IsDirty) StampDiscardWarning("Open Sample SAS");
     }
 
-    private void OnOpenSampleEdsClicked(object? sender, RoutedEventArgs e)
+    private async void OnOpenSampleEdsClicked(object? sender, RoutedEventArgs e)
     {
-        bool wasDirty = _vm.Model.IsDirty;
+        if (_vm.Model.IsDirty && !await ShowConfirmAsync(
+                "Discard unsaved changes?",
+                "Opening Sample EDS will replace your unsaved changes. Continue?",
+                destructive: false))
+            return;
         OpenSample(SampleScenarios.All[1]);
-        if (wasDirty && !_vm.Model.IsDirty) StampDiscardWarning("Open Sample EDS");
     }
 
     /// <summary>
