@@ -194,9 +194,11 @@ def _hero_illustration_svg() -> str:
     """Inline SVG for the three-triangle hero motif.
 
     Matches the TS EmptyState and C# hero Path geometry so the apps read
-    as the same product in side-by-side screenshots.
+    as the same product in side-by-side screenshots. The accent color is the
+    `--accent` CSS variable (not a literal) so the motif retints with the
+    active theme exactly like the TS hero.
     """
-    accent = "#8b5cf6"
+    accent = "var(--accent)"
     return (
         '<svg width="120" height="96" viewBox="0 0 120 96" fill="none" '
         'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
@@ -225,7 +227,9 @@ def _render_section_header(
     top of each editor-tab body, above any sub-tabs or tables.
     """
     with ui.row().classes(
-        "items-center justify-between w-full gap-4 pb-3 mb-3 border-b border-[var(--border-subtle)]"
+        "items-center justify-between w-full gap-4 "
+        "pt-4 pr-6 pb-3 pl-6 mb-3 "
+        "border-b border-[var(--border-subtle)]"
     ):
         with ui.column().classes("gap-0 min-w-0"):
             ui.label(title).classes(
@@ -261,11 +265,11 @@ def _render_empty_state(
             ui.html(_hero_illustration_svg()).classes("mb-2")
         if kicker is not None:
             ui.label(kicker).classes(
-                "text-[var(--accent-hover)] text-xs font-semibold tracking-widest uppercase"
+                "text-[var(--accent-hover)] text-xs font-semibold tracking-[0.08em] uppercase"
             )
         headline_size = "text-2xl" if hero else "text-sm"
         ui.label(headline).classes(f"text-[var(--text-primary)] {headline_size} font-semibold")
-        body_classes = "text-[var(--text-muted)] max-w-2xl leading-relaxed" + (
+        body_classes = "text-[var(--text-muted)] max-w-[36rem] leading-relaxed" + (
             " text-sm mt-1" if hero else " text-xs"
         )
         ui.label(body).classes(body_classes)
@@ -279,6 +283,60 @@ def _render_empty_state(
                     ui.button(secondary[0], on_click=secondary[1]).props(
                         "outline color=primary"
                     ).classes("text-sm")
+
+
+# ---------------------------------------------------------------------------
+# Branded confirm dialog (§5.10)
+# ---------------------------------------------------------------------------
+
+
+def _branded_confirm_dialog(
+    *,
+    title: str,
+    body: str,
+    confirm_label: str,
+    destructive: bool,
+    on_confirm: Callable[[], None],
+) -> None:
+    """Render a §5.10-branded confirm dialog and open it.
+
+    Card: bg-surface-3, border-strong, 8px radius, 20/24 padding, max-w 28rem.
+    Title row: danger-triangle (destructive) / info-circle (otherwise) icon +
+    15/600 headline. Body: 13px text-secondary. Buttons: right-aligned ghost
+    Cancel + accent/danger Confirm. Esc cancels, Enter confirms.
+    """
+
+    def _confirm_then_close() -> None:
+        on_confirm()
+        dlg.close()
+
+    with (
+        ui.dialog() as dlg,
+        ui.card().classes(
+            "bg-[var(--bg-surface-3)] border border-[var(--border-strong)] "
+            "rounded-lg p-6 max-w-[28rem] gap-3"
+        ),
+    ):
+        with ui.row().classes("items-center gap-2 w-full"):
+            ui.icon("warning" if destructive else "info").classes(
+                "text-[var(--danger)]" if destructive else "text-[var(--accent-hover)]"
+            )
+            ui.label(title).classes("text-[var(--text-primary)] text-[15px] font-semibold")
+        ui.label(body).classes("text-[var(--text-secondary)] text-[13px] leading-relaxed")
+        with ui.row().classes("w-full justify-end gap-2 mt-1"):
+            ui.button("Cancel", on_click=dlg.close).props("flat").classes(
+                "text-[var(--text-secondary)]"
+            )
+            confirm_btn = ui.button(confirm_label, on_click=_confirm_then_close).props(
+                ("color=negative unelevated" if destructive else "color=primary unelevated")
+                + " autofocus"
+            )
+
+    # Esc cancels, Enter confirms (Enter via the autofocused primary button).
+    dlg.on("keydown.esc", dlg.close)
+    dlg.on("keydown.enter", _confirm_then_close)
+    _ = confirm_btn  # keep the reference; autofocus handles Enter fallback
+    dlg.open()
 
 
 # ---------------------------------------------------------------------------
@@ -416,35 +474,19 @@ def _do_update_decision_name(vm: ScenarioVM, decision_id: str, name: str, refres
 
 def _do_delete_decision(vm: ScenarioVM, decision_id: str, refresh: Any) -> None:
     def _confirmed() -> None:
-        # Was `async def` previously, called inside a lambda that returned
-        # the unawaited coroutine — NiceGUI just dropped it and the Delete
-        # button silently no-op'd. Sync function now actually fires.
         try:
             vm.delete_decision(decision_id)
             refresh()
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    def _confirmed_then_close() -> None:
-        # Sequential helper so the button's on_click lambda returns None
-        # (mypy disallows tuple-of-None constructions).
-        _confirmed()
-        dlg.close()
-
-    with (
-        ui.dialog() as dlg,
-        ui.card().classes("bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"),
-    ):
-        ui.label("Delete this decision and all its alternatives?").classes(
-            "text-[var(--text-primary)] text-base mb-4"
-        )
-        with ui.row():
-            ui.button(
-                "Delete",
-                on_click=lambda: _confirmed_then_close(),
-            ).props("color=negative")
-            ui.button("Cancel", on_click=dlg.close).props("flat")
-    dlg.open()
+    _branded_confirm_dialog(
+        title="Delete decision?",
+        body="Delete this decision and all its alternatives?",
+        confirm_label="Delete",
+        destructive=True,
+        on_confirm=_confirmed,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -537,21 +579,13 @@ def _do_delete_alternative(vm: ScenarioVM, alt_id: str, refresh: Any) -> None:
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    def _confirmed_then_close() -> None:
-        _confirmed()
-        dlg.close()
-
-    with (
-        ui.dialog() as dlg,
-        ui.card().classes("bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"),
-    ):
-        ui.label("Delete this alternative and its coefficients?").classes(
-            "text-[var(--text-primary)] text-base mb-4"
-        )
-        with ui.row():
-            ui.button("Delete", on_click=lambda: _confirmed_then_close()).props("color=negative")
-            ui.button("Cancel", on_click=dlg.close).props("flat")
-    dlg.open()
+    _branded_confirm_dialog(
+        title="Delete alternative?",
+        body="Delete this alternative and its coefficients?",
+        confirm_label="Delete",
+        destructive=True,
+        on_confirm=_confirmed,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -678,21 +712,13 @@ def _do_delete_property(vm: ScenarioVM, prop_id: str, refresh: Any) -> None:
         except Exception as exc:
             ui.notify(str(exc), color="negative")
 
-    def _confirmed_then_close() -> None:
-        _confirmed()
-        dlg.close()
-
-    with (
-        ui.dialog() as dlg,
-        ui.card().classes("bg-[var(--bg-surface-3)] border border-[var(--border-strong)]"),
-    ):
-        ui.label("Delete this property and its coefficients?").classes(
-            "text-[var(--text-primary)] text-base mb-4"
-        )
-        with ui.row():
-            ui.button("Delete", on_click=lambda: _confirmed_then_close()).props("color=negative")
-            ui.button("Cancel", on_click=dlg.close).props("flat")
-    dlg.open()
+    _branded_confirm_dialog(
+        title="Delete property?",
+        body="Delete this property and its coefficients?",
+        confirm_label="Delete",
+        destructive=True,
+        on_confirm=_confirmed,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1291,6 +1317,14 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
         },
     ]
 
+    _render_section_header(
+        title="Results",
+        subtitle=(
+            "Ranked candidates with their fuzzy-TOPSIS score; pick one to "
+            "inspect its profile and compare against the field."
+        ),
+    )
+
     # ── Split layout ─────────────────────────────────────────────────────────
     with ui.row().classes("w-full gap-4 items-start"):
         # Left: table (~58%)
@@ -1312,8 +1346,8 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                     display += f", … +{len(alt_labels) - 4}"
                 row_class = ""
                 if sel_idx is not None and cand.rank == sel_idx:
-                    # §5.3 Selected: accent-muted background
-                    row_class = "bg-[var(--accent-muted)]"
+                    # §5.3 Selected: accent-muted background + 2px accent left border
+                    row_class = "bg-[var(--accent-muted)] border-l-2 border-[var(--accent)]"
                 sel_rows.append(
                     {
                         "rank": cand.rank,
@@ -1344,8 +1378,14 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                 comparison_option,
                 triangle_option,
             )
+            from guidearch.view.theme import active_chart_tokens
 
-            with ui.tabs().classes("w-full bg-[var(--bg-surface-2)] rounded") as chart_tabs:
+            _tok = active_chart_tokens(_get_app_vm().theme)
+
+            with ui.tabs().classes(
+                "w-full bg-transparent border-b border-[var(--border-subtle)] "
+                "text-[var(--text-secondary)]"
+            ) as chart_tabs:
                 tab_rank = ui.tab("Ranking")
                 tab_profile = ui.tab("Profile")
                 tab_compare = ui.tab("Compare")
@@ -1357,7 +1397,9 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
             ):
                 with ui.tab_panel(tab_rank).classes("p-0"):
                     # Chart A — bar chart
-                    chart_a_opt = candidates_bar_option(top30, alt_map, vm.selected_candidate_index)
+                    chart_a_opt = candidates_bar_option(
+                        top30, alt_map, vm.selected_candidate_index, tokens=_tok
+                    )
                     chart_a = (
                         ui.echart(chart_a_opt)
                         .classes("w-full rounded border border-[var(--border-strong)]")
@@ -1381,6 +1423,7 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                         tuple(scenario.properties),
                         tuple(scenario.coefficients),
                         alt_map,
+                        tokens=_tok,
                     )
                     (
                         ui.echart(chart_b_opt)
@@ -1395,6 +1438,7 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                         tuple(scenario.properties),
                         tuple(scenario.coefficients),
                         vm.selected_candidate_index,
+                        tokens=_tok,
                     )
                     chart_c = (
                         ui.echart(chart_c_opt)
@@ -1504,11 +1548,12 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
             }
         )
 
-    ui.label("Critical Decisions").classes(
-        "text-base font-semibold text-[var(--text-primary)] mb-2"
-    )
-    ui.label("Sorted ascending by rank (lower score = more critical)").classes(
-        "text-xs text-[var(--text-muted)] mb-3"
+    _render_section_header(
+        title="Critical Decisions",
+        subtitle=(
+            "Which architectural choices move the result most — ranked "
+            "ascending by rank (lower score = more critical)."
+        ),
     )
     ui.table(columns=columns, rows=rows, row_key="rank").classes(
         "w-full max-h-screen overflow-y-auto"
@@ -1556,13 +1601,13 @@ def _render_critical_constraints_tab(vm: ScenarioVM, container: Any) -> None:
             }
         )
 
-    ui.label("Critical Constraints").classes(
-        "text-base font-semibold text-[var(--text-primary)] mb-2"
+    _render_section_header(
+        title="Critical Constraints",
+        subtitle=(
+            "Which constraints eliminate the most candidates — ranked "
+            "descending; redundant rows are faded."
+        ),
     )
-    ui.label(
-        "Sorted descending by eliminated (most-binding first). "
-        "Redundant rows shown with faded background."
-    ).classes("text-xs text-[var(--text-muted)] mb-3")
 
     # Render as a custom table to support per-row background styling
     with ui.scroll_area().classes("w-full max-h-screen"):
@@ -1676,9 +1721,9 @@ def index() -> None:
             _brand_svg = (
                 '<svg width="22" height="18" viewBox="0 0 22 18" fill="none" '
                 'xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
-                '<path d="M2 16 L8 4 L14 16 Z" fill="#8b5cf6" fill-opacity="0.35"/>'
-                '<path d="M8 16 L13 2 L18 16 Z" fill="#8b5cf6" fill-opacity="0.6"/>'
-                '<path d="M13 16 L18 7 L22 16 Z" fill="#8b5cf6" fill-opacity="0.95"/>'
+                '<path d="M2 16 L8 4 L14 16 Z" fill="var(--accent)" fill-opacity="0.35"/>'
+                '<path d="M8 16 L13 2 L18 16 Z" fill="var(--accent)" fill-opacity="0.6"/>'
+                '<path d="M13 16 L18 7 L22 16 Z" fill="var(--accent)" fill-opacity="0.95"/>'
                 "</svg>"
             )
             with ui.row().classes("items-center gap-2 mr-3"):
@@ -1695,7 +1740,9 @@ def index() -> None:
                 if was_dirty:
                     _stamp_discard_warning("Create a new scenario")
 
-            ui.button("New", icon="add", on_click=_do_new_guarded).props("flat color=white")
+            ui.button("New", icon="add", on_click=_do_new_guarded).props("flat").classes(
+                "text-[var(--text-secondary)]"
+            )
 
             def _open_native_guarded() -> None:
                 was_dirty = vm.is_dirty
@@ -1717,12 +1764,12 @@ def index() -> None:
 
             if _is_native:
                 ui.button("Open…", icon="folder_open", on_click=_open_native_guarded).props(
-                    "flat color=white"
-                )
+                    "flat"
+                ).classes("text-[var(--text-secondary)]")
             else:
                 ui.button("Open…", icon="folder_open", on_click=_open_dialog_guarded).props(
-                    "flat color=white"
-                )
+                    "flat"
+                ).classes("text-[var(--text-secondary)]")
 
             # Web-mode Save = anchor-download, not server-side write. Mirrors
             # the TS Toolbar.handleSave: a user-clicked Save should never
@@ -1730,17 +1777,23 @@ def index() -> None:
             # otherwise share / overwrite scenario files). Native mode keeps
             # _do_save which routes through vm.save_cmd → local file system.
             if _is_native:
-                save_btn = ui.button("Save", icon="save", on_click=lambda: _do_save(vm)).props(
-                    "flat color=white"
+                save_btn = (
+                    ui.button("Save", icon="save", on_click=lambda: _do_save(vm))
+                    .props("flat")
+                    .classes("text-[var(--text-secondary)]")
                 )
                 if vm.scenario is None or vm.file_path is None:
                     save_btn.props(add="disabled")
             else:
-                save_btn = ui.button(
-                    "Save",
-                    icon="save",
-                    on_click=lambda: _do_save_browser(vm),
-                ).props("flat color=white")
+                save_btn = (
+                    ui.button(
+                        "Save",
+                        icon="save",
+                        on_click=lambda: _do_save_browser(vm),
+                    )
+                    .props("flat")
+                    .classes("text-[var(--text-secondary)]")
+                )
                 if vm.scenario is None:
                     save_btn.props(add="disabled")
 
@@ -1749,7 +1802,7 @@ def index() -> None:
                     "Save As…",
                     icon="save_as",
                     on_click=lambda: _save_as_native(vm),
-                ).props("flat color=white")
+                ).props("flat").classes("text-[var(--text-secondary)]")
             else:
                 # Web-mode Save As also goes through _do_save_browser so
                 # the post-download 'Downloaded.' toast + is_dirty clear
@@ -1759,7 +1812,7 @@ def index() -> None:
                     "Save As…",
                     icon="save_as",
                     on_click=lambda: _do_save_browser(vm),
-                ).props("flat color=white")
+                ).props("flat").classes("text-[var(--text-secondary)]")
 
             # Vertical separator between File and Sample groups — matches
             # the TS and C# toolbar grouping for cross-impl visual identity.
@@ -1788,10 +1841,16 @@ def index() -> None:
 
             # Theme toggle: flips AppVM.Theme; the on-page dark_mode
             # subscription rewires the Quasar dark class on each change.
-            theme_btn = ui.button(
-                icon="dark_mode" if app_vm.theme == "light" else "light_mode",
-                on_click=lambda: app_vm.set_theme("light" if app_vm.theme == "dark" else "dark"),
-            ).props("flat color=white")
+            theme_btn = (
+                ui.button(
+                    icon="dark_mode" if app_vm.theme == "light" else "light_mode",
+                    on_click=lambda: app_vm.set_theme(
+                        "light" if app_vm.theme == "dark" else "dark"
+                    ),
+                )
+                .props("flat")
+                .classes("text-[var(--text-secondary)]")
+            )
             theme_btn.tooltip("Toggle theme")
 
             def _refresh_theme_icon(name: str) -> None:
@@ -1806,7 +1865,7 @@ def index() -> None:
                 "Solve",
                 icon="play_arrow",
                 on_click=lambda: _do_explicit_solve(vm),
-            ).props("color=primary")
+            ).props("color=primary").classes("guidearch-solve")
 
         # ── Tab strip (§5.4: 40px tall, border-subtle underline) ───────────
         # Material icons mirror the TS and C# tab icon assignments so the
@@ -1932,6 +1991,21 @@ def index() -> None:
                 save_btn.props(add="disabled")
 
     _subs.append(vm.property_changed.subscribe(on_next=_on_vm_change))
+
+    # Theme toggle retints the page CSS vars instantly, but the mounted
+    # ECharts bake their colors at option-build time (chart_data.py reads
+    # active_chart_tokens(theme)). Re-render the results tab on a theme flip
+    # so the charts rebuild with the active-theme tokens — the same
+    # clear+re-render the candidate/selection path already uses.
+    def _on_theme_change(prop: str) -> None:
+        if prop != "theme":
+            return
+        if vm.scenario is not None and vm.candidates:
+            res_container.clear()
+            with res_container:
+                _render_results_tab(vm, res_container)
+
+    _subs.append(app_vm.property_changed.subscribe(on_next=_on_theme_change))
 
     # Release every collected subscription when this client disconnects, so the
     # process-global VM subjects don't accumulate subscribers across reloads.

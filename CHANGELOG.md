@@ -6,10 +6,19 @@ The format is loosely [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). 
 
 ## [Unreleased]
 
-Post-v1.0.0 maintenance focused on cross-impl parity and CI hardening; no
-behavior change a user-facing release note would call out.
+Post-v1.0.0 maintenance focused on cross-impl parity, a UI/UX elevation pass, and CI hardening.
 
 ### Changed
+- UI/UX elevation across all three impls (TS/Svelte, C#/Avalonia,
+  Python/NiceGUI), rendering a shared design system (`spec/design-system.md`):
+  two first-class themes — an elevated dark default and a fully-retinted light
+  theme toggled from the toolbar; a unified toolbar, tab strip, and primary
+  Solve action; a styled confirmation-dialog system (§5.10) with scrim-click
+  cancel, Esc/Enter, and a pre-action "discard unsaved changes" confirm; a
+  first-launch hero empty-state; and results charts (ranking bars, fuzzy
+  triangles, top-N comparison) that render against theme tokens and retint
+  live on theme toggle. View-layer only — no engine, domain, or numerical
+  output change.
 - Python now consumes VMx from the published PyPI package (`vmx>=2.6.0`)
   instead of the `vendor/vmx/` git submodule. The `[tool.uv.sources]`
   editable override is commented out by default, so a plain `uv sync`

@@ -48,6 +48,38 @@ TOKENS: dict[str, str] = {
     "fuzzy-negative": "#fb7185",
 }
 
+# §2-light — elevated light theme. Same keys as TOKENS; values retuned for
+# contrast on white. Applied via a body.body--light override block (Quasar
+# adds that class when ui.dark_mode() is disabled).
+LIGHT_TOKENS: dict[str, str] = {
+    # §2.1 Surface
+    "bg-page": "#ffffff",
+    "bg-surface": "#fbfbfd",
+    "bg-surface-2": "#f3f4f8",
+    "bg-surface-3": "#eaecf3",
+    "border-subtle": "#eef0f4",
+    "border-strong": "#dfe2ec",
+    # §2.2 Text
+    "text-primary": "#1a1f36",
+    "text-secondary": "#5a6072",
+    "text-muted": "#8a90a2",
+    "text-inverse": "#ffffff",
+    # §2.3 Accent
+    "accent": "#6b4ce0",
+    "accent-hover": "#5a3dd0",
+    "accent-muted": "#f0ecfd",
+    "accent-on": "#ffffff",
+    # §2.4 Semantic
+    "success": "#0ea371",
+    "warning": "#b8801a",
+    "danger": "#dc3a3a",
+    "info": "#3a6fd8",
+    # §2.5 Fuzzy axes (charts only)
+    "fuzzy-positive": "#0ea371",
+    "fuzzy-average": "#d9a014",
+    "fuzzy-negative": "#e5566f",
+}
+
 # ---------------------------------------------------------------------------
 # §3 Type families
 # ---------------------------------------------------------------------------
@@ -65,10 +97,16 @@ def inject_css() -> None:
     """
     # Build :root CSS-variable block from TOKENS
     css_vars = "\n".join(f"  --{name}: {value};" for name, value in TOKENS.items())
+    light_vars = "\n".join(f"  --{name}: {value};" for name, value in LIGHT_TOKENS.items())
 
     css = f"""
 :root {{
 {css_vars}
+}}
+
+/* §2-light — Quasar toggles body.body--light when dark mode is disabled */
+body.body--light {{
+{light_vars}
 }}
 
 body {{
@@ -106,6 +144,9 @@ body {{
   color: var(--text-secondary) !important;
   font-size: 12px !important;
   height: 32px !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1 !important;
 }}
 .q-table tbody tr {{
   height: 36px !important;
@@ -160,6 +201,41 @@ body {{
   text-transform: none !important;
   letter-spacing: 0 !important;
   font-weight: 600 !important;
+}}
+
+/* §3.2 Solve — the single loudest control. Dark = accent gradient + glow. */
+.guidearch-solve {{
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover)) !important;
+  color: var(--accent-on) !important;
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 2px 12px color-mix(in srgb, var(--accent) 45%, transparent) !important;
+  transition: box-shadow 120ms ease-out, filter 120ms ease-out !important;
+}}
+.guidearch-solve:hover {{
+  filter: brightness(1.05);
+  box-shadow:
+    0 0 0 1px var(--accent-hover),
+    0 4px 18px color-mix(in srgb, var(--accent) 55%, transparent) !important;
+}}
+.guidearch-solve.disabled,
+.guidearch-solve[disabled] {{
+  box-shadow: none !important;
+  filter: none !important;
+}}
+
+/* Light theme: flat accent fill + soft drop-shadow (no gradient, no glow). */
+body.body--light .guidearch-solve {{
+  background: var(--accent) !important;
+  box-shadow:
+    0 1px 3px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}}
+body.body--light .guidearch-solve:hover {{
+  background: var(--accent-hover) !important;
+  box-shadow:
+    0 2px 6px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }}
 
 /* Disable Quasar table zebra stripes */
@@ -217,3 +293,14 @@ body {{
         info=TOKENS["info"],
         warning=TOKENS["warning"],
     )
+
+
+def active_chart_tokens(theme: str) -> dict[str, str]:
+    """Return the token→hex map for the active theme.
+
+    Chart option builders (chart_data.py) read concrete hex from this map so
+    ECharts plots use the correct per-theme colors. The TS/C# charts retint via
+    CSS vars / theme brushes; Python's ECharts options are JSON, so we resolve
+    the active theme's hex here at option-build time.
+    """
+    return LIGHT_TOKENS if theme == "light" else TOKENS

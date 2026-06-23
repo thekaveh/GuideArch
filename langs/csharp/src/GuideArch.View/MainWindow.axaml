@@ -6,7 +6,7 @@
         Title="GuideArch"
         Width="1200" Height="800"
         MinWidth="800" MinHeight="500"
-        Background="{StaticResource BgPageBrush}"
+        Background="{DynamicResource BgPageBrush}"
         FontSize="13">
 
   <!--
@@ -25,8 +25,8 @@
          TOP TOOLBAR — §6 toolbar: 56px tall, 24px horizontal padding
          ================================================================ -->
     <Border DockPanel.Dock="Top"
-            Background="{StaticResource BgSurfaceBrush}"
-            BorderBrush="{StaticResource BorderSubtleBrush}"
+            Background="{DynamicResource BgSurfaceBrush}"
+            BorderBrush="{DynamicResource BorderSubtleBrush}"
             BorderThickness="0,0,0,1"
             Height="56"
             Padding="24,0">
@@ -42,50 +42,78 @@
                     Margin="0,0,12,0">
           <Canvas Width="22" Height="18">
             <Path Data="M2,16 L8,4 L14,16 Z"
-                  Fill="{StaticResource AccentBrush}"
+                  Fill="{DynamicResource AccentBrush}"
                   Opacity="0.35" />
             <Path Data="M8,16 L13,2 L18,16 Z"
-                  Fill="{StaticResource AccentBrush}"
+                  Fill="{DynamicResource AccentBrush}"
                   Opacity="0.6" />
             <Path Data="M13,16 L18,7 L22,16 Z"
-                  Fill="{StaticResource AccentBrush}"
+                  Fill="{DynamicResource AccentBrush}"
                   Opacity="0.95" />
           </Canvas>
           <TextBlock Text="GuideArch"
                      FontWeight="Bold"
                      FontSize="15"
-                     Foreground="{StaticResource TextPrimaryBrush}"
+                     Foreground="{DynamicResource TextPrimaryBrush}"
                      VerticalAlignment="Center" />
         </StackPanel>
 
         <!-- File operations group -->
         <Button Name="BtnNew"
-                Content="New"
                 ToolTip.Tip="New scenario"
                 Classes="toolbar-btn"
-                Click="OnNewClicked" />
+                Click="OnNewClicked">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Path Width="14" Height="14" Stretch="Uniform"
+                  Stroke="{Binding $parent[Button].Foreground}"
+                  StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                  Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+            <TextBlock Text="New" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
         <Button Name="BtnOpen"
-                Content="Open…"
                 ToolTip.Tip="Open scenario JSON"
                 Classes="toolbar-btn"
-                Click="OnOpenClicked" />
+                Click="OnOpenClicked">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Path Width="14" Height="14" Stretch="Uniform"
+                  Stroke="{Binding $parent[Button].Foreground}"
+                  StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                  Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            <TextBlock Text="Open…" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
         <Button Name="BtnSave"
-                Content="Save"
                 ToolTip.Tip="Save current scenario"
                 Classes="toolbar-btn"
                 Click="OnSaveClicked"
-                IsEnabled="{ReflectionBinding Model.CanSave}" />
+                IsEnabled="{ReflectionBinding Model.CanSave}">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Path Width="14" Height="14" Stretch="Uniform"
+                  Stroke="{Binding $parent[Button].Foreground}"
+                  StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                  Data="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z M17 21v-8H7v8 M7 3v5h8" />
+            <TextBlock Text="Save" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
         <Button Name="BtnSaveAs"
-                Content="Save As…"
                 ToolTip.Tip="Save as new file"
                 Classes="toolbar-btn"
                 Click="OnSaveAsClicked"
-                IsEnabled="{ReflectionBinding Model.HasScenario}" />
+                IsEnabled="{ReflectionBinding Model.HasScenario}">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Path Width="14" Height="14" Stretch="Uniform"
+                  Stroke="{Binding $parent[Button].Foreground}"
+                  StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                  Data="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242 M12 12v9 M8 17l4 4 4-4" />
+            <TextBlock Text="Save As…" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
 
         <!-- Vertical separator between groups -->
         <Border Width="1"
                 Height="24"
-                Background="{StaticResource BorderSubtleBrush}"
+                Background="{DynamicResource BorderSubtleBrush}"
                 Margin="6,0" />
 
         <!-- Sample loaders group — accent CTAs per spec/editors.md §1 -->
@@ -124,7 +152,7 @@
         <Button Name="BtnSolve"
                 Content="Solve"
                 ToolTip.Tip="Re-run TOPSIS"
-                Classes="action-btn"
+                Classes="solve-btn"
                 Click="OnSolveClicked"
                 IsEnabled="{ReflectionBinding Model.HasScenario}" />
 
@@ -135,8 +163,8 @@
          BOTTOM STATUS BAR — §6 status bar: 32px tall, 24px horizontal padding
          ================================================================ -->
     <Border DockPanel.Dock="Bottom"
-            Background="{StaticResource BgSurfaceBrush}"
-            BorderBrush="{StaticResource BorderSubtleBrush}"
+            Background="{DynamicResource BgSurfaceBrush}"
+            BorderBrush="{DynamicResource BorderSubtleBrush}"
             BorderThickness="0,1,0,0"
             Height="32"
             Padding="24,0">
@@ -146,7 +174,7 @@
                    Text="{ReflectionBinding Model.Scenario.Name}"
                    FontSize="12"
                    FontWeight="SemiBold"
-                   Foreground="{StaticResource AccentHoverBrush}"
+                   Foreground="{DynamicResource AccentHoverBrush}"
                    VerticalAlignment="Center"
                    IsVisible="{ReflectionBinding Model.HasScenario}" />
         <!-- File path (basename only; full path in tooltip) -->
@@ -154,7 +182,7 @@
                    Name="StatusFilePath"
                    FontSize="11"
                    FontFamily="Cascadia Code,Consolas,monospace"
-                   Foreground="{StaticResource TextMutedBrush}"
+                   Foreground="{DynamicResource TextMutedBrush}"
                    VerticalAlignment="Center"
                    Margin="8,0,0,0"
                    IsVisible="False" />
@@ -162,7 +190,7 @@
         <TextBlock Grid.Column="2"
                    Text="{ReflectionBinding Model.Status}"
                    FontSize="12"
-                   Foreground="{StaticResource TextSecondaryBrush}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
                    VerticalAlignment="Center"
                    Margin="12,0,0,0" />
 
@@ -179,7 +207,7 @@
           <TextBlock Text="{ReflectionBinding Model.Candidates.Length, StringFormat={}{0} candidates}"
                      FontSize="11"
                      FontWeight="Medium"
-                     Foreground="{StaticResource InfoBrush}" />
+                     Foreground="{DynamicResource InfoBrush}" />
         </Border>
 
         <!-- Dirty chip -->
@@ -193,7 +221,7 @@
           <TextBlock Text="unsaved"
                      FontSize="11"
                      FontWeight="Medium"
-                     Foreground="{StaticResource WarningBrush}" />
+                     Foreground="{DynamicResource WarningBrush}" />
         </Border>
 
         <!-- Warnings chip — shows last warning if any -->
@@ -208,7 +236,7 @@
           <TextBlock Text="{ReflectionBinding Model.Warnings.Length, StringFormat=⚠ {0} warning(s)}"
                      FontSize="11"
                      FontWeight="Medium"
-                     Foreground="{StaticResource DangerBrush}" />
+                     Foreground="{DynamicResource DangerBrush}" />
         </Border>
       </Grid>
     </Border>
@@ -220,7 +248,7 @@
 
       <!-- ── Tab strip — always visible ──────────────────────────────── -->
       <TabControl Name="MainTabs"
-                  Background="{StaticResource BgPageBrush}">
+                  Background="{DynamicResource BgPageBrush}">
 
       <!-- ── Tab 1: Decisions ────────────────────────────────────────── -->
       <TabItem>
@@ -240,7 +268,7 @@
 
           <!-- §SectionHeader — title + subtitle + primary action -->
           <Border Grid.Row="0"
-                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="0,0,0,1"
                   Padding="24,16,24,12"
                   IsVisible="{ReflectionBinding Model.HasScenario}">
@@ -249,10 +277,10 @@
                 <TextBlock Text="Decisions"
                            FontSize="16"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Text="Architectural choices you'll resolve by picking one alternative each."
                            FontSize="12"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            TextWrapping="Wrap" />
               </StackPanel>
               <Button Grid.Column="1"
@@ -273,7 +301,7 @@
                     CanUserSortColumns="False"
                     IsReadOnly="False"
                     Margin="24,0,24,24"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+                    IsVisible="{ReflectionBinding !Model.DecisionsView.IsEmpty}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
@@ -297,6 +325,30 @@
             </DataGrid.Columns>
           </DataGrid>
 
+          <!-- §5.8 compact section-empty — shown when DecisionsView is empty -->
+          <Border Grid.Row="1"
+                  Name="DecisionsEmptyState"
+                  Margin="24,0,24,24"
+                  IsVisible="{ReflectionBinding Model.DecisionsView.IsEmpty}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="6"
+                        MaxWidth="420">
+              <TextBlock Text="No decisions yet"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center" />
+              <TextBlock Text="A scenario is a set of architectural decisions you need to make. Add your first one to begin laying out the decision space."
+                         FontSize="13"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
         </Grid>
       </TabItem>
 
@@ -319,7 +371,7 @@
           <!-- §SectionHeader — Add Alternative attaches to the selected
                decision; the selection lives in the grid below. -->
           <Border Grid.Row="0"
-                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="0,0,0,1"
                   Padding="24,16,24,12"
                   IsVisible="{ReflectionBinding Model.HasScenario}">
@@ -328,16 +380,16 @@
                 <TextBlock Text="Alternatives"
                            FontSize="16"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Text="Concrete options under each decision; pick one per decision to form a candidate."
                            FontSize="12"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            TextWrapping="Wrap" />
               </StackPanel>
               <TextBlock Grid.Column="1"
                          Text="Select a decision then:"
                          VerticalAlignment="Center"
-                         Foreground="{StaticResource TextSecondaryBrush}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
                          FontSize="12" />
               <Button Grid.Column="2"
                       Content="+ Add Alternative"
@@ -357,7 +409,7 @@
                     CanUserSortColumns="False"
                     IsReadOnly="False"
                     Margin="24,0,24,24"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+                    IsVisible="{ReflectionBinding !Model.AlternativesView.IsEmpty}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
@@ -380,6 +432,30 @@
             </DataGrid.Columns>
           </DataGrid>
 
+          <!-- §5.8 compact section-empty — shown when AlternativesView is empty -->
+          <Border Grid.Row="1"
+                  Name="AlternativesEmptyState"
+                  Margin="24,0,24,24"
+                  IsVisible="{ReflectionBinding Model.AlternativesView.IsEmpty}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="6"
+                        MaxWidth="420">
+              <TextBlock Text="No alternatives yet"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center" />
+              <TextBlock Text="Each decision needs at least two alternatives to choose between. Select a decision above, then add alternatives."
+                         FontSize="13"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
         </Grid>
       </TabItem>
 
@@ -401,7 +477,7 @@
 
           <!-- §SectionHeader -->
           <Border Grid.Row="0"
-                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="0,0,0,1"
                   Padding="24,16,24,12"
                   IsVisible="{ReflectionBinding Model.HasScenario}">
@@ -410,10 +486,10 @@
                 <TextBlock Text="Properties"
                            FontSize="16"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Text="Quality criteria — each with a kind (max / min) and a weight; together they decide how candidates rank."
                            FontSize="12"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            TextWrapping="Wrap" />
               </StackPanel>
               <Button Grid.Column="1"
@@ -434,7 +510,7 @@
                     CanUserSortColumns="False"
                     IsReadOnly="False"
                     Margin="24,0,24,24"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+                    IsVisible="{ReflectionBinding !Model.PropertiesView.IsEmpty}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
@@ -462,6 +538,30 @@
             </DataGrid.Columns>
           </DataGrid>
 
+          <!-- §5.8 compact section-empty — shown when PropertiesView is empty -->
+          <Border Grid.Row="1"
+                  Name="PropertiesEmptyState"
+                  Margin="24,0,24,24"
+                  IsVisible="{ReflectionBinding Model.PropertiesView.IsEmpty}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="6"
+                        MaxWidth="420">
+              <TextBlock Text="No properties yet"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center" />
+              <TextBlock Text="Quality properties — performance, cost, reliability — are how candidates get ranked. Add at least one, then weight it."
+                         FontSize="13"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
         </Grid>
       </TabItem>
 
@@ -483,7 +583,7 @@
 
           <!-- §SectionHeader -->
           <Border Grid.Row="0"
-                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="0,0,0,1"
                   Padding="24,16,24,12"
                   IsVisible="{ReflectionBinding Model.HasScenario}">
@@ -491,10 +591,10 @@
               <TextBlock Text="Coefficients"
                          FontSize="16"
                          FontWeight="SemiBold"
-                         Foreground="{StaticResource TextPrimaryBrush}" />
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
               <TextBlock Text="Fuzzy values per (alternative, property): lower · modal · upper. Edit to shift how each alternative scores."
                          FontSize="12"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          TextWrapping="Wrap" />
             </StackPanel>
           </Border>
@@ -531,23 +631,23 @@
 
           <!-- §SectionHeader -->
           <Border Grid.Row="0"
-                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="0,0,0,1"
                   Padding="24,16,24,12">
             <StackPanel Spacing="2">
               <TextBlock Text="Constraints"
                          FontSize="16"
                          FontWeight="SemiBold"
-                         Foreground="{StaticResource TextPrimaryBrush}" />
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
               <TextBlock Text="Rules that eliminate candidates: thresholds bound a single property; dependencies require pairings; conflicts forbid them."
                          FontSize="12"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          TextWrapping="Wrap" />
             </StackPanel>
           </Border>
 
         <TabControl Grid.Row="1"
-                    Background="{StaticResource BgPageBrush}">
+                    Background="{DynamicResource BgPageBrush}">
 
           <!-- Sub-tab: Threshold -->
           <TabItem Header="Threshold">
@@ -689,6 +789,24 @@
         </TabItem.Header>
         <Grid RowDefinitions="Auto,*">
 
+          <!-- §5.9 SectionHeader -->
+          <Border Grid.Row="0"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12"
+                  IsVisible="{ReflectionBinding Model.HasScenario}">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Results"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="Ranked candidates with their fuzzy-TOPSIS score; pick one to inspect its profile and compare against the field."
+                         FontSize="12"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
           <!-- Split: left 60% candidates table, right 40% charts -->
           <Grid Grid.Row="1"
                 ColumnDefinitions="3*,2*"
@@ -771,12 +889,23 @@
         </TabItem.Header>
         <Grid RowDefinitions="Auto,*">
 
-          <TextBlock Grid.Row="0"
-                     Text="Critical decisions — sorted ascending by rank (lower score = more critical)."
-                     Margin="24,12,24,8"
-                     FontSize="12"
-                     Foreground="{StaticResource TextSecondaryBrush}"
-                     IsVisible="{ReflectionBinding Model.HasScenario}" />
+          <!-- §5.9 SectionHeader -->
+          <Border Grid.Row="0"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12"
+                  IsVisible="{ReflectionBinding Model.HasScenario}">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Critical Decisions"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="Which architectural choices move the result most — ranked ascending by rank (lower score = more critical)."
+                         FontSize="12"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
           <!-- ReflectionBinding: open generic DataContext -->
           <DataGrid Grid.Row="1"
@@ -787,7 +916,7 @@
                     CanUserSortColumns="False"
                     IsReadOnly="True"
                     Margin="24,0,24,24"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+                    IsVisible="{ReflectionBinding !Model.CriticalDecisionsView.IsEmpty}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="Rank"
                                   Binding="{ReflectionBinding Rank}"
@@ -813,6 +942,30 @@
             </DataGrid.Columns>
           </DataGrid>
 
+          <!-- §5.8 compact section-empty — shown when CriticalDecisionsView is empty -->
+          <Border Grid.Row="1"
+                  Name="CriticalDecisionsEmptyState"
+                  Margin="24,0,24,24"
+                  IsVisible="{ReflectionBinding Model.CriticalDecisionsView.IsEmpty}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="6"
+                        MaxWidth="420">
+              <TextBlock Text="No critical decisions computed"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center" />
+              <TextBlock Text="Add decisions and alternatives, then Solve to see which choices move the result most."
+                         FontSize="13"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
         </Grid>
       </TabItem>
 
@@ -832,12 +985,23 @@
         </TabItem.Header>
         <Grid RowDefinitions="Auto,*">
 
-          <TextBlock Grid.Row="0"
-                     Text="Critical constraints — sorted descending by eliminated (most-binding first). Redundant rows are faded."
-                     Margin="24,12,24,8"
-                     FontSize="12"
-                     Foreground="{StaticResource TextSecondaryBrush}"
-                     IsVisible="{ReflectionBinding Model.HasScenario}" />
+          <!-- §5.9 SectionHeader -->
+          <Border Grid.Row="0"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12"
+                  IsVisible="{ReflectionBinding Model.HasScenario}">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Critical Constraints"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="Which constraints eliminate the most candidates — ranked descending; redundant rows are faded."
+                         FontSize="12"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
           <!-- ReflectionBinding: open generic DataContext -->
           <DataGrid Grid.Row="1"
@@ -848,7 +1012,7 @@
                     CanUserSortColumns="False"
                     IsReadOnly="True"
                     Margin="24,0,24,24"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+                    IsVisible="{ReflectionBinding !Model.CriticalConstraintsView.IsEmpty}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="Index"
                                   Binding="{ReflectionBinding Index}"
@@ -875,6 +1039,30 @@
             </DataGrid.Columns>
           </DataGrid>
 
+          <!-- §5.8 compact section-empty — shown when CriticalConstraintsView is empty -->
+          <Border Grid.Row="1"
+                  Name="CriticalConstraintsEmptyState"
+                  Margin="24,0,24,24"
+                  IsVisible="{ReflectionBinding Model.CriticalConstraintsView.IsEmpty}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="6"
+                        MaxWidth="420">
+              <TextBlock Text="No constraints to analyze"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center" />
+              <TextBlock Text="Add a constraint on the Constraints tab and Solve to see which ones eliminate the most candidates."
+                         FontSize="13"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
         </Grid>
       </TabItem>
 
@@ -885,7 +1073,7 @@
            primary canvas, not an overlay floating above blank tabs. -->
       <Grid IsVisible="{ReflectionBinding !Model.HasScenario}"
             IsHitTestVisible="{ReflectionBinding !Model.HasScenario}"
-            Background="{StaticResource BgPageBrush}">
+            Background="{DynamicResource BgPageBrush}">
         <StackPanel HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Spacing="12"
@@ -899,19 +1087,19 @@
                remain readable against the page background. -->
           <Canvas Width="120" Height="96" HorizontalAlignment="Center">
             <Path Data="M10,78 L40,18 L70,78 Z"
-                  Stroke="{StaticResource AccentBrush}"
+                  Stroke="{DynamicResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentFillFaintest}" />
+                  Fill="{DynamicResource AccentFillFaintest}" />
             <Path Data="M40,78 L70,12 L100,78 Z"
-                  Stroke="{StaticResource AccentBrush}"
+                  Stroke="{DynamicResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentFillFainter}" />
+                  Fill="{DynamicResource AccentFillFainter}" />
             <Path Data="M70,78 L92,36 L114,78 Z"
-                  Stroke="{StaticResource AccentBrush}"
+                  Stroke="{DynamicResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentFillFaint}" />
+                  Fill="{DynamicResource AccentFillFaint}" />
             <Line StartPoint="6,80" EndPoint="118,80"
-                  Stroke="{StaticResource AccentBrush}"
+                  Stroke="{DynamicResource AccentBrush}"
                   StrokeThickness="1"
                   Opacity="0.35" />
           </Canvas>
@@ -924,19 +1112,19 @@
                      FontSize="11"
                      FontWeight="SemiBold"
                      LetterSpacing="1.2"
-                     Foreground="{StaticResource AccentHoverBrush}"
+                     Foreground="{DynamicResource AccentHoverBrush}"
                      HorizontalAlignment="Center" />
 
           <TextBlock Text="Pick a software architecture, with fuzzy TOPSIS."
                      FontSize="22"
                      FontWeight="SemiBold"
-                     Foreground="{StaticResource TextPrimaryBrush}"
+                     Foreground="{DynamicResource TextPrimaryBrush}"
                      HorizontalAlignment="Center"
                      TextAlignment="Center"
                      TextWrapping="Wrap" />
 
           <TextBlock FontSize="14"
-                     Foreground="{StaticResource TextMutedBrush}"
+                     Foreground="{DynamicResource TextMutedBrush}"
                      HorizontalAlignment="Center"
                      TextAlignment="Center"
                      TextWrapping="Wrap"

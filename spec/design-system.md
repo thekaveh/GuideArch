@@ -8,12 +8,16 @@ The M1–M4 UIs were functional but visually unpolished. This spec defines the d
 
 - **Professional**, not playful. The audience is software architects evaluating significant technology decisions.
 - **Dense but not cramped.** Information per screen is high (lots of decisions, alternatives, properties), so we use compact controls and a tight type scale.
-- **Confident dark theme** as the default. A light theme is available via the toolbar's theme-toggle button (`AppVM.setTheme`, persisted per impl — see `spec/viewmodels.md` §3.3); high-contrast and per-platform OS-follow variants remain deferred.
+- **Two first-class themes: dark and light.** Dark is the launch default; light fully retints every token (see §2-light) and is not a degraded fallback. Both are switched via the toolbar's theme-toggle button (`AppVM.setTheme`, persisted per impl — see `spec/viewmodels.md` §3.3). OS-follow (`prefers-color-scheme`) remains out of scope (§10).
 - **Quiet color**. Color carries meaning (status, criticality, fuzzy axis), not decoration.
 
 ## 2. Color tokens
 
 Use these literal hex values. Every impl maps them into its native theming system (Tailwind for NiceGUI/Svelte, FluentTheme for Avalonia).
+
+Both tables define the same 21 token names; impls map both and switch via `AppVM.setTheme` (`spec/viewmodels.md` §3.2). Light values are contrast-checked to WCAG AA for text-on-surface pairs.
+
+## §2-dark — Dark theme (launch default)
 
 ### 2.1 Surface
 
@@ -60,6 +64,54 @@ Use these literal hex values. Every impl maps them into its native theming syste
 | `fuzzy-positive` | `#34d399` | Positive (optimistic) vertex / dimension |
 | `fuzzy-average` | `#fbbf24` | Modal / average vertex |
 | `fuzzy-negative` | `#fb7185` | Negative (pessimistic) vertex |
+
+## §2-light — Light theme
+
+### 2.1 Surface
+
+| Token | Hex | Use |
+|---|---|---|
+| `bg-page` | `#ffffff` | Page background |
+| `bg-surface` | `#fbfbfd` | Cards, panels, table backgrounds |
+| `bg-surface-2` | `#f3f4f8` | Elevated surfaces, modal backgrounds, hover-row highlight |
+| `bg-surface-3` | `#eaecf3` | Heavily-elevated surfaces (popovers) |
+| `border-subtle` | `#eef0f4` | Hairlines between rows, between panels |
+| `border-strong` | `#dfe2ec` | Card borders, input borders |
+
+### 2.2 Text
+
+| Token | Hex | Use |
+|---|---|---|
+| `text-primary` | `#1a1f36` | Body text, primary labels |
+| `text-secondary` | `#5a6072` | Secondary labels, captions, metadata |
+| `text-muted` | `#8a90a2` | Disabled text, placeholders |
+| `text-inverse` | `#ffffff` | Text on colored backgrounds |
+
+### 2.3 Accent — single brand color (indigo-violet)
+
+| Token | Hex | Use |
+|---|---|---|
+| `accent` | `#6b4ce0` | Primary buttons, focus rings, active tab indicators |
+| `accent-hover` | `#5a3dd0` | Button hover |
+| `accent-muted` | `#f0ecfd` | Selected-row tint, accent backgrounds |
+| `accent-on` | `#ffffff` | Text on accent button |
+
+### 2.4 Semantic (status)
+
+| Token | Hex | Use |
+|---|---|---|
+| `success` | `#0ea371` | Positive status (saved, conforming) |
+| `warning` | `#b8801a` | Soft warnings (lower>modal, redundant constraint, unsaved-changes chip) |
+| `danger` | `#dc3a3a` | Fatal errors, destructive actions (Delete) |
+| `info` | `#3a6fd8` | Informational chips |
+
+### 2.5 Fuzzy axes (only for charts)
+
+| Token | Hex | Use |
+|---|---|---|
+| `fuzzy-positive` | `#0ea371` | Positive (optimistic) vertex / dimension |
+| `fuzzy-average` | `#d9a014` | Modal / average vertex |
+| `fuzzy-negative` | `#e5566f` | Negative (pessimistic) vertex |
 
 ## 3. Type
 
@@ -253,9 +305,9 @@ Shown when a scenario IS loaded but a section has no rows yet (e.g. Critical Dec
 
 ## 9. Per-impl realization notes
 
-- **TypeScript (Svelte)**: define the tokens as CSS custom properties on `:root` in a global `app.css` (or `+layout.svelte`). Inject before `+page.svelte` mounts. Components reference `var(--bg-page)` etc.
-- **Python (NiceGUI / Quasar)**: NiceGUI exposes Tailwind 4 classes; map the tokens via `tailwind.config.js` (`ui.add_head_html` to inject a `<style>` with the CSS variables, then use `bg-[var(--bg-page)]` Tailwind arbitrary values). Alternatively use `ui.colors(primary='#8b5cf6', ...)` and the Quasar dark theme.
-- **C# (Avalonia)**: register the palette as `Color` resources in `App.axaml`'s `<Application.Resources>` (or a separate `Resources/Colors.axaml`). Map to `SolidColorBrush` resources used by control templates. Use the FluentTheme as the base.
+- **TypeScript (Svelte)**: define the tokens as CSS custom properties on `:root` in a global `app.css` (or `+layout.svelte`). Inject before `+page.svelte` mounts. Components reference `var(--bg-page)` etc. Light theme is realized as a `[data-theme='light']` override block in `app.css` that redefines all 21 custom properties to the §2-light values.
+- **Python (NiceGUI / Quasar)**: NiceGUI exposes Tailwind 4 classes; map the tokens via `tailwind.config.js` (`ui.add_head_html` to inject a `<style>` with the CSS variables, then use `bg-[var(--bg-page)]` Tailwind arbitrary values). Alternatively use `ui.colors(primary='#8b5cf6', ...)` and the Quasar dark theme. Light theme is realized as `body.body--light` CSS-variable overrides injected by `theme.py`, driven by `ui.dark_mode()`.
+- **C# (Avalonia)**: register the palette as `Color` resources in `App.axaml`'s `<Application.Resources>` (or a separate `Resources/Colors.axaml`). Map to `SolidColorBrush` resources used by control templates. Use the FluentTheme as the base. Light theme is realized via `Colors.axaml` `ThemeDictionaries` (`Dark`/`Light`) so all brushes are consumed via `DynamicResource` and switch atomically when the active dictionary changes.
 
 ## 10. Out of scope for v1.0.x
 

@@ -99,8 +99,6 @@ public partial class MainWindow : Window
             }
         };
         UpdateStatusFilePath();
-
-        InitCharts();
     }
 
     private void ApplyTheme(string theme)
@@ -117,6 +115,13 @@ public partial class MainWindow : Window
         // will switch *to* next (sun while in dark mode, moon while in light).
         var icon = this.FindControl<TextBlock>("ThemeIcon");
         if (icon is not null) icon.Text = theme == "dark" ? "☀" : "🌙";
+        // Charts render to a bitmap from theme brushes resolved at render time;
+        // re-init backgrounds/axes and re-plot so they retint on toggle.
+        InitCharts();
+        var s = _vm.Model;
+        RenderChartA(s);
+        RenderChartB(s);
+        RenderChartC(s);
     }
 
     private void OnThemeToggleClicked(object? sender, RoutedEventArgs e)
@@ -144,35 +149,39 @@ public partial class MainWindow : Window
     // Chart initialization
     // -----------------------------------------------------------------------
 
+    // Resolve an Avalonia theme brush to a ScottPlot.Color at render time.
+    // ScottPlot draws to a bitmap and cannot consume DynamicResource, so we
+    // read the *active* theme dictionary's brush here and re-render on toggle
+    // (see ApplyTheme). This is how the plots retint between dark and light.
+    private ScottPlot.Color ResolvePlotColor(string brushKey, byte alpha = 255)
+    {
+        if (this.FindResource(brushKey) is Avalonia.Media.SolidColorBrush b)
+        {
+            var c = b.Color;
+            return new ScottPlot.Color(c.R, c.G, c.B, alpha);
+        }
+        // Fallback — should not happen since all keys exist in both dictionaries.
+        // Neutral gray so a missing-brush case reads as obviously wrong, not
+        // plausibly accent-purple.
+        return new ScottPlot.Color(128, 128, 128, alpha);
+    }
+
     private void InitCharts()
     {
-        // Chart A — horizontal bar chart, dark background
-        var plotA = ChartA.Plot;
-        plotA.FigureBackground.Color = Color.FromHex("#1E1E2E");
-        plotA.DataBackground.Color = Color.FromHex("#181825");
-        plotA.Axes.Color(Color.FromHex("#CDD6F4"));
-        plotA.Grid.MajorLineColor = Color.FromHex("#313244");
-        plotA.Title("Top candidates by score");
-        plotA.XLabel("Score");
-
-        // Chart B — triangle series, dark background
-        var plotB = ChartB.Plot;
-        plotB.FigureBackground.Color = Color.FromHex("#1E1E2E");
-        plotB.DataBackground.Color = Color.FromHex("#181825");
-        plotB.Axes.Color(Color.FromHex("#CDD6F4"));
-        plotB.Grid.MajorLineColor = Color.FromHex("#313244");
-        plotB.XLabel("Value");
-        plotB.YLabel("Membership");
-
-        // Chart C — top-10 comparison polylines, dark background
-        var plotC = ChartC.Plot;
-        plotC.FigureBackground.Color = Color.FromHex("#1E1E2E");
-        plotC.DataBackground.Color = Color.FromHex("#181825");
-        plotC.Axes.Color(Color.FromHex("#CDD6F4"));
-        plotC.Grid.MajorLineColor = Color.FromHex("#313244");
-        plotC.Title("Top 10 candidates — modal per property");
-        plotC.XLabel("Property");
-        plotC.YLabel("Modal sum");
+        foreach (var plot in new[] { ChartA.Plot, ChartB.Plot, ChartC.Plot })
+        {
+            plot.FigureBackground.Color = ResolvePlotColor("BgSurfaceBrush");
+            plot.DataBackground.Color = ResolvePlotColor("BgSurface2Brush");
+            plot.Axes.Color(ResolvePlotColor("TextSecondaryBrush"));
+            plot.Grid.MajorLineColor = ResolvePlotColor("BorderSubtleBrush", alpha: 128);
+        }
+        ChartA.Plot.Title("Top candidates by score");
+        ChartA.Plot.XLabel("Score");
+        ChartB.Plot.XLabel("Value");
+        ChartB.Plot.YLabel("Membership");
+        ChartC.Plot.Title("Top 10 candidates — modal per property");
+        ChartC.Plot.XLabel("Property");
+        ChartC.Plot.YLabel("Modal sum");
     }
 
     // Chart C palette lives in ChartData.ComparisonPalette (lifted out of the
@@ -680,18 +689,18 @@ public partial class MainWindow : Window
             byte alpha = (byte)(255 * b.OpacityFactor);
             bool isSelected = (i == selectedIdx);
 
-            // Accent color: #89B4FA (Catppuccin blue), faded for non-selected.
-            // Selected bar is highlighted in #CBA6F7 (mauve).
+            // §5.7 ranking bars — accent (selected = accent-hover), faded by
+            // rank opacity. Resolved from theme brushes so they retint.
             var fillColor = isSelected
-                ? new Color(0xCB, 0xA6, 0xF7, 255)  // mauve
-                : new Color(0x89, 0xB4, 0xFA, alpha); // blue with opacity fade
+                ? ResolvePlotColor("AccentHoverBrush")
+                : ResolvePlotColor("AccentBrush", alpha);
 
             scottBars.Add(new ScottPlot.Bar
             {
                 Position = i,           // Y position (rank index)
                 Value = b.Score,        // X value (score)
                 FillColor = fillColor,
-                LineColor = new Color(0xFF, 0xFF, 0xFF, 80),
+                LineColor = ResolvePlotColor("TextPrimaryBrush", 60),
                 LineWidth = 0.5f,
                 Orientation = ScottPlot.Orientation.Horizontal,
                 Label = b.Label
@@ -749,17 +758,18 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Property color palette (Catppuccin Mocha accent colors).
+        // §5.7 — first three properties take the three fuzzy-axis tokens; rest
+        // cycle accent + semantic brushes. Resolved from theme so they retint.
         ScottPlot.Color[] palette =
         {
-            Color.FromHex("#89B4FA"), // blue
-            Color.FromHex("#A6E3A1"), // green
-            Color.FromHex("#F38BA8"), // red
-            Color.FromHex("#FAB387"), // peach
-            Color.FromHex("#CBA6F7"), // mauve
-            Color.FromHex("#89DCEB"), // sky
-            Color.FromHex("#F9E2AF"), // yellow
-            Color.FromHex("#74C7EC"), // sapphire
+            ResolvePlotColor("FuzzyPositiveBrush"),
+            ResolvePlotColor("FuzzyAverageBrush"),
+            ResolvePlotColor("FuzzyNegativeBrush"),
+            ResolvePlotColor("AccentBrush"),
+            ResolvePlotColor("InfoBrush"),
+            ResolvePlotColor("SuccessBrush"),
+            ResolvePlotColor("WarningBrush"),
+            ResolvePlotColor("AccentHoverBrush"),
         };
 
         for (int i = 0; i < triangles.Length; i++)
@@ -951,11 +961,13 @@ public partial class MainWindow : Window
     // Toolbar handlers
     // -----------------------------------------------------------------------
 
-    private void OnNewClicked(object? sender, RoutedEventArgs e)
+    private async void OnNewClicked(object? sender, RoutedEventArgs e)
     {
-        bool wasDirty = _vm.Model.IsDirty;
+        if (_vm.Model.IsDirty && !await ShowConfirmAsync("Discard unsaved changes?",
+                "Creating a new scenario will replace your unsaved changes. Continue?",
+                destructive: false))
+            return;
         _cmds.NewCmd.Execute(null);
-        if (wasDirty) StampDiscardWarning("Create a new scenario");
     }
 
     private async void OnOpenClicked(object? sender, RoutedEventArgs e)
@@ -975,32 +987,16 @@ public partial class MainWindow : Window
             var path = files[0].TryGetLocalPath();
             if (path is not null)
             {
-                bool wasDirty = _vm.Model.IsDirty;
+                if (_vm.Model.IsDirty && !await ShowConfirmAsync(
+                        "Discard unsaved changes?",
+                        "Opening a scenario will replace your unsaved changes. Continue?",
+                        destructive: false))
+                    return;
                 _cmds.OpenCmd.Execute(path);
-                // Only stamp the discard warning when the Open actually
-                // succeeded — OpenCmd's catch path leaves the model
-                // unchanged (IsDirty stays true), and a corrupt-file load
-                // shouldn't claim "replaced unsaved changes" alongside
-                // the legitimate "Open failed: …" message.
-                if (wasDirty && !_vm.Model.IsDirty) StampDiscardWarning("Open a scenario");
             }
         }
     }
 
-    /// <summary>
-    /// Records a warning that the just-completed action discarded unsaved
-    /// changes. Mirrors the TS Toolbar._confirmDiscardIfDirty + Python
-    /// _confirm_discard_if_dirty user-facing UX (a real modal-confirm is on
-    /// the v1.1 backlog for all three impls). Call AFTER the action
-    /// completes so a cancelled file-picker doesn't leave a phantom
-    /// "discarded changes" warning.
-    /// </summary>
-    private void StampDiscardWarning(string action)
-        // Must go through the Mutator so the factory's closure state is
-        // updated — a direct _vm.Model write is silently dropped by the
-        // factory's next SetState (any mutation or solve).
-        => Mutator.AddWarning(
-            $"{action} replaced unsaved changes — last revision discarded.");
 
     private void OnSaveClicked(object? sender, RoutedEventArgs e)
         => _cmds.SaveCmd.Execute(null);
@@ -1028,18 +1024,24 @@ public partial class MainWindow : Window
     private void OnSolveClicked(object? sender, RoutedEventArgs e)
         => _cmds.SolveCmd.Execute(null);
 
-    private void OnOpenSampleSasClicked(object? sender, RoutedEventArgs e)
+    private async void OnOpenSampleSasClicked(object? sender, RoutedEventArgs e)
     {
-        bool wasDirty = _vm.Model.IsDirty;
+        if (_vm.Model.IsDirty && !await ShowConfirmAsync(
+                "Discard unsaved changes?",
+                "Opening Sample SAS will replace your unsaved changes. Continue?",
+                destructive: false))
+            return;
         OpenSample(SampleScenarios.All[0]);
-        if (wasDirty && !_vm.Model.IsDirty) StampDiscardWarning("Open Sample SAS");
     }
 
-    private void OnOpenSampleEdsClicked(object? sender, RoutedEventArgs e)
+    private async void OnOpenSampleEdsClicked(object? sender, RoutedEventArgs e)
     {
-        bool wasDirty = _vm.Model.IsDirty;
+        if (_vm.Model.IsDirty && !await ShowConfirmAsync(
+                "Discard unsaved changes?",
+                "Opening Sample EDS will replace your unsaved changes. Continue?",
+                destructive: false))
+            return;
         OpenSample(SampleScenarios.All[1]);
-        if (wasDirty && !_vm.Model.IsDirty) StampDiscardWarning("Open Sample EDS");
     }
 
     /// <summary>
@@ -1174,43 +1176,143 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>Shows a simple error dialog using an Avalonia window.</summary>
-    private async Task ShowErrorAsync(string message)
+    // -----------------------------------------------------------------------
+    // §5.10 Dialog system — one styled modal for error + confirm. Replaces the
+    // former raw unstyled error Window. The card is a Border.dialog-card
+    // (bg-surface-3 / border-strong / 8px) floating on a 65% scrim; brushes
+    // are DynamicResource so the dialog retints with the active theme.
+    // -----------------------------------------------------------------------
+
+    private (Window Window, StackPanel Buttons) BuildDialogShell(
+        string title, string body, bool destructive)
     {
-        var dialog = new Window
+        var titleIcon = new TextBlock
         {
-            Title = "GuideArch — Error",
-            Width = 420,
-            Height = 180,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            CanResize = false,
-            Content = new StackPanel
-            {
-                Margin = new Avalonia.Thickness(20),
-                Spacing = 16,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = message,
-                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
-                    },
-                    new Button
-                    {
-                        Content = "OK",
-                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
-                    }
-                }
-            }
+            // Danger triangle for destructive, info circle otherwise (glyphs
+            // mirror the TS ConfirmDialog svg icons; no icon font dependency).
+            Text = destructive ? "⚠" : "ⓘ",
+            FontSize = 18,
+            VerticalAlignment = AvaVertAlign.Center,
+            Foreground = (AvaBrush?)(destructive
+                ? this.FindResource("DangerBrush")
+                : this.FindResource("AccentHoverBrush")),
         };
 
-        // Wire the OK button to close the dialog.
-        if (dialog.Content is StackPanel sp &&
-            sp.Children[1] is Button okBtn)
-        {
-            okBtn.Click += (_, _) => dialog.Close();
-        }
+        var titleText = new TextBlock { Text = title, Classes = { "dialog-title" } };
 
-        await dialog.ShowDialog(this);
+        var titleRow = new StackPanel
+        {
+            Orientation = AvaOrientation.Horizontal,
+            Spacing = 10,
+            Children = { titleIcon, titleText },
+        };
+
+        var bodyText = new TextBlock
+        {
+            Text = body,
+            Classes = { "dialog-body" },
+            Margin = new Avalonia.Thickness(0, 8, 0, 20),
+        };
+
+        var buttons = new StackPanel
+        {
+            Orientation = AvaOrientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = AvaHorizAlign.Right,
+        };
+
+        var card = new Border
+        {
+            Classes = { "dialog-card" },
+            HorizontalAlignment = AvaHorizAlign.Center,
+            VerticalAlignment = AvaVertAlign.Center,
+            Child = new StackPanel
+            {
+                Spacing = 0,
+                Children = { titleRow, bodyText, buttons },
+            },
+        };
+
+        var scrim = new Border
+        {
+            Background = new AvaSolidBrush(AvaColor.FromArgb(166, 0, 0, 0)),
+            Child = card,
+        };
+
+        var window = new Window
+        {
+            // Avalonia 12: SystemDecorations was superseded by WindowDecorations.
+            WindowDecorations = WindowDecorations.None,
+            Background = Avalonia.Media.Brushes.Transparent,
+            TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent },
+            CanResize = false,
+            ShowInTaskbar = false,
+            SizeToContent = SizeToContent.Manual,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Width = this.Width,
+            Height = this.Height,
+            Content = scrim,
+        };
+
+        // §5.10: click-scrim = Cancel. Mirror the TS ConfirmDialog, where the
+        // overlay's on:click cancels and the card has on:click|stopPropagation.
+        // Card clicks set e.Handled so they don't bubble to the scrim handler;
+        // a press that reaches the scrim closes the window (ShowConfirmAsync's
+        // result stays false = Cancel; ShowErrorAsync just closes).
+        card.PointerPressed += (_, e) => e.Handled = true;
+        scrim.PointerPressed += (_, _) => window.Close();
+
+        return (window, buttons);
+    }
+
+    /// <summary>Shows a styled §5.10 error dialog with a single OK button.</summary>
+    private async Task ShowErrorAsync(string message)
+    {
+        var (window, buttons) = BuildDialogShell("Error", message, destructive: false);
+
+        var ok = new Button { Content = "OK", Classes = { "action-btn" } };
+        ok.Click += (_, _) => window.Close();
+        buttons.Children.Add(ok);
+
+        window.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape || e.Key == Key.Enter)
+                window.Close();
+        };
+
+        await window.ShowDialog(this);
+    }
+
+    /// <summary>
+    /// Shows a styled §5.10 confirm dialog. Returns <c>true</c> when the user
+    /// confirms, <c>false</c> when they cancel or press Escape.
+    /// </summary>
+    private async Task<bool> ShowConfirmAsync(string title, string body, bool destructive)
+    {
+        var (window, buttons) = BuildDialogShell(title, body, destructive);
+        var result = false;
+
+        var cancel = new Button { Content = "Cancel", Classes = { "secondary" } };
+        cancel.Click += (_, _) => window.Close();
+
+        var confirm = new Button
+        {
+            Content = destructive ? "Delete" : "Confirm",
+            Classes = { destructive ? "destructive" : "action-btn" },
+        };
+        confirm.Click += (_, _) => { result = true; window.Close(); };
+
+        // Right-aligned: Cancel (ghost) then Confirm (accent/danger).
+        buttons.Children.Add(cancel);
+        buttons.Children.Add(confirm);
+
+        window.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape) window.Close();
+            else if (e.Key == Key.Enter) { result = true; window.Close(); }
+        };
+
+        await window.ShowDialog(this);
+        return result;
     }
 }

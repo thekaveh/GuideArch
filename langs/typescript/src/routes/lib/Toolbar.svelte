@@ -243,6 +243,21 @@
       Save
     </button>
     <button class="btn" disabled={!canSaveAs} on:click={handleSaveAs} title="Save as new file">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+        <path d="M12 12v9" />
+        <path d="m8 17 4 4 4-4" />
+      </svg>
       Save As…
     </button>
   </div>
@@ -429,7 +444,7 @@
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border-subtle);
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     transition:
       background-color 80ms ease-out,
@@ -443,17 +458,53 @@
     border-color: var(--border-strong);
   }
 
-  /* Primary button — Solve */
+  /* §3.2 Solve — the single loudest control. Dark = accent gradient + glow. */
   .btn-solve {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
     color: var(--accent-on);
     border: none;
     font-weight: 600;
     padding: 0 16px;
+    box-shadow:
+      0 0 0 1px var(--accent),
+      0 2px 12px color-mix(in srgb, var(--accent) 45%, transparent);
+    transition:
+      box-shadow 120ms ease-out,
+      filter 120ms ease-out;
   }
 
   .btn-solve:hover:not(:disabled) {
+    filter: brightness(1.05);
+    box-shadow:
+      0 0 0 1px var(--accent-hover),
+      0 4px 18px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+
+  .btn-solve:disabled {
+    box-shadow: none;
+    filter: none;
+  }
+
+  /* Light theme: flat accent fill + soft drop-shadow (no gradient, no glow). */
+  :global([data-theme='light']) .btn-solve {
+    background: var(--accent);
+    box-shadow:
+      0 1px 3px color-mix(in srgb, var(--accent) 30%, transparent),
+      0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+
+  :global([data-theme='light']) .btn-solve:hover:not(:disabled) {
     background: var(--accent-hover);
-    color: var(--accent-on);
+    box-shadow:
+      0 2px 6px color-mix(in srgb, var(--accent) 35%, transparent),
+      0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  /* §3.6 focus discipline — visible keyboard ring on every toolbar control */
+  .btn:focus-visible,
+  .btn-icon:focus-visible,
+  .btn-solve:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 </style>

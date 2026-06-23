@@ -2,6 +2,8 @@
 
 C# (.NET 8) + Avalonia 12 implementation of GuideArch.
 
+The UI renders the shared two-theme design system (`spec/design-system.md`) via Avalonia `DynamicResource` theme brushes — dark default + light, toggled from the toolbar (charts retint on toggle).
+
 ## Prerequisites
 
 - .NET 8 SDK or newer (`dotnet --list-sdks`). .NET 9 SDK works because `Directory.Build.props` sets `<RollForward>Major</RollForward>` — the published binary targets `net8.0` but rolls forward at runtime to whatever the user has.

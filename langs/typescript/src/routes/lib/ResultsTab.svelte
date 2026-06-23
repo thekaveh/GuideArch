@@ -9,6 +9,7 @@
     buildTriangleSeriesData,
     buildComparisonSeries,
   } from '../../view/chart-data.js';
+  import EmptyState from './EmptyState.svelte';
 
   export let vm: ScenarioVM;
 
@@ -59,21 +60,15 @@
 
 <section class="tab-content">
   {#if $scenarioStore === undefined}
-    <div class="empty">
-      <div class="empty-headline">No scenario loaded.</div>
-      <div class="empty-body">
-        Click <strong>Open Sample SAS</strong> in the toolbar to try the example scenario and see ranked
-        candidates here.
-      </div>
-    </div>
+    <EmptyState
+      headline="No scenario loaded"
+      body="Click Open Sample SAS in the toolbar to try the example scenario and see ranked candidates here."
+    />
   {:else if top50.length === 0}
-    <div class="empty">
-      <div class="empty-headline">No feasible candidates found.</div>
-      <div class="empty-body">
-        All alternative combinations were eliminated by constraints, or the scenario has no
-        alternatives. Add alternatives and relax constraints to see results.
-      </div>
-    </div>
+    <EmptyState
+      headline="No feasible candidates found"
+      body="All alternative combinations were eliminated by constraints, or the scenario has no alternatives. Add alternatives and relax constraints to see results."
+    />
   {:else}
     <div class="split-pane">
       <!-- Left: ranked candidates table (~60%) -->
@@ -165,36 +160,6 @@
     overflow: hidden;
   }
 
-  /* §8 Empty state */
-  .empty {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    text-align: center;
-    padding: 32px;
-  }
-
-  .empty-headline {
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .empty-body {
-    color: var(--text-muted);
-    font-size: 13px;
-    max-width: 28rem;
-    line-height: 1.6;
-  }
-
-  .empty-body strong {
-    color: var(--text-secondary);
-    font-weight: 600;
-  }
-
   .split-pane {
     flex: 1;
     display: flex;
@@ -221,14 +186,13 @@
     background: var(--bg-surface);
   }
 
-  /* Sub-tabs for the right rail charts */
+  /* §6.4 Sub-tabs for the right rail — same 2px-underline idiom as the
+     main tab strip, not a filled pill. */
   .right-tabs {
     display: flex;
-    gap: 2px;
-    background: var(--bg-surface-2);
-    border: 1px solid var(--border-strong);
-    border-radius: 6px;
-    padding: 2px;
+    gap: 0;
+    height: 40px;
+    border-bottom: 1px solid var(--border-subtle);
     flex-shrink: 0;
   }
 
@@ -236,24 +200,31 @@
     flex: 1;
     background: transparent;
     border: none;
-    color: var(--text-muted);
-    padding: 6px 12px;
-    border-radius: 4px;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    padding: 0 12px;
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     transition:
-      background-color 80ms ease-out,
-      color 80ms ease-out;
+      color 120ms ease-out,
+      background 120ms ease-out;
   }
 
   .right-tab:hover {
     color: var(--text-primary);
+    background: var(--bg-surface-2);
   }
 
   .right-tab.active {
-    background: var(--accent);
-    color: var(--accent-on);
+    color: var(--text-primary);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .right-tab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
   }
 
   /* §5.5 Card for chart sections */
