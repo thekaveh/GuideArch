@@ -6,7 +6,7 @@
         Title="GuideArch"
         Width="1200" Height="800"
         MinWidth="800" MinHeight="500"
-        Background="{StaticResource BgPageBrush}"
+        Background="{DynamicResource BgPageBrush}"
         FontSize="13">
 
   <!--
@@ -25,8 +25,8 @@
          TOP TOOLBAR — §6 toolbar: 56px tall, 24px horizontal padding
          ================================================================ -->
     <Border DockPanel.Dock="Top"
-            Background="{StaticResource BgSurfaceBrush}"
-            BorderBrush="{StaticResource BorderSubtleBrush}"
+            Background="{DynamicResource BgSurfaceBrush}"
+            BorderBrush="{DynamicResource BorderSubtleBrush}"
             BorderThickness="0,0,0,1"
             Height="56"
             Padding="24,0">
@@ -42,19 +42,19 @@
                     Margin="0,0,12,0">
           <Canvas Width="22" Height="18">
             <Path Data="M2,16 L8,4 L14,16 Z"
-                  Fill="{StaticResource AccentBrush}"
+                  Fill="{DynamicResource AccentBrush}"
                   Opacity="0.35" />
             <Path Data="M8,16 L13,2 L18,16 Z"
-                  Fill="{StaticResource AccentBrush}"
+                  Fill="{DynamicResource AccentBrush}"
                   Opacity="0.6" />
             <Path Data="M13,16 L18,7 L22,16 Z"
-                  Fill="{StaticResource AccentBrush}"
+                  Fill="{DynamicResource AccentBrush}"
                   Opacity="0.95" />
           </Canvas>
           <TextBlock Text="GuideArch"
                      FontWeight="Bold"
                      FontSize="15"
-                     Foreground="{StaticResource TextPrimaryBrush}"
+                     Foreground="{DynamicResource TextPrimaryBrush}"
                      VerticalAlignment="Center" />
         </StackPanel>
 
@@ -85,7 +85,7 @@
         <!-- Vertical separator between groups -->
         <Border Width="1"
                 Height="24"
-                Background="{StaticResource BorderSubtleBrush}"
+                Background="{DynamicResource BorderSubtleBrush}"
                 Margin="6,0" />
 
         <!-- Sample loaders group — accent CTAs per spec/editors.md §1 -->
@@ -135,8 +135,8 @@
          BOTTOM STATUS BAR — §6 status bar: 32px tall, 24px horizontal padding
          ================================================================ -->
     <Border DockPanel.Dock="Bottom"
-            Background="{StaticResource BgSurfaceBrush}"
-            BorderBrush="{StaticResource BorderSubtleBrush}"
+            Background="{DynamicResource BgSurfaceBrush}"
+            BorderBrush="{DynamicResource BorderSubtleBrush}"
             BorderThickness="0,1,0,0"
             Height="32"
             Padding="24,0">
@@ -146,7 +146,7 @@
                    Text="{ReflectionBinding Model.Scenario.Name}"
                    FontSize="12"
                    FontWeight="SemiBold"
-                   Foreground="{StaticResource AccentHoverBrush}"
+                   Foreground="{DynamicResource AccentHoverBrush}"
                    VerticalAlignment="Center"
                    IsVisible="{ReflectionBinding Model.HasScenario}" />
         <!-- File path (basename only; full path in tooltip) -->
@@ -154,7 +154,7 @@
                    Name="StatusFilePath"
                    FontSize="11"
                    FontFamily="Cascadia Code,Consolas,monospace"
-                   Foreground="{StaticResource TextMutedBrush}"
+                   Foreground="{DynamicResource TextMutedBrush}"
                    VerticalAlignment="Center"
                    Margin="8,0,0,0"
                    IsVisible="False" />
@@ -162,7 +162,7 @@
         <TextBlock Grid.Column="2"
                    Text="{ReflectionBinding Model.Status}"
                    FontSize="12"
-                   Foreground="{StaticResource TextSecondaryBrush}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
                    VerticalAlignment="Center"
                    Margin="12,0,0,0" />
 
@@ -179,7 +179,7 @@
           <TextBlock Text="{ReflectionBinding Model.Candidates.Length, StringFormat={}{0} candidates}"
                      FontSize="11"
                      FontWeight="Medium"
-                     Foreground="{StaticResource InfoBrush}" />
+                     Foreground="{DynamicResource InfoBrush}" />
         </Border>
 
         <!-- Dirty chip -->
@@ -193,7 +193,7 @@
           <TextBlock Text="unsaved"
                      FontSize="11"
                      FontWeight="Medium"
-                     Foreground="{StaticResource WarningBrush}" />
+                     Foreground="{DynamicResource WarningBrush}" />
         </Border>
 
         <!-- Warnings chip — shows last warning if any -->
@@ -208,7 +208,7 @@
           <TextBlock Text="{ReflectionBinding Model.Warnings.Length, StringFormat=⚠ {0} warning(s)}"
                      FontSize="11"
                      FontWeight="Medium"
-                     Foreground="{StaticResource DangerBrush}" />
+                     Foreground="{DynamicResource DangerBrush}" />
         </Border>
       </Grid>
     </Border>
@@ -220,7 +220,7 @@
 
       <!-- ── Tab strip — always visible ──────────────────────────────── -->
       <TabControl Name="MainTabs"
-                  Background="{StaticResource BgPageBrush}">
+                  Background="{DynamicResource BgPageBrush}">
 
       <!-- ── Tab 1: Decisions ────────────────────────────────────────── -->
       <TabItem>
@@ -240,7 +240,7 @@
 
           <!-- §SectionHeader — title + subtitle + primary action -->
           <Border Grid.Row="0"
-                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="0,0,0,1"
                   Padding="24,16,24,12"
                   IsVisible="{ReflectionBinding Model.HasScenario}">
@@ -249,10 +249,10 @@
                 <TextBlock Text="Decisions"
                            FontSize="16"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Text="Architectural choices you'll resolve by picking one alternative each."
                            FontSize="12"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            TextWrapping="Wrap" />
               </StackPanel>
               <Button Grid.Column="1"
@@ -319,7 +319,7 @@
           <!-- §SectionHeader — Add Alternative attaches to the selected
                decision; the selection lives in the grid below. -->
           <Border Grid.Row="0"
-                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="0,0,0,1"
                   Padding="24,16,24,12"
                   IsVisible="{ReflectionBinding Model.HasScenario}">
@@ -328,16 +328,16 @@
                 <TextBlock Text="Alternatives"
                            FontSize="16"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Text="Concrete options under each decision; pick one per decision to form a candidate."
                            FontSize="12"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            TextWrapping="Wrap" />
               </StackPanel>
               <TextBlock Grid.Column="1"
                          Text="Select a decision then:"
                          VerticalAlignment="Center"
-                         Foreground="{StaticResource TextSecondaryBrush}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
                          FontSize="12" />
               <Button Grid.Column="2"
                       Content="+ Add Alternative"
@@ -401,7 +401,7 @@
 
           <!-- §SectionHeader -->
           <Border Grid.Row="0"
-                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="0,0,0,1"
                   Padding="24,16,24,12"
                   IsVisible="{ReflectionBinding Model.HasScenario}">
@@ -410,10 +410,10 @@
                 <TextBlock Text="Properties"
                            FontSize="16"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Text="Quality criteria — each with a kind (max / min) and a weight; together they decide how candidates rank."
                            FontSize="12"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            TextWrapping="Wrap" />
               </StackPanel>
               <Button Grid.Column="1"
@@ -483,7 +483,7 @@
 
           <!-- §SectionHeader -->
           <Border Grid.Row="0"
-                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="0,0,0,1"
                   Padding="24,16,24,12"
                   IsVisible="{ReflectionBinding Model.HasScenario}">
@@ -491,10 +491,10 @@
               <TextBlock Text="Coefficients"
                          FontSize="16"
                          FontWeight="SemiBold"
-                         Foreground="{StaticResource TextPrimaryBrush}" />
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
               <TextBlock Text="Fuzzy values per (alternative, property): lower · modal · upper. Edit to shift how each alternative scores."
                          FontSize="12"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          TextWrapping="Wrap" />
             </StackPanel>
           </Border>
@@ -531,23 +531,23 @@
 
           <!-- §SectionHeader -->
           <Border Grid.Row="0"
-                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="0,0,0,1"
                   Padding="24,16,24,12">
             <StackPanel Spacing="2">
               <TextBlock Text="Constraints"
                          FontSize="16"
                          FontWeight="SemiBold"
-                         Foreground="{StaticResource TextPrimaryBrush}" />
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
               <TextBlock Text="Rules that eliminate candidates: thresholds bound a single property; dependencies require pairings; conflicts forbid them."
                          FontSize="12"
-                         Foreground="{StaticResource TextMutedBrush}"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          TextWrapping="Wrap" />
             </StackPanel>
           </Border>
 
         <TabControl Grid.Row="1"
-                    Background="{StaticResource BgPageBrush}">
+                    Background="{DynamicResource BgPageBrush}">
 
           <!-- Sub-tab: Threshold -->
           <TabItem Header="Threshold">
@@ -775,7 +775,7 @@
                      Text="Critical decisions — sorted ascending by rank (lower score = more critical)."
                      Margin="24,12,24,8"
                      FontSize="12"
-                     Foreground="{StaticResource TextSecondaryBrush}"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
                      IsVisible="{ReflectionBinding Model.HasScenario}" />
 
           <!-- ReflectionBinding: open generic DataContext -->
@@ -836,7 +836,7 @@
                      Text="Critical constraints — sorted descending by eliminated (most-binding first). Redundant rows are faded."
                      Margin="24,12,24,8"
                      FontSize="12"
-                     Foreground="{StaticResource TextSecondaryBrush}"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
                      IsVisible="{ReflectionBinding Model.HasScenario}" />
 
           <!-- ReflectionBinding: open generic DataContext -->
@@ -885,7 +885,7 @@
            primary canvas, not an overlay floating above blank tabs. -->
       <Grid IsVisible="{ReflectionBinding !Model.HasScenario}"
             IsHitTestVisible="{ReflectionBinding !Model.HasScenario}"
-            Background="{StaticResource BgPageBrush}">
+            Background="{DynamicResource BgPageBrush}">
         <StackPanel HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Spacing="12"
@@ -899,19 +899,19 @@
                remain readable against the page background. -->
           <Canvas Width="120" Height="96" HorizontalAlignment="Center">
             <Path Data="M10,78 L40,18 L70,78 Z"
-                  Stroke="{StaticResource AccentBrush}"
+                  Stroke="{DynamicResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentFillFaintest}" />
+                  Fill="{DynamicResource AccentFillFaintest}" />
             <Path Data="M40,78 L70,12 L100,78 Z"
-                  Stroke="{StaticResource AccentBrush}"
+                  Stroke="{DynamicResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentFillFainter}" />
+                  Fill="{DynamicResource AccentFillFainter}" />
             <Path Data="M70,78 L92,36 L114,78 Z"
-                  Stroke="{StaticResource AccentBrush}"
+                  Stroke="{DynamicResource AccentBrush}"
                   StrokeThickness="1.4"
-                  Fill="{StaticResource AccentFillFaint}" />
+                  Fill="{DynamicResource AccentFillFaint}" />
             <Line StartPoint="6,80" EndPoint="118,80"
-                  Stroke="{StaticResource AccentBrush}"
+                  Stroke="{DynamicResource AccentBrush}"
                   StrokeThickness="1"
                   Opacity="0.35" />
           </Canvas>
@@ -924,19 +924,19 @@
                      FontSize="11"
                      FontWeight="SemiBold"
                      LetterSpacing="1.2"
-                     Foreground="{StaticResource AccentHoverBrush}"
+                     Foreground="{DynamicResource AccentHoverBrush}"
                      HorizontalAlignment="Center" />
 
           <TextBlock Text="Pick a software architecture, with fuzzy TOPSIS."
                      FontSize="22"
                      FontWeight="SemiBold"
-                     Foreground="{StaticResource TextPrimaryBrush}"
+                     Foreground="{DynamicResource TextPrimaryBrush}"
                      HorizontalAlignment="Center"
                      TextAlignment="Center"
                      TextWrapping="Wrap" />
 
           <TextBlock FontSize="14"
-                     Foreground="{StaticResource TextMutedBrush}"
+                     Foreground="{DynamicResource TextMutedBrush}"
                      HorizontalAlignment="Center"
                      TextAlignment="Center"
                      TextWrapping="Wrap"
