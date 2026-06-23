@@ -263,11 +263,11 @@ def _render_empty_state(
             ui.html(_hero_illustration_svg()).classes("mb-2")
         if kicker is not None:
             ui.label(kicker).classes(
-                "text-[var(--accent-hover)] text-xs font-semibold tracking-widest uppercase"
+                "text-[var(--accent-hover)] text-xs font-semibold tracking-[0.08em] uppercase"
             )
         headline_size = "text-2xl" if hero else "text-sm"
         ui.label(headline).classes(f"text-[var(--text-primary)] {headline_size} font-semibold")
-        body_classes = "text-[var(--text-muted)] max-w-2xl leading-relaxed" + (
+        body_classes = "text-[var(--text-muted)] max-w-[36rem] leading-relaxed" + (
             " text-sm mt-1" if hero else " text-xs"
         )
         ui.label(body).classes(body_classes)
