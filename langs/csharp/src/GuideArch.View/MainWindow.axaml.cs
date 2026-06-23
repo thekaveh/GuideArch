@@ -99,8 +99,6 @@ public partial class MainWindow : Window
             }
         };
         UpdateStatusFilePath();
-
-        InitCharts();
     }
 
     private void ApplyTheme(string theme)
@@ -163,7 +161,9 @@ public partial class MainWindow : Window
             return new ScottPlot.Color(c.R, c.G, c.B, alpha);
         }
         // Fallback — should not happen since all keys exist in both dictionaries.
-        return new ScottPlot.Color(0x8B, 0x5C, 0xF6, alpha);
+        // Neutral gray so a missing-brush case reads as obviously wrong, not
+        // plausibly accent-purple.
+        return new ScottPlot.Color(128, 128, 128, alpha);
     }
 
     private void InitCharts()
