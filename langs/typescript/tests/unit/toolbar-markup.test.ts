@@ -26,3 +26,16 @@ describe('Toolbar markup', () => {
     expect(m![1]).toMatch(/border-radius:\s*4px/);
   });
 });
+
+describe('Solve is the signature control', () => {
+  it('dark Solve uses an accent gradient + glow', () => {
+    const m = src.match(/\.btn-solve\s*\{([\s\S]*?)\}/);
+    expect(m, '.btn-solve rule not found').not.toBeNull();
+    expect(m![1]).toContain('linear-gradient');
+    expect(m![1]).toContain('box-shadow');
+  });
+
+  it('light Solve drops the gradient for a flat fill + shadow', () => {
+    expect(src).toMatch(/\[data-theme='light'\]\)\s*\.btn-solve/);
+  });
+});

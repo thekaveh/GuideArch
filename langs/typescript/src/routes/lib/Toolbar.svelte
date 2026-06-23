@@ -458,18 +458,46 @@
     border-color: var(--border-strong);
   }
 
-  /* Primary button — Solve */
+  /* §3.2 Solve — the single loudest control. Dark = accent gradient + glow. */
   .btn-solve {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
     color: var(--accent-on);
     border: none;
     font-weight: 600;
     padding: 0 16px;
+    box-shadow:
+      0 0 0 1px var(--accent),
+      0 2px 12px color-mix(in srgb, var(--accent) 45%, transparent);
+    transition:
+      box-shadow 120ms ease-out,
+      filter 120ms ease-out;
   }
 
   .btn-solve:hover:not(:disabled) {
+    filter: brightness(1.05);
+    box-shadow:
+      0 0 0 1px var(--accent-hover),
+      0 4px 18px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+
+  .btn-solve:disabled {
+    box-shadow: none;
+    filter: none;
+  }
+
+  /* Light theme: flat accent fill + soft drop-shadow (no gradient, no glow). */
+  :global([data-theme='light']) .btn-solve {
+    background: var(--accent);
+    box-shadow:
+      0 1px 3px color-mix(in srgb, var(--accent) 30%, transparent),
+      0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+
+  :global([data-theme='light']) .btn-solve:hover:not(:disabled) {
     background: var(--accent-hover);
-    color: var(--accent-on);
+    box-shadow:
+      0 2px 6px color-mix(in srgb, var(--accent) 35%, transparent),
+      0 1px 3px rgba(0, 0, 0, 0.08);
   }
 
   /* §3.6 focus discipline — visible keyboard ring on every toolbar control */
