@@ -156,4 +156,9 @@
     border-bottom-color: var(--accent);
     font-weight: 600;
   }
+
+  .tab-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
 </style>

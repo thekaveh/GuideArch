@@ -221,14 +221,13 @@
     background: var(--bg-surface);
   }
 
-  /* Sub-tabs for the right rail charts */
+  /* §6.4 Sub-tabs for the right rail — same 2px-underline idiom as the
+     main tab strip, not a filled pill. */
   .right-tabs {
     display: flex;
-    gap: 2px;
-    background: var(--bg-surface-2);
-    border: 1px solid var(--border-strong);
-    border-radius: 6px;
-    padding: 2px;
+    gap: 0;
+    height: 40px;
+    border-bottom: 1px solid var(--border-subtle);
     flex-shrink: 0;
   }
 
@@ -236,24 +235,31 @@
     flex: 1;
     background: transparent;
     border: none;
-    color: var(--text-muted);
-    padding: 6px 12px;
-    border-radius: 4px;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    padding: 0 12px;
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     transition:
-      background-color 80ms ease-out,
-      color 80ms ease-out;
+      color 120ms ease-out,
+      background 120ms ease-out;
   }
 
   .right-tab:hover {
     color: var(--text-primary);
+    background: var(--bg-surface-2);
   }
 
   .right-tab.active {
-    background: var(--accent);
-    color: var(--accent-on);
+    color: var(--text-primary);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .right-tab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
   }
 
   /* §5.5 Card for chart sections */
