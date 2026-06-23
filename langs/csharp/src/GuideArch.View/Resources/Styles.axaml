@@ -342,4 +342,32 @@
     <Setter Property="Padding" Value="16" />
   </Style>
 
+  <!-- ── §5.10 Dialog card — bg-surface-3, 1px border-strong, 8px radius.
+       Padding (20/24) and MaxWidth (28rem=448) are set here so the card
+       hosts both error and confirm bodies uniformly. Brushes are
+       DynamicResource so the dialog retints with the active theme. -->
+  <Style Selector="Border.dialog-card">
+    <Setter Property="Background" Value="{DynamicResource BgSurface3Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="24,20,24,20" />
+    <Setter Property="MaxWidth" Value="448" />
+    <Setter Property="BoxShadow" Value="0 12 40 0 #99000000" />
+  </Style>
+
+  <!-- Dialog title — 15/SemiBold text-primary. -->
+  <Style Selector="TextBlock.dialog-title">
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+  </Style>
+
+  <!-- Dialog body — 13px text-secondary, wrapping. -->
+  <Style Selector="TextBlock.dialog-body">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
 </Styles>

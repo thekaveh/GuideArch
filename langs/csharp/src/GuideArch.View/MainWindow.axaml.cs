@@ -987,6 +987,8 @@ public partial class MainWindow : Window
         }
     }
 
+    // TODO(plan5): route discard through ShowConfirmAsync as a pre-action
+    // confirm (audit §4.2 "Discard flow"); ShowConfirmAsync already exists.
     /// <summary>
     /// Records a warning that the just-completed action discarded unsaved
     /// changes. Mirrors the TS Toolbar._confirmDiscardIfDirty + Python
@@ -1174,43 +1176,135 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>Shows a simple error dialog using an Avalonia window.</summary>
-    private async Task ShowErrorAsync(string message)
+    // -----------------------------------------------------------------------
+    // §5.10 Dialog system — one styled modal for error + confirm. Replaces the
+    // former raw unstyled error Window. The card is a Border.dialog-card
+    // (bg-surface-3 / border-strong / 8px) floating on a 65% scrim; brushes
+    // are DynamicResource so the dialog retints with the active theme.
+    // -----------------------------------------------------------------------
+
+    private (Window Window, StackPanel Buttons) BuildDialogShell(
+        string title, string body, bool destructive)
     {
-        var dialog = new Window
+        var titleIcon = new TextBlock
         {
-            Title = "GuideArch — Error",
-            Width = 420,
-            Height = 180,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            CanResize = false,
-            Content = new StackPanel
-            {
-                Margin = new Avalonia.Thickness(20),
-                Spacing = 16,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = message,
-                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
-                    },
-                    new Button
-                    {
-                        Content = "OK",
-                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
-                    }
-                }
-            }
+            // Danger triangle for destructive, info circle otherwise (glyphs
+            // mirror the TS ConfirmDialog svg icons; no icon font dependency).
+            Text = destructive ? "⚠" : "ⓘ",
+            FontSize = 18,
+            VerticalAlignment = AvaVertAlign.Center,
+            Foreground = (AvaBrush?)(destructive
+                ? this.FindResource("DangerBrush")
+                : this.FindResource("AccentHoverBrush")),
         };
 
-        // Wire the OK button to close the dialog.
-        if (dialog.Content is StackPanel sp &&
-            sp.Children[1] is Button okBtn)
-        {
-            okBtn.Click += (_, _) => dialog.Close();
-        }
+        var titleText = new TextBlock { Text = title, Classes = { "dialog-title" } };
 
-        await dialog.ShowDialog(this);
+        var titleRow = new StackPanel
+        {
+            Orientation = AvaOrientation.Horizontal,
+            Spacing = 10,
+            Children = { titleIcon, titleText },
+        };
+
+        var bodyText = new TextBlock
+        {
+            Text = body,
+            Classes = { "dialog-body" },
+            Margin = new Avalonia.Thickness(0, 8, 0, 20),
+        };
+
+        var buttons = new StackPanel
+        {
+            Orientation = AvaOrientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = AvaHorizAlign.Right,
+        };
+
+        var card = new Border
+        {
+            Classes = { "dialog-card" },
+            HorizontalAlignment = AvaHorizAlign.Center,
+            VerticalAlignment = AvaVertAlign.Center,
+            Child = new StackPanel
+            {
+                Spacing = 0,
+                Children = { titleRow, bodyText, buttons },
+            },
+        };
+
+        var scrim = new Border
+        {
+            Background = new AvaSolidBrush(AvaColor.FromArgb(166, 0, 0, 0)),
+            Child = card,
+        };
+
+        var window = new Window
+        {
+            // Avalonia 12: SystemDecorations was superseded by WindowDecorations.
+            WindowDecorations = WindowDecorations.None,
+            Background = Avalonia.Media.Brushes.Transparent,
+            TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent },
+            CanResize = false,
+            ShowInTaskbar = false,
+            SizeToContent = SizeToContent.Manual,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Width = this.Width,
+            Height = this.Height,
+            Content = scrim,
+        };
+
+        return (window, buttons);
+    }
+
+    /// <summary>Shows a styled §5.10 error dialog with a single OK button.</summary>
+    private async Task ShowErrorAsync(string message)
+    {
+        var (window, buttons) = BuildDialogShell("Error", message, destructive: false);
+
+        var ok = new Button { Content = "OK", Classes = { "action-btn" } };
+        ok.Click += (_, _) => window.Close();
+        buttons.Children.Add(ok);
+
+        window.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape || e.Key == Key.Enter)
+                window.Close();
+        };
+
+        await window.ShowDialog(this);
+    }
+
+    /// <summary>
+    /// Shows a styled §5.10 confirm dialog. Returns <c>true</c> when the user
+    /// confirms, <c>false</c> when they cancel or press Escape.
+    /// </summary>
+    private async Task<bool> ShowConfirmAsync(string title, string body, bool destructive)
+    {
+        var (window, buttons) = BuildDialogShell(title, body, destructive);
+        var result = false;
+
+        var cancel = new Button { Content = "Cancel", Classes = { "secondary" } };
+        cancel.Click += (_, _) => window.Close();
+
+        var confirm = new Button
+        {
+            Content = destructive ? "Delete" : "Confirm",
+            Classes = { destructive ? "destructive" : "action-btn" },
+        };
+        confirm.Click += (_, _) => { result = true; window.Close(); };
+
+        // Right-aligned: Cancel (ghost) then Confirm (accent/danger).
+        buttons.Children.Add(cancel);
+        buttons.Children.Add(confirm);
+
+        window.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape) window.Close();
+            else if (e.Key == Key.Enter) { result = true; window.Close(); }
+        };
+
+        await window.ShowDialog(this);
+        return result;
     }
 }
