@@ -1322,8 +1322,8 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                     display += f", … +{len(alt_labels) - 4}"
                 row_class = ""
                 if sel_idx is not None and cand.rank == sel_idx:
-                    # §5.3 Selected: accent-muted background
-                    row_class = "bg-[var(--accent-muted)]"
+                    # §5.3 Selected: accent-muted background + 2px accent left border
+                    row_class = "bg-[var(--accent-muted)] border-l-2 border-[var(--accent)]"
                 sel_rows.append(
                     {
                         "rank": cand.rank,

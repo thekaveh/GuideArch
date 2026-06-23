@@ -279,6 +279,13 @@
     <Setter Property="Opacity" Value="1" />
   </Style>
 
+  <!-- §5.3 Selected row — 2px accent left border (the fill is set on the
+       BackgroundRectangle above). -->
+  <Style Selector="DataGridRow:selected">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="2,0,0,0" />
+  </Style>
+
   <!-- DataGrid cells -->
   <Style Selector="DataGridCell">
     <Setter Property="Padding" Value="8,0" />

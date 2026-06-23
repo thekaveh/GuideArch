@@ -146,6 +146,9 @@ body {{
   color: var(--text-secondary) !important;
   font-size: 12px !important;
   height: 32px !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1 !important;
 }}
 .q-table tbody tr {{
   height: 36px !important;
