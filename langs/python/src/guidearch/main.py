@@ -1695,7 +1695,9 @@ def index() -> None:
                 if was_dirty:
                     _stamp_discard_warning("Create a new scenario")
 
-            ui.button("New", icon="add", on_click=_do_new_guarded).props("flat color=white")
+            ui.button("New", icon="add", on_click=_do_new_guarded).props("flat").classes(
+                "text-[var(--text-secondary)]"
+            )
 
             def _open_native_guarded() -> None:
                 was_dirty = vm.is_dirty
@@ -1717,12 +1719,12 @@ def index() -> None:
 
             if _is_native:
                 ui.button("Open…", icon="folder_open", on_click=_open_native_guarded).props(
-                    "flat color=white"
-                )
+                    "flat"
+                ).classes("text-[var(--text-secondary)]")
             else:
                 ui.button("Open…", icon="folder_open", on_click=_open_dialog_guarded).props(
-                    "flat color=white"
-                )
+                    "flat"
+                ).classes("text-[var(--text-secondary)]")
 
             # Web-mode Save = anchor-download, not server-side write. Mirrors
             # the TS Toolbar.handleSave: a user-clicked Save should never
@@ -1731,8 +1733,8 @@ def index() -> None:
             # _do_save which routes through vm.save_cmd → local file system.
             if _is_native:
                 save_btn = ui.button("Save", icon="save", on_click=lambda: _do_save(vm)).props(
-                    "flat color=white"
-                )
+                    "flat"
+                ).classes("text-[var(--text-secondary)]")
                 if vm.scenario is None or vm.file_path is None:
                     save_btn.props(add="disabled")
             else:
@@ -1740,7 +1742,7 @@ def index() -> None:
                     "Save",
                     icon="save",
                     on_click=lambda: _do_save_browser(vm),
-                ).props("flat color=white")
+                ).props("flat").classes("text-[var(--text-secondary)]")
                 if vm.scenario is None:
                     save_btn.props(add="disabled")
 
@@ -1749,7 +1751,7 @@ def index() -> None:
                     "Save As…",
                     icon="save_as",
                     on_click=lambda: _save_as_native(vm),
-                ).props("flat color=white")
+                ).props("flat").classes("text-[var(--text-secondary)]")
             else:
                 # Web-mode Save As also goes through _do_save_browser so
                 # the post-download 'Downloaded.' toast + is_dirty clear
@@ -1759,7 +1761,7 @@ def index() -> None:
                     "Save As…",
                     icon="save_as",
                     on_click=lambda: _do_save_browser(vm),
-                ).props("flat color=white")
+                ).props("flat").classes("text-[var(--text-secondary)]")
 
             # Vertical separator between File and Sample groups — matches
             # the TS and C# toolbar grouping for cross-impl visual identity.
@@ -1791,7 +1793,7 @@ def index() -> None:
             theme_btn = ui.button(
                 icon="dark_mode" if app_vm.theme == "light" else "light_mode",
                 on_click=lambda: app_vm.set_theme("light" if app_vm.theme == "dark" else "dark"),
-            ).props("flat color=white")
+            ).props("flat").classes("text-[var(--text-secondary)]")
             theme_btn.tooltip("Toggle theme")
 
             def _refresh_theme_icon(name: str) -> None:
