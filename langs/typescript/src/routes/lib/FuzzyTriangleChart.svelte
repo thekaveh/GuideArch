@@ -6,19 +6,21 @@
   const PADDING = { top: 8, right: 90, bottom: 28, left: 40 };
   const CHART_HEIGHT = 140;
 
-  // §5.7 Fuzzy triangle colors — cycle through distinct property colors
-  // First three map to the three fuzzy-axis tokens; rest use accent palette
+  // §5.7 Fuzzy triangle colors — first three map to the three fuzzy-axis
+  // tokens; additional properties cycle through accent + semantic tokens.
+  // All entries are CSS custom properties so the triangle fills/strokes
+  // retint with the active theme (no chart re-render — SVG honors var()).
   const COLORS = [
-    '#8b5cf6', // accent
-    '#34d399', // fuzzy-positive
-    '#fbbf24', // fuzzy-average
-    '#fb7185', // fuzzy-negative
-    '#3b82f6', // info
-    '#10b981', // success
-    '#f59e0b', // warning
-    '#a78bfa', // accent-hover
-    '#ef4444', // danger
-    '#9298a8', // text-secondary
+    'var(--fuzzy-positive)',
+    'var(--fuzzy-average)',
+    'var(--fuzzy-negative)',
+    'var(--accent)',
+    'var(--info)',
+    'var(--success)',
+    'var(--warning)',
+    'var(--accent-hover)',
+    'var(--danger)',
+    'var(--text-secondary)',
   ];
 
   function seriesColor(i: number): string {
