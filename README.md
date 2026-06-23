@@ -12,7 +12,7 @@ Milestone tags: `v0.0.0-bootstrap` (M0), `v0.1.0-m1` (M1 — domain + TOPSIS), `
 
 ## 2. What's in the box
 
-Three implementations of the same application, kept in conformance by a shared spec and a cross-impl test corpus.
+Three implementations of the same application, kept in conformance by a shared spec and a cross-impl test corpus. All three render against a shared **design system** (`spec/design-system.md`): two first-class themes — an elevated dark default and a fully-retinted light theme, toggled from the toolbar — plus a unified toolbar, tab strip, Solve action, dialogs, and results charts, so the apps read as one product.
 
 | # | Language | UI framework | Desktop | Web |
 |---|---|---|---|---|
