@@ -1345,7 +1345,10 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                 triangle_option,
             )
 
-            with ui.tabs().classes("w-full bg-[var(--bg-surface-2)] rounded") as chart_tabs:
+            with ui.tabs().classes(
+                "w-full bg-transparent border-b border-[var(--border-subtle)] "
+                "text-[var(--text-secondary)]"
+            ) as chart_tabs:
                 tab_rank = ui.tab("Ranking")
                 tab_profile = ui.tab("Profile")
                 tab_compare = ui.tab("Compare")
