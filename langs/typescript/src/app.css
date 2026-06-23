@@ -41,21 +41,36 @@
 /* Light theme override — applied when <html data-theme="light">. AppVM owns
    the theme observable; the View sets the attribute to drive these tokens. */
 [data-theme='light'] {
-  --bg-page: #f7f8fb;
-  --bg-surface: #ffffff;
-  --bg-surface-2: #f1f3f7;
-  --bg-surface-3: #e6e9f0;
-  --border-subtle: #d9dde6;
-  --border-strong: #b9c0cf;
+  /* Surface */
+  --bg-page: #ffffff;
+  --bg-surface: #fbfbfd;
+  --bg-surface-2: #f3f4f8;
+  --bg-surface-3: #eaecf3;
+  --border-subtle: #eef0f4;
+  --border-strong: #dfe2ec;
 
-  --text-primary: #1a1e27;
-  --text-secondary: #4a5163;
-  --text-muted: #7c8499;
+  /* Text */
+  --text-primary: #1a1f36;
+  --text-secondary: #5a6072;
+  --text-muted: #8a90a2;
   --text-inverse: #ffffff;
 
-  --accent: #7c3aed;
-  --accent-hover: #6d28d9;
-  --accent-muted: #ede9fe;
+  /* Accent */
+  --accent: #6b4ce0;
+  --accent-hover: #5a3dd0;
+  --accent-muted: #f0ecfd;
+  --accent-on: #ffffff;
+
+  /* Semantic — retuned for contrast on white */
+  --success: #0ea371;
+  --warning: #b8801a;
+  --danger: #dc3a3a;
+  --info: #3a6fd8;
+
+  /* Fuzzy axes — retuned for contrast on white */
+  --fuzzy-positive: #0ea371;
+  --fuzzy-average: #d9a014;
+  --fuzzy-negative: #e5566f;
 }
 
 /* ── Base Reset / Body ───────────────────────────────────────────── */
