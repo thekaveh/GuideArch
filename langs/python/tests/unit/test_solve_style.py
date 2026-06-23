@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from guidearch.view import theme
 
 _MAIN = Path(__file__).resolve().parents[2] / "src" / "guidearch" / "main.py"
