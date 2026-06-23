@@ -145,6 +145,37 @@
     <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
   </Style>
 
+  <!-- solve-btn — the signature primary control. Background is the theme-variant
+       SolveBackgroundBrush (gradient in dark, flat accent in light); the soft
+       accent drop-shadow reads as a glow in dark and a drop-shadow in light. -->
+  <Style Selector="Button.solve-btn">
+    <Setter Property="Background" Value="{DynamicResource SolveBackgroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentOnBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Effect">
+      <DropShadowEffect Color="{DynamicResource AccentColor}"
+                        BlurRadius="14" OffsetX="0" OffsetY="2" Opacity="0.5" />
+    </Setter>
+  </Style>
+  <Style Selector="Button.solve-btn /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SolveBackgroundBrush}" />
+  </Style>
+  <Style Selector="Button.solve-btn:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+  </Style>
+  <Style Selector="Button.solve-btn:disabled">
+    <Setter Property="Effect">
+      <DropShadowEffect Color="Transparent" BlurRadius="0" Opacity="0" />
+    </Setter>
+  </Style>
+
   <!-- ── §5.2 Inputs ───────────────────────────────────────────────── -->
 
   <Style Selector="TextBox">

@@ -54,6 +54,12 @@
       <SolidColorBrush x:Key="FuzzyPositiveBrush" Color="{StaticResource FuzzyPositiveColor}" />
       <SolidColorBrush x:Key="FuzzyAverageBrush" Color="{StaticResource FuzzyAverageColor}" />
       <SolidColorBrush x:Key="FuzzyNegativeBrush" Color="{StaticResource FuzzyNegativeColor}" />
+
+      <!-- §3.2 Solve — gradient (dark) so the primary control stands out. -->
+      <LinearGradientBrush x:Key="SolveBackgroundBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0" Color="{StaticResource AccentColor}" />
+        <GradientStop Offset="1" Color="{StaticResource AccentHoverColor}" />
+      </LinearGradientBrush>
     </ResourceDictionary>
 
     <!-- ===================== LIGHT (§2-light) ===================== -->
@@ -108,6 +114,9 @@
       <SolidColorBrush x:Key="FuzzyPositiveBrush" Color="{StaticResource FuzzyPositiveColor}" />
       <SolidColorBrush x:Key="FuzzyAverageBrush" Color="{StaticResource FuzzyAverageColor}" />
       <SolidColorBrush x:Key="FuzzyNegativeBrush" Color="{StaticResource FuzzyNegativeColor}" />
+
+      <!-- §3.2 Solve — flat accent fill (light); the drop-shadow lives on the style. -->
+      <SolidColorBrush x:Key="SolveBackgroundBrush" Color="{StaticResource AccentColor}" />
     </ResourceDictionary>
 
   </ResourceDictionary.ThemeDictionaries>

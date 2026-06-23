@@ -152,7 +152,7 @@
         <Button Name="BtnSolve"
                 Content="Solve"
                 ToolTip.Tip="Re-run TOPSIS"
-                Classes="action-btn"
+                Classes="solve-btn"
                 Click="OnSolveClicked"
                 IsEnabled="{ReflectionBinding Model.HasScenario}" />
 
