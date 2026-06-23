@@ -112,6 +112,19 @@
     <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
   </Style>
 
+  <!-- icon-btn — square 32x32 ghost icon button (4px radius), subtle border -->
+  <Style Selector="Button.icon-btn">
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Button.icon-btn:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
+  </Style>
+
   <!-- action-btn — primary style for in-tab "Add …" actions -->
   <Style Selector="Button.action-btn">
     <Setter Property="Background" Value="{DynamicResource AccentBrush}" />

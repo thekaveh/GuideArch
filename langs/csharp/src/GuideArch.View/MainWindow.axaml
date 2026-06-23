@@ -60,27 +60,55 @@
 
         <!-- File operations group -->
         <Button Name="BtnNew"
-                Content="New"
                 ToolTip.Tip="New scenario"
                 Classes="toolbar-btn"
-                Click="OnNewClicked" />
+                Click="OnNewClicked">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Path Width="14" Height="14" Stretch="Uniform"
+                  Stroke="{Binding $parent[Button].Foreground}"
+                  StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                  Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+            <TextBlock Text="New" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
         <Button Name="BtnOpen"
-                Content="Open…"
                 ToolTip.Tip="Open scenario JSON"
                 Classes="toolbar-btn"
-                Click="OnOpenClicked" />
+                Click="OnOpenClicked">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Path Width="14" Height="14" Stretch="Uniform"
+                  Stroke="{Binding $parent[Button].Foreground}"
+                  StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                  Data="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            <TextBlock Text="Open…" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
         <Button Name="BtnSave"
-                Content="Save"
                 ToolTip.Tip="Save current scenario"
                 Classes="toolbar-btn"
                 Click="OnSaveClicked"
-                IsEnabled="{ReflectionBinding Model.CanSave}" />
+                IsEnabled="{ReflectionBinding Model.CanSave}">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Path Width="14" Height="14" Stretch="Uniform"
+                  Stroke="{Binding $parent[Button].Foreground}"
+                  StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                  Data="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z M17 21v-8H7v8 M7 3v5h8" />
+            <TextBlock Text="Save" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
         <Button Name="BtnSaveAs"
-                Content="Save As…"
                 ToolTip.Tip="Save as new file"
                 Classes="toolbar-btn"
                 Click="OnSaveAsClicked"
-                IsEnabled="{ReflectionBinding Model.HasScenario}" />
+                IsEnabled="{ReflectionBinding Model.HasScenario}">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Path Width="14" Height="14" Stretch="Uniform"
+                  Stroke="{Binding $parent[Button].Foreground}"
+                  StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                  Data="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242 M12 12v9 M8 17l4 4 4-4" />
+            <TextBlock Text="Save As…" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
 
         <!-- Vertical separator between groups -->
         <Border Width="1"
