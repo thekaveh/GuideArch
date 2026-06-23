@@ -243,6 +243,21 @@
       Save
     </button>
     <button class="btn" disabled={!canSaveAs} on:click={handleSaveAs} title="Save as new file">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+        <path d="M12 12v9" />
+        <path d="m8 17 4 4 4-4" />
+      </svg>
       Save As…
     </button>
   </div>
@@ -429,7 +444,7 @@
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border-subtle);
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     transition:
       background-color 80ms ease-out,
@@ -455,5 +470,13 @@
   .btn-solve:hover:not(:disabled) {
     background: var(--accent-hover);
     color: var(--accent-on);
+  }
+
+  /* §3.6 focus discipline — visible keyboard ring on every toolbar control */
+  .btn:focus-visible,
+  .btn-icon:focus-visible,
+  .btn-solve:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 </style>
