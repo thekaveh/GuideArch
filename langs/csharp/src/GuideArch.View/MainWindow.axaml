@@ -717,6 +717,24 @@
         </TabItem.Header>
         <Grid RowDefinitions="Auto,*">
 
+          <!-- §5.9 SectionHeader -->
+          <Border Grid.Row="0"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12"
+                  IsVisible="{ReflectionBinding Model.HasScenario}">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Results"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="Ranked candidates with their fuzzy-TOPSIS score; pick one to inspect its profile and compare against the field."
+                         FontSize="12"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
           <!-- Split: left 60% candidates table, right 40% charts -->
           <Grid Grid.Row="1"
                 ColumnDefinitions="3*,2*"
@@ -799,12 +817,23 @@
         </TabItem.Header>
         <Grid RowDefinitions="Auto,*">
 
-          <TextBlock Grid.Row="0"
-                     Text="Critical decisions — sorted ascending by rank (lower score = more critical)."
-                     Margin="24,12,24,8"
-                     FontSize="12"
-                     Foreground="{DynamicResource TextSecondaryBrush}"
-                     IsVisible="{ReflectionBinding Model.HasScenario}" />
+          <!-- §5.9 SectionHeader -->
+          <Border Grid.Row="0"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12"
+                  IsVisible="{ReflectionBinding Model.HasScenario}">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Critical Decisions"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="Which architectural choices move the result most — ranked ascending by rank (lower score = more critical)."
+                         FontSize="12"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
           <!-- ReflectionBinding: open generic DataContext -->
           <DataGrid Grid.Row="1"
@@ -860,12 +889,23 @@
         </TabItem.Header>
         <Grid RowDefinitions="Auto,*">
 
-          <TextBlock Grid.Row="0"
-                     Text="Critical constraints — sorted descending by eliminated (most-binding first). Redundant rows are faded."
-                     Margin="24,12,24,8"
-                     FontSize="12"
-                     Foreground="{DynamicResource TextSecondaryBrush}"
-                     IsVisible="{ReflectionBinding Model.HasScenario}" />
+          <!-- §5.9 SectionHeader -->
+          <Border Grid.Row="0"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}"
+                  BorderThickness="0,0,0,1"
+                  Padding="24,16,24,12"
+                  IsVisible="{ReflectionBinding Model.HasScenario}">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Critical Constraints"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="Which constraints eliminate the most candidates — ranked descending; redundant rows are faded."
+                         FontSize="12"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
           <!-- ReflectionBinding: open generic DataContext -->
           <DataGrid Grid.Row="1"
