@@ -97,9 +97,7 @@ def inject_css() -> None:
     """
     # Build :root CSS-variable block from TOKENS
     css_vars = "\n".join(f"  --{name}: {value};" for name, value in TOKENS.items())
-    light_vars = "\n".join(
-        f"  --{name}: {value};" for name, value in LIGHT_TOKENS.items()
-    )
+    light_vars = "\n".join(f"  --{name}: {value};" for name, value in LIGHT_TOKENS.items())
 
     css = f"""
 :root {{

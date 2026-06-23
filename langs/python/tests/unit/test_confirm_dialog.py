@@ -32,6 +32,4 @@ def test_delete_flows_route_through_the_branded_helper():
             f"{fn} must use _branded_confirm_dialog (§5.10), not a raw ui.dialog()"
         )
         # The old hand-rolled `with ui.dialog() as dlg, ui.card()` is gone.
-        assert "ui.card().classes(" not in body, (
-            f"{fn} still hand-rolls a ui.card() dialog"
-        )
+        assert "ui.card().classes(" not in body, f"{fn} still hand-rolls a ui.card() dialog"

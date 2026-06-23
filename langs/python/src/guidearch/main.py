@@ -321,17 +321,13 @@ def _branded_confirm_dialog(
             ui.icon("warning" if destructive else "info").classes(
                 "text-[var(--danger)]" if destructive else "text-[var(--accent-hover)]"
             )
-            ui.label(title).classes(
-                "text-[var(--text-primary)] text-[15px] font-semibold"
-            )
+            ui.label(title).classes("text-[var(--text-primary)] text-[15px] font-semibold")
         ui.label(body).classes("text-[var(--text-secondary)] text-[13px] leading-relaxed")
         with ui.row().classes("w-full justify-end gap-2 mt-1"):
             ui.button("Cancel", on_click=dlg.close).props("flat").classes(
                 "text-[var(--text-secondary)]"
             )
-            confirm_btn = ui.button(
-                confirm_label, on_click=_confirm_then_close
-            ).props(
+            confirm_btn = ui.button(confirm_label, on_click=_confirm_then_close).props(
                 ("color=negative unelevated" if destructive else "color=primary unelevated")
                 + " autofocus"
             )
@@ -1781,17 +1777,23 @@ def index() -> None:
             # otherwise share / overwrite scenario files). Native mode keeps
             # _do_save which routes through vm.save_cmd → local file system.
             if _is_native:
-                save_btn = ui.button("Save", icon="save", on_click=lambda: _do_save(vm)).props(
-                    "flat"
-                ).classes("text-[var(--text-secondary)]")
+                save_btn = (
+                    ui.button("Save", icon="save", on_click=lambda: _do_save(vm))
+                    .props("flat")
+                    .classes("text-[var(--text-secondary)]")
+                )
                 if vm.scenario is None or vm.file_path is None:
                     save_btn.props(add="disabled")
             else:
-                save_btn = ui.button(
-                    "Save",
-                    icon="save",
-                    on_click=lambda: _do_save_browser(vm),
-                ).props("flat").classes("text-[var(--text-secondary)]")
+                save_btn = (
+                    ui.button(
+                        "Save",
+                        icon="save",
+                        on_click=lambda: _do_save_browser(vm),
+                    )
+                    .props("flat")
+                    .classes("text-[var(--text-secondary)]")
+                )
                 if vm.scenario is None:
                     save_btn.props(add="disabled")
 
@@ -1839,10 +1841,16 @@ def index() -> None:
 
             # Theme toggle: flips AppVM.Theme; the on-page dark_mode
             # subscription rewires the Quasar dark class on each change.
-            theme_btn = ui.button(
-                icon="dark_mode" if app_vm.theme == "light" else "light_mode",
-                on_click=lambda: app_vm.set_theme("light" if app_vm.theme == "dark" else "dark"),
-            ).props("flat").classes("text-[var(--text-secondary)]")
+            theme_btn = (
+                ui.button(
+                    icon="dark_mode" if app_vm.theme == "light" else "light_mode",
+                    on_click=lambda: app_vm.set_theme(
+                        "light" if app_vm.theme == "dark" else "dark"
+                    ),
+                )
+                .props("flat")
+                .classes("text-[var(--text-secondary)]")
+            )
             theme_btn.tooltip("Toggle theme")
 
             def _refresh_theme_icon(name: str) -> None:
