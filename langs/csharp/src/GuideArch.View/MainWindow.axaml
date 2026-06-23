@@ -301,7 +301,7 @@
                     CanUserSortColumns="False"
                     IsReadOnly="False"
                     Margin="24,0,24,24"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+                    IsVisible="{ReflectionBinding !Model.DecisionsView.IsEmpty}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
@@ -324,6 +324,30 @@
                                   Width="*" />
             </DataGrid.Columns>
           </DataGrid>
+
+          <!-- §5.8 compact section-empty — shown when DecisionsView is empty -->
+          <Border Grid.Row="1"
+                  Name="DecisionsEmptyState"
+                  Margin="24,0,24,24"
+                  IsVisible="{ReflectionBinding Model.DecisionsView.IsEmpty}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="6"
+                        MaxWidth="420">
+              <TextBlock Text="No decisions yet"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center" />
+              <TextBlock Text="A scenario is a set of architectural decisions you need to make. Add your first one to begin laying out the decision space."
+                         FontSize="13"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
         </Grid>
       </TabItem>
@@ -385,7 +409,7 @@
                     CanUserSortColumns="False"
                     IsReadOnly="False"
                     Margin="24,0,24,24"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+                    IsVisible="{ReflectionBinding !Model.AlternativesView.IsEmpty}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
@@ -407,6 +431,30 @@
                                   Width="*" />
             </DataGrid.Columns>
           </DataGrid>
+
+          <!-- §5.8 compact section-empty — shown when AlternativesView is empty -->
+          <Border Grid.Row="1"
+                  Name="AlternativesEmptyState"
+                  Margin="24,0,24,24"
+                  IsVisible="{ReflectionBinding Model.AlternativesView.IsEmpty}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="6"
+                        MaxWidth="420">
+              <TextBlock Text="No alternatives yet"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center" />
+              <TextBlock Text="Each decision needs at least two alternatives to choose between. Select a decision above, then add alternatives."
+                         FontSize="13"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
         </Grid>
       </TabItem>
@@ -462,7 +510,7 @@
                     CanUserSortColumns="False"
                     IsReadOnly="False"
                     Margin="24,0,24,24"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+                    IsVisible="{ReflectionBinding !Model.PropertiesView.IsEmpty}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="ID"
                                   Binding="{ReflectionBinding Id}"
@@ -489,6 +537,30 @@
                                   FontFamily="Cascadia Code,Consolas,monospace" />
             </DataGrid.Columns>
           </DataGrid>
+
+          <!-- §5.8 compact section-empty — shown when PropertiesView is empty -->
+          <Border Grid.Row="1"
+                  Name="PropertiesEmptyState"
+                  Margin="24,0,24,24"
+                  IsVisible="{ReflectionBinding Model.PropertiesView.IsEmpty}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="6"
+                        MaxWidth="420">
+              <TextBlock Text="No properties yet"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center" />
+              <TextBlock Text="Quality properties — performance, cost, reliability — are how candidates get ranked. Add at least one, then weight it."
+                         FontSize="13"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
         </Grid>
       </TabItem>
@@ -844,7 +916,7 @@
                     CanUserSortColumns="False"
                     IsReadOnly="True"
                     Margin="24,0,24,24"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+                    IsVisible="{ReflectionBinding !Model.CriticalDecisionsView.IsEmpty}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="Rank"
                                   Binding="{ReflectionBinding Rank}"
@@ -869,6 +941,30 @@
                                   FontSize="13" />
             </DataGrid.Columns>
           </DataGrid>
+
+          <!-- §5.8 compact section-empty — shown when CriticalDecisionsView is empty -->
+          <Border Grid.Row="1"
+                  Name="CriticalDecisionsEmptyState"
+                  Margin="24,0,24,24"
+                  IsVisible="{ReflectionBinding Model.CriticalDecisionsView.IsEmpty}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="6"
+                        MaxWidth="420">
+              <TextBlock Text="No critical decisions computed"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center" />
+              <TextBlock Text="Add decisions and alternatives, then Solve to see which choices move the result most."
+                         FontSize="13"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
         </Grid>
       </TabItem>
@@ -916,7 +1012,7 @@
                     CanUserSortColumns="False"
                     IsReadOnly="True"
                     Margin="24,0,24,24"
-                    IsVisible="{ReflectionBinding Model.HasScenario}">
+                    IsVisible="{ReflectionBinding !Model.CriticalConstraintsView.IsEmpty}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="Index"
                                   Binding="{ReflectionBinding Index}"
@@ -942,6 +1038,30 @@
                                   Width="100" />
             </DataGrid.Columns>
           </DataGrid>
+
+          <!-- §5.8 compact section-empty — shown when CriticalConstraintsView is empty -->
+          <Border Grid.Row="1"
+                  Name="CriticalConstraintsEmptyState"
+                  Margin="24,0,24,24"
+                  IsVisible="{ReflectionBinding Model.CriticalConstraintsView.IsEmpty}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="6"
+                        MaxWidth="420">
+              <TextBlock Text="No constraints to analyze"
+                         FontSize="14"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center" />
+              <TextBlock Text="Add a constraint on the Constraints tab and Solve to see which ones eliminate the most candidates."
+                         FontSize="13"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
 
         </Grid>
       </TabItem>
