@@ -117,6 +117,13 @@ public partial class MainWindow : Window
         // will switch *to* next (sun while in dark mode, moon while in light).
         var icon = this.FindControl<TextBlock>("ThemeIcon");
         if (icon is not null) icon.Text = theme == "dark" ? "☀" : "🌙";
+        // Charts render to a bitmap from theme brushes resolved at render time;
+        // re-init backgrounds/axes and re-plot so they retint on toggle.
+        InitCharts();
+        var s = _vm.Model;
+        RenderChartA(s);
+        RenderChartB(s);
+        RenderChartC(s);
     }
 
     private void OnThemeToggleClicked(object? sender, RoutedEventArgs e)
@@ -144,35 +151,37 @@ public partial class MainWindow : Window
     // Chart initialization
     // -----------------------------------------------------------------------
 
+    // Resolve an Avalonia theme brush to a ScottPlot.Color at render time.
+    // ScottPlot draws to a bitmap and cannot consume DynamicResource, so we
+    // read the *active* theme dictionary's brush here and re-render on toggle
+    // (see ApplyTheme). This is how the plots retint between dark and light.
+    private ScottPlot.Color ResolvePlotColor(string brushKey, byte alpha = 255)
+    {
+        if (this.FindResource(brushKey) is Avalonia.Media.SolidColorBrush b)
+        {
+            var c = b.Color;
+            return new ScottPlot.Color(c.R, c.G, c.B, alpha);
+        }
+        // Fallback — should not happen since all keys exist in both dictionaries.
+        return new ScottPlot.Color(0x8B, 0x5C, 0xF6, alpha);
+    }
+
     private void InitCharts()
     {
-        // Chart A — horizontal bar chart, dark background
-        var plotA = ChartA.Plot;
-        plotA.FigureBackground.Color = Color.FromHex("#1E1E2E");
-        plotA.DataBackground.Color = Color.FromHex("#181825");
-        plotA.Axes.Color(Color.FromHex("#CDD6F4"));
-        plotA.Grid.MajorLineColor = Color.FromHex("#313244");
-        plotA.Title("Top candidates by score");
-        plotA.XLabel("Score");
-
-        // Chart B — triangle series, dark background
-        var plotB = ChartB.Plot;
-        plotB.FigureBackground.Color = Color.FromHex("#1E1E2E");
-        plotB.DataBackground.Color = Color.FromHex("#181825");
-        plotB.Axes.Color(Color.FromHex("#CDD6F4"));
-        plotB.Grid.MajorLineColor = Color.FromHex("#313244");
-        plotB.XLabel("Value");
-        plotB.YLabel("Membership");
-
-        // Chart C — top-10 comparison polylines, dark background
-        var plotC = ChartC.Plot;
-        plotC.FigureBackground.Color = Color.FromHex("#1E1E2E");
-        plotC.DataBackground.Color = Color.FromHex("#181825");
-        plotC.Axes.Color(Color.FromHex("#CDD6F4"));
-        plotC.Grid.MajorLineColor = Color.FromHex("#313244");
-        plotC.Title("Top 10 candidates — modal per property");
-        plotC.XLabel("Property");
-        plotC.YLabel("Modal sum");
+        foreach (var plot in new[] { ChartA.Plot, ChartB.Plot, ChartC.Plot })
+        {
+            plot.FigureBackground.Color = ResolvePlotColor("BgSurfaceBrush");
+            plot.DataBackground.Color = ResolvePlotColor("BgSurface2Brush");
+            plot.Axes.Color(ResolvePlotColor("TextSecondaryBrush"));
+            plot.Grid.MajorLineColor = ResolvePlotColor("BorderSubtleBrush", alpha: 128);
+        }
+        ChartA.Plot.Title("Top candidates by score");
+        ChartA.Plot.XLabel("Score");
+        ChartB.Plot.XLabel("Value");
+        ChartB.Plot.YLabel("Membership");
+        ChartC.Plot.Title("Top 10 candidates — modal per property");
+        ChartC.Plot.XLabel("Property");
+        ChartC.Plot.YLabel("Modal sum");
     }
 
     // Chart C palette lives in ChartData.ComparisonPalette (lifted out of the
@@ -680,18 +689,18 @@ public partial class MainWindow : Window
             byte alpha = (byte)(255 * b.OpacityFactor);
             bool isSelected = (i == selectedIdx);
 
-            // Accent color: #89B4FA (Catppuccin blue), faded for non-selected.
-            // Selected bar is highlighted in #CBA6F7 (mauve).
+            // §5.7 ranking bars — accent (selected = accent-hover), faded by
+            // rank opacity. Resolved from theme brushes so they retint.
             var fillColor = isSelected
-                ? new Color(0xCB, 0xA6, 0xF7, 255)  // mauve
-                : new Color(0x89, 0xB4, 0xFA, alpha); // blue with opacity fade
+                ? ResolvePlotColor("AccentHoverBrush")
+                : ResolvePlotColor("AccentBrush", alpha);
 
             scottBars.Add(new ScottPlot.Bar
             {
                 Position = i,           // Y position (rank index)
                 Value = b.Score,        // X value (score)
                 FillColor = fillColor,
-                LineColor = new Color(0xFF, 0xFF, 0xFF, 80),
+                LineColor = ResolvePlotColor("TextPrimaryBrush", 60),
                 LineWidth = 0.5f,
                 Orientation = ScottPlot.Orientation.Horizontal,
                 Label = b.Label
@@ -749,17 +758,18 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Property color palette (Catppuccin Mocha accent colors).
+        // §5.7 — first three properties take the three fuzzy-axis tokens; rest
+        // cycle accent + semantic brushes. Resolved from theme so they retint.
         ScottPlot.Color[] palette =
         {
-            Color.FromHex("#89B4FA"), // blue
-            Color.FromHex("#A6E3A1"), // green
-            Color.FromHex("#F38BA8"), // red
-            Color.FromHex("#FAB387"), // peach
-            Color.FromHex("#CBA6F7"), // mauve
-            Color.FromHex("#89DCEB"), // sky
-            Color.FromHex("#F9E2AF"), // yellow
-            Color.FromHex("#74C7EC"), // sapphire
+            ResolvePlotColor("FuzzyPositiveBrush"),
+            ResolvePlotColor("FuzzyAverageBrush"),
+            ResolvePlotColor("FuzzyNegativeBrush"),
+            ResolvePlotColor("AccentBrush"),
+            ResolvePlotColor("InfoBrush"),
+            ResolvePlotColor("SuccessBrush"),
+            ResolvePlotColor("WarningBrush"),
+            ResolvePlotColor("AccentHoverBrush"),
         };
 
         for (int i = 0; i < triangles.Length; i++)
