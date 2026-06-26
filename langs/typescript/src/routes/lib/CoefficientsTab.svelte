@@ -84,7 +84,6 @@
               <tr>
                 <td class="sticky-col alt-label">
                   <span class="alt-name">{alt.name}</span>
-                  <span class="alt-id mono">{alt.id}</span>
                 </td>
                 {#each properties as p (p.id)}
                   {@const coeff = getCoeff(alt.id, p.id)}
@@ -276,13 +275,6 @@
     font-size: 13px;
   }
 
-  .alt-id {
-    display: block;
-    color: var(--text-muted);
-    font-size: 11px;
-    font-family: var(--font-mono);
-  }
-
   .coeff-cell {
     padding: 4px 6px;
     height: 36px;
@@ -296,9 +288,5 @@
   .missing {
     color: var(--text-muted);
     font-size: 13px;
-  }
-
-  .mono {
-    font-family: var(--font-mono);
   }
 </style>

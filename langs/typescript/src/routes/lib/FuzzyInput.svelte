@@ -93,9 +93,12 @@
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
   }
 
+  /* §2.4 soft warning (lower>modal): a muted amber border only — no full-cell
+     fill. A max property whose legacy triples are stored best-first (decreasing)
+     is legitimately ordered yet trips this rule; the old amber border + 8% fill
+     on every cell made the whole column read as an error wall. */
   .fuzzy-input.warn {
-    border-color: var(--warning);
-    background: color-mix(in srgb, var(--warning) 8%, var(--bg-surface-2));
+    border-color: color-mix(in srgb, var(--warning) 60%, var(--border-strong));
   }
 
   /* §5.3 Numeric / monospace for inputs */
