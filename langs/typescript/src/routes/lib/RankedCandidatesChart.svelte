@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { CandidateBarDatum } from '../../view/chart-data.js';
 
   /** Chart data rows, already limited to top-N. */
@@ -14,9 +15,24 @@
 
   $: svgHeight = Math.max(MIN_HEIGHT, data.length * ROW_HEIGHT + PADDING.top + PADDING.bottom);
 
+  let chartWrap: HTMLDivElement;
   let containerWidth = 300;
   $: innerWidth = Math.max(1, containerWidth - PADDING.left - PADDING.right);
   $: innerHeight = svgHeight - PADDING.top - PADDING.bottom;
+
+  // Measure the real container width after layout settles and on every resize.
+  // `bind:clientWidth` alone latched a transient tiny width while the Results
+  // split-pane / sub-tab layout was still settling, leaving the bars as 1px
+  // hairlines until an unrelated re-render (e.g. selecting a row) corrected it.
+  onMount(() => {
+    const measure = () => {
+      if (chartWrap && chartWrap.clientWidth > 0) containerWidth = chartWrap.clientWidth;
+    };
+    requestAnimationFrame(measure);
+    const ro = new ResizeObserver(measure);
+    ro.observe(chartWrap);
+    return () => ro.disconnect();
+  });
 
   $: maxScore = data.reduce((m, d) => Math.max(m, d.score), 0) || 1;
 
@@ -53,7 +69,7 @@
   }
 </script>
 
-<div class="chart-wrap" bind:clientWidth={containerWidth}>
+<div class="chart-wrap" bind:this={chartWrap}>
   {#if data.length === 0}
     <div class="empty">No candidates to chart.</div>
   {:else}
