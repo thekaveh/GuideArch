@@ -44,13 +44,13 @@ public class InputFocusStyleTests
                 .Where(e => e.Name.LocalName == "Setter")
                 .ToList();
 
+            // Focus recolours the border to the accent. NB: it deliberately does
+            // NOT grow BorderThickness (1->2) — growing it re-measured the control
+            // and shifted it (visible on the dense Coefficients cell inputs), so we
+            // assert the accent BorderBrush but intentionally not a thickness bump.
             var borderBrush = setters.Single(
                 s => (string?)s.Attribute("Property") == "BorderBrush");
             Assert.Contains("AccentBrush", (string)borderBrush.Attribute("Value")!);
-
-            var thickness = setters.Single(
-                s => (string?)s.Attribute("Property") == "BorderThickness");
-            Assert.Equal("2", ((string)thickness.Attribute("Value")!).Trim());
         }
     }
 }

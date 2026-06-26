@@ -155,14 +155,28 @@ public partial class MainWindow : Window
     // (see ApplyTheme). This is how the plots retint between dark and light.
     private ScottPlot.Color ResolvePlotColor(string brushKey, byte alpha = 255)
     {
-        if (this.FindResource(brushKey) is Avalonia.Media.SolidColorBrush b)
+        // Resolve against the Application's resources (which hold the merged
+        // Colors.axaml ThemeDictionaries), passing the ACTIVE theme variant.
+        // Three things this gets right that `this.FindResource(key)` did not:
+        //  1. Our dictionaries define only "Dark"/"Light" (no "Default"), so the
+        //     lookup MUST pass the variant — without it, resolution finds nothing
+        //     and every color fell back to gray (gray bg + gray-on-gray bars).
+        //  2. Application.Current is reachable while MainWindow's ctor runs
+        //     (ApplyTheme → InitCharts happens before the window attaches, when
+        //     this.FindResource can't see App.Resources yet).
+        //  3. ThemeDictionary brushes come back as ImmutableSolidColorBrush,
+        //     which implements ISolidColorBrush but is NOT a SolidColorBrush.
+        var app = Avalonia.Application.Current;
+        var variant = app?.ActualThemeVariant ?? Avalonia.Styling.ThemeVariant.Dark;
+        if (app is not null
+            && app.TryGetResource(brushKey, variant, out var res)
+            && res is Avalonia.Media.ISolidColorBrush b)
         {
             var c = b.Color;
             return new ScottPlot.Color(c.R, c.G, c.B, alpha);
         }
-        // Fallback — should not happen since all keys exist in both dictionaries.
-        // Neutral gray so a missing-brush case reads as obviously wrong, not
-        // plausibly accent-purple.
+        // Fallback — neutral gray so a genuinely-missing brush reads as obviously
+        // wrong rather than plausibly themed.
         return new ScottPlot.Color(128, 128, 128, alpha);
     }
 
@@ -556,6 +570,11 @@ public partial class MainWindow : Window
                 BorderThickness = new Avalonia.Thickness(0),
                 Padding = new Avalonia.Thickness(0),
                 MinHeight = 0,
+                // Override the global "TextBox" style's fixed Height=32: without
+                // this the inline editor swaps in ~17px taller than the display
+                // TextBlock it replaces and visibly jumps up on edit. NaN =
+                // auto-size to content, matching the display slot's height.
+                Height = double.NaN,
                 VerticalAlignment = AvaVertAlign.Center,
                 HorizontalAlignment = AvaHorizAlign.Stretch,
                 // Inline editor is sized to comfortably hold "0.999" in 11pt
@@ -703,12 +722,16 @@ public partial class MainWindow : Window
                 LineColor = ResolvePlotColor("TextPrimaryBrush", 60),
                 LineWidth = 0.5f,
                 Orientation = ScottPlot.Orientation.Horizontal,
-                Label = b.Label
+                Label = b.Label,
             });
         }
 
         var barPlot = plotA.Add.Bars(scottBars.ToArray());
         barPlot.Horizontal = true;
+        // Theme the bar value labels ("#rank (score)"). They default to
+        // near-black — legible only on the light plot. text-primary reads on
+        // both the bar fill and the dark/light background.
+        barPlot.ValueLabelStyle.ForeColor = ResolvePlotColor("TextPrimaryBrush");
 
         // Y-axis: rank labels, inverted so rank 0 is at top.
         double[] yPositions = Enumerable.Range(0, n).Select(i => (double)i).ToArray();
