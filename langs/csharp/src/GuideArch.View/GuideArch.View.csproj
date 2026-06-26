@@ -19,7 +19,11 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="ScottPlot.Avalonia" Version="5.1.58" />
+    <!-- 5.1.59 is the first ScottPlot.Avalonia built against Avalonia 12;
+         5.1.58 targeted Avalonia 11.3 and threw TypeLoadException
+         (OptionalFeatureProviderExtensions) on every AvaPlot render frame
+         under this project's Avalonia 12.0.4. -->
+    <PackageReference Include="ScottPlot.Avalonia" Version="5.1.59" />
   </ItemGroup>
 
   <ItemGroup>
