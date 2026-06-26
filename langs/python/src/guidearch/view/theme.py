@@ -104,8 +104,14 @@ def inject_css() -> None:
 {css_vars}
 }}
 
-/* §2-light — Quasar toggles body.body--light when dark mode is disabled */
-body.body--light {{
+/* §2-light — applied via BOTH Quasar's body--light class AND our own
+   html[data-theme='light'] marker (set explicitly in _apply_theme). Relying on
+   Quasar's class alone was unreliable (it depends on dark-mode timing / the
+   ui.run(dark=...) global), which left the page on light surfaces but with the
+   dark text tokens — "light on light". html[data-theme] beats :root so the
+   light values win deterministically. */
+body.body--light,
+body.gx-light {{
 {light_vars}
 }}
 
@@ -123,9 +129,12 @@ body {{
   transition-timing-function: ease-out;
 }}
 
-/* §5.2 Inputs: 32px height, 6px radius, bg-surface-2, border-strong */
+/* §5.2 Inputs: 32px (min) height, 6px radius, bg-surface-2, border-strong.
+   min-height (not a fixed height) so an outlined field with a floating label
+   can grow enough for the label to clear the value — a hard 32px crammed the
+   label onto the content ("no margin between Name and its value"). */
 .q-field__control {{
-  height: 32px !important;
+  min-height: 32px !important;
   border-radius: 6px !important;
   background: var(--bg-surface-2) !important;
 }}
@@ -136,6 +145,35 @@ body {{
 .q-field--outlined.q-field--focused .q-field__control:before {{
   border-color: var(--accent) !important;
   border-width: 2px !important;
+}}
+/* Input text / label / placeholder pull from tokens so fields are correct in
+   BOTH themes without the hardcoded Quasar `dark` prop (which forced light text
+   and broke the light theme). */
+.q-field__native,
+.q-field__input,
+.q-field__native span {{
+  color: var(--text-primary) !important;
+}}
+.q-field__label {{
+  color: var(--text-secondary) !important;
+}}
+.q-field__native::placeholder {{
+  color: var(--text-muted) !important;
+}}
+.q-field__marginal,
+.q-field__append .q-icon,
+.q-field__prepend .q-icon {{
+  color: var(--text-secondary) !important;
+}}
+
+/* Toolbar buttons: tidy, consistent icon size + height so the File/Sample
+   icons sit aligned (Quasar's default 24px Material icon dwarfed the 13px
+   labels and read as sloppy). */
+.guidearch-toolbar .q-btn {{
+  min-height: 32px !important;
+}}
+.guidearch-toolbar .q-btn .q-icon {{
+  font-size: 18px !important;
 }}
 
 /* §5.3 Tables: body rows 36px, header text-secondary */
@@ -225,13 +263,15 @@ body {{
 }}
 
 /* Light theme: flat accent fill + soft drop-shadow (no gradient, no glow). */
-body.body--light .guidearch-solve {{
+body.body--light .guidearch-solve,
+body.gx-light .guidearch-solve {{
   background: var(--accent) !important;
   box-shadow:
     0 1px 3px color-mix(in srgb, var(--accent) 30%, transparent),
     0 1px 2px rgba(0, 0, 0, 0.06) !important;
 }}
-body.body--light .guidearch-solve:hover {{
+body.body--light .guidearch-solve:hover,
+body.gx-light .guidearch-solve:hover {{
   background: var(--accent-hover) !important;
   box-shadow:
     0 2px 6px color-mix(in srgb, var(--accent) 35%, transparent),

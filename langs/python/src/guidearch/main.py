@@ -63,6 +63,34 @@ def _get_vm() -> ScenarioVM:
     return _get_app_vm().scenario
 
 
+def _client_safe(fn: Callable[[str], None]) -> Callable[[str], None]:
+    """Wrap a VM-subject subscriber so a callback for an already-disconnected
+    browser client can't raise into the shared (process-global) RxPy subject
+    and abort notification for the still-live clients.
+
+    ``index()`` runs once per browser connection and subscribes view-layer
+    callbacks to the singleton AppVM/ScenarioVM subjects. They are disposed on
+    the client's ``on_disconnect``, but there is a window — a closed/reloaded
+    tab whose element tree is already gone but whose subscription hasn't been
+    disposed yet — during which the callback touches dead elements and NiceGUI
+    raises ``RuntimeError('The client this element belongs to has been
+    deleted.')``. Unguarded, that exception propagates out of
+    ``subject.on_next`` and stops every later subscriber, so the live tab's
+    theme/sample-load never runs. Such stale callbacks are safe to drop.
+    """
+
+    def _wrapped(value: str) -> None:
+        try:
+            fn(value)
+        except RuntimeError as exc:
+            msg = str(exc)
+            if "client" in msg and "deleted" in msg:
+                return
+            raise
+
+    return _wrapped
+
+
 # ---------------------------------------------------------------------------
 # File-dialog helpers
 # ---------------------------------------------------------------------------
@@ -435,7 +463,7 @@ def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
     for dec in scenario.decisions:
         with ui.card().classes(_dec_card_cls), ui.row().classes(_dec_row_cls):
             name_input = (
-                ui.input(value=dec.name).props("dense outlined dark").classes("flex-1 font-medium")
+                ui.input(value=dec.name).props("dense outlined").classes("flex-1 font-medium")
             )
             name_input.on(
                 "blur",
@@ -444,7 +472,6 @@ def _render_decisions_tab(vm: ScenarioVM, container: Any) -> None:
                 ),
             )
             # §3 Code/ID: 12px monospace
-            ui.label(f"id: {dec.id[:8]}…").classes("text-xs text-[var(--text-muted)] font-mono")
             ui.button(
                 icon="delete",
                 on_click=lambda d=dec: _do_delete_decision(vm, d.id, _refresh),
@@ -537,17 +564,12 @@ def _render_alternatives_tab(vm: ScenarioVM, container: Any) -> None:
 
             for alt in dec_alts:
                 with ui.row().classes("items-center gap-3 w-full pl-4 py-1"):
-                    name_input = (
-                        ui.input(value=alt.name).props("dense outlined dark").classes("flex-1")
-                    )
+                    name_input = ui.input(value=alt.name).props("dense outlined").classes("flex-1")
                     name_input.on(
                         "blur",
                         lambda e, a=alt, ni=name_input: _do_update_alternative_name(
                             vm, a.id, ni.value, _refresh
                         ),
-                    )
-                    ui.label(f"id: {alt.id[:8]}…").classes(
-                        "text-xs text-[var(--text-muted)] font-mono"
                     )
                     ui.button(
                         icon="delete",
@@ -624,7 +646,7 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
         with ui.card().classes(_prop_card_cls), ui.row().classes(_prop_row_cls):
             name_input = (
                 ui.input(value=prop.name, label="Name")
-                .props("dense outlined dark")
+                .props("dense outlined")
                 .classes("flex-1 min-w-32")
             )
             name_input.on(
@@ -640,7 +662,7 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
                     value=prop.kind,
                     label="Kind",
                 )
-                .props("dense outlined dark")
+                .props("dense outlined")
                 .classes("w-24")
             )
             kind_select.on(
@@ -658,7 +680,7 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
                     step=0.5,
                     format="%.4g",
                 )
-                .props("dense outlined dark")
+                .props("dense outlined")
                 .classes("w-28")
             )
             weight_input.on(
@@ -671,7 +693,6 @@ def _render_properties_tab(vm: ScenarioVM, container: Any) -> None:
                 ),
             )
 
-            ui.label(f"id: {prop.id[:8]}…").classes("text-xs text-[var(--text-muted)] font-mono")
             ui.button(
                 icon="delete",
                 on_click=lambda p=prop: _do_delete_property(vm, p.id, _refresh),
@@ -826,7 +847,7 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
                                     format="%.3g",
                                     step=0.1,
                                 )
-                                .props("dense dark borderless")
+                                .props("dense borderless")
                                 .classes("w-10 font-mono text-xs")
                             )
                             ui.label("·").classes("text-[var(--text-muted)] text-xs")
@@ -836,7 +857,7 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
                                     format="%.3g",
                                     step=0.1,
                                 )
-                                .props("dense dark borderless")
+                                .props("dense borderless")
                                 .classes("w-10 font-mono text-xs")
                             )
                             ui.label("·").classes("text-[var(--text-muted)] text-xs")
@@ -846,7 +867,7 @@ def _render_coefficients_tab(vm: ScenarioVM, container: Any) -> None:
                                     format="%.3g",
                                     step=0.1,
                                 )
-                                .props("dense dark borderless")
+                                .props("dense borderless")
                                 .classes("w-10 font-mono text-xs")
                             )
 
@@ -954,7 +975,7 @@ def _render_threshold_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
                         value=c.property_id,
                         label="Property",
                     )
-                    .props("dense outlined dark")
+                    .props("dense outlined")
                     .classes("w-48")
                 )
                 prop_sel.on(
@@ -971,7 +992,7 @@ def _render_threshold_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
                         label="Min",
                         step=0.1,
                     )
-                    .props("dense outlined dark clearable")
+                    .props("dense outlined clearable")
                     .classes("w-24")
                 )
                 min_in.on(
@@ -991,7 +1012,7 @@ def _render_threshold_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
                         label="Max",
                         step=0.1,
                     )
-                    .props("dense outlined dark clearable")
+                    .props("dense outlined clearable")
                     .classes("w-24")
                 )
                 max_in.on(
@@ -1085,7 +1106,7 @@ def _render_dependency_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
                         value=c.source_alternative_id,
                         label="Source",
                     )
-                    .props("dense outlined dark")
+                    .props("dense outlined")
                     .classes("flex-1 min-w-48")
                 )
                 src_sel.on(
@@ -1103,7 +1124,7 @@ def _render_dependency_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
                         value=c.target_alternative_id,
                         label="Target",
                     )
-                    .props("dense outlined dark")
+                    .props("dense outlined")
                     .classes("flex-1 min-w-48")
                 )
                 tgt_sel.on(
@@ -1182,7 +1203,7 @@ def _render_conflict_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
                         value=c.alternative_a_id,
                         label="Alt A",
                     )
-                    .props("dense outlined dark")
+                    .props("dense outlined")
                     .classes("flex-1 min-w-48")
                 )
                 a_sel.on(
@@ -1200,7 +1221,7 @@ def _render_conflict_sub(vm: ScenarioVM, scenario: Any, refresh: Any) -> None:
                         value=c.alternative_b_id,
                         label="Alt B",
                     )
-                    .props("dense outlined dark")
+                    .props("dense outlined")
                     .classes("flex-1 min-w-48")
                 )
                 b_sel.on(
@@ -1360,7 +1381,7 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
             tbl = (
                 ui.table(columns=columns, rows=sel_rows, row_key="rank")
                 .classes("w-full max-h-screen overflow-y-auto")
-                .props("dark dense flat")
+                .props("dense flat")
             )
 
             # Row click selects candidate
@@ -1390,11 +1411,7 @@ def _render_results_tab(vm: ScenarioVM, container: Any) -> None:
                 tab_profile = ui.tab("Profile")
                 tab_compare = ui.tab("Compare")
 
-            with (
-                ui.tab_panels(chart_tabs, value=tab_rank)
-                .classes("w-full bg-transparent")
-                .props("dark")
-            ):
+            with ui.tab_panels(chart_tabs, value=tab_rank).classes("w-full bg-transparent"):
                 with ui.tab_panel(tab_rank).classes("p-0"):
                     # Chart A — bar chart
                     chart_a_opt = candidates_bar_option(
@@ -1557,7 +1574,7 @@ def _render_critical_decisions_tab(vm: ScenarioVM, container: Any) -> None:
     )
     ui.table(columns=columns, rows=rows, row_key="rank").classes(
         "w-full max-h-screen overflow-y-auto"
-    ).props("dark dense flat")
+    ).props("dense flat")
 
 
 # ---------------------------------------------------------------------------
@@ -1665,17 +1682,25 @@ def index() -> None:
     dark_mode = ui.dark_mode()
 
     def _apply_theme() -> None:
-        if app_vm.theme == "light":
+        is_light = app_vm.theme == "light"
+        if is_light:
             dark_mode.disable()
         else:
             dark_mode.enable()
+        # Drive our design-token overrides off a body class we own (mirrors the
+        # TS <html data-theme='…'>), so the light theme no longer depends on
+        # Quasar's body--light class being applied in time.
+        ui.query("body").classes(
+            add="gx-light" if is_light else "gx-dark",
+            remove="gx-dark" if is_light else "gx-light",
+        )
 
     def _on_property_changed(name: str) -> None:
         if name == "theme":
             _apply_theme()
 
     _apply_theme()
-    _subs.append(app_vm.property_changed.subscribe(on_next=_on_property_changed))
+    _subs.append(app_vm.property_changed.subscribe(on_next=_client_safe(_on_property_changed)))
     inject_css()
     ui.add_head_html("<style>.sticky-top { position: sticky; top: 0; z-index: 10; }</style>")
 
@@ -1694,7 +1719,7 @@ def index() -> None:
                 ui.label("Open Scenario File").classes(
                     "text-[var(--text-primary)] text-base font-semibold mb-2"
                 )
-                path_input = ui.input("Paste file path…").props("dark outlined").classes("w-full")
+                path_input = ui.input("Paste file path…").props("outlined").classes("w-full")
                 ui.button(
                     "Open by path",
                     on_click=lambda: _do_open_by_path(vm, path_input.value, open_dialog),
@@ -1705,7 +1730,7 @@ def index() -> None:
                     label="Choose file",
                     on_upload=lambda e: _do_open_upload(vm, e, open_dialog),
                     auto_upload=True,
-                ).props("dark accept=.json")
+                ).props("accept=.json")
 
         # ── Toolbar (§6: 56px tall, 24px h-padding, ghost buttons) ─────────
         with ui.row().classes(
@@ -1858,7 +1883,9 @@ def index() -> None:
                     return
                 theme_btn.props(f"icon={'dark_mode' if app_vm.theme == 'light' else 'light_mode'}")
 
-            _subs.append(app_vm.property_changed.subscribe(on_next=_refresh_theme_icon))
+            _subs.append(
+                app_vm.property_changed.subscribe(on_next=_client_safe(_refresh_theme_icon))
+            )
 
             # §5.1 Primary button: accent bg, accent-on text, 8/16 padding, 6px radius
             ui.button(
@@ -1887,11 +1914,9 @@ def index() -> None:
 
         # ── Tab panels ──────────────────────────────────────────────────────
         # §6 Main pane: bg-page, 24px padding (applied per tab panel)
-        main_content = (
-            ui.tab_panels(tabs, value=tab_results if vm.scenario else tab_decisions)
-            .classes("flex-1 w-full bg-[var(--bg-page)] overflow-auto")
-            .props("dark")
-        )
+        main_content = ui.tab_panels(
+            tabs, value=tab_results if vm.scenario else tab_decisions
+        ).classes("flex-1 w-full bg-[var(--bg-page)] overflow-auto")
 
         with main_content:
             with ui.tab_panel(tab_decisions):
@@ -1990,7 +2015,7 @@ def index() -> None:
             else:
                 save_btn.props(add="disabled")
 
-    _subs.append(vm.property_changed.subscribe(on_next=_on_vm_change))
+    _subs.append(vm.property_changed.subscribe(on_next=_client_safe(_on_vm_change)))
 
     # Theme toggle retints the page CSS vars instantly, but the mounted
     # ECharts bake their colors at option-build time (chart_data.py reads
@@ -2005,7 +2030,7 @@ def index() -> None:
             with res_container:
                 _render_results_tab(vm, res_container)
 
-    _subs.append(app_vm.property_changed.subscribe(on_next=_on_theme_change))
+    _subs.append(app_vm.property_changed.subscribe(on_next=_client_safe(_on_theme_change)))
 
     # Release every collected subscription when this client disconnects, so the
     # process-global VM subjects don't accumulate subscribers across reloads.
