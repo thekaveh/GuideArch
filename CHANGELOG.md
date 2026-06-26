@@ -107,6 +107,65 @@ Post-v1.0.0 maintenance focused on cross-impl parity, a UI/UX elevation pass, an
   guard test pins that `sas`/`eds` are discovered.
 
 ### Fixed
+- C# Results charts were completely broken on Avalonia 12. `ScottPlot.Avalonia`
+  5.1.58 targets Avalonia 11.3 and calls
+  `Avalonia.Platform.OptionalFeatureProviderExtensions` — removed in Avalonia
+  12 — so every render frame threw a `TypeLoadException`, leaving the Results
+  tab a flickering, unselectable husk. Bumped `ScottPlot.Avalonia` to 5.1.59
+  (first release built against Avalonia 12) in both `GuideArch.View.csproj`
+  and `tools/screenshot-all-tabs.csproj` (a one-sided bump trips NU1605
+  package-downgrade-as-error on the warnings-as-errors build).
+- C# chart text and bars no longer render dark-on-dark in dark mode.
+  `ResolvePlotColor` resolved brushes via `this.FindResource(key)`, which
+  returned null because the custom palette lives in `ThemeDictionaries`
+  (Dark/Light only — no Default variant), so axis/label/series colours fell
+  back to ScottPlot's black default. It now resolves against
+  `Application.Current.TryGetResource(key, ActualThemeVariant, out _)` as
+  `ISolidColorBrush`, and bar value labels get an explicit
+  `ValueLabelStyle.ForeColor` from the same path.
+- C# Coefficients inline editor no longer jumps when you start editing a
+  cell. The edit `TextBox` inherited the global `TextBox { Height: 32 }` and
+  re-measured the dense cell on focus; it is now created with
+  `Height = double.NaN` so it auto-sizes to the cell.
+- C# input focus recolours the border to `accent` without growing its
+  thickness 1→2px. The old `BorderThickness="2"` focus setter re-measured the
+  control and shifted dense grid cells (the Coefficients matrix) on every
+  focus; the recolour alone now carries the focus state. `spec/design-system.md`
+  §5.2 updated to forbid the thickness bump and bless the idiomatic
+  recolour-plus-ring treatment across all three impls.
+- Python light theme no longer renders "light-on-light". Quasar's
+  `body--light` class was not reliably applied, so the light palette's
+  foreground/background tokens never took effect; the app now drives a
+  `body.gx-light` class it owns and the light CSS keys off it. The hardcoded
+  Quasar `dark` prop was also removed from every input/tab-panel so fields
+  follow the active theme instead of pinning to dark chrome.
+- Python web mode no longer dies on reload or a second browser tab. A stale
+  RxPy subscriber belonging to a disconnected client raised a "client has
+  been deleted" `RuntimeError` into the process-global subject, aborting the
+  live client mid-update. The four VM/theme subscribers are now wrapped so a
+  dead client can't take down a live one. (Complements the
+  `on_disconnect` teardown below, which stops the leak; this stops an
+  in-flight emission from crashing.)
+- Python fields gained the missing spacing between a label and its content,
+  and the toolbar icons are aligned and sized; input text/label/placeholder
+  now key off the design-system tokens (`--text-primary`/`--text-secondary`/
+  `--text-muted`) rather than Quasar defaults.
+- Python Decisions / Alternatives / Properties tabs no longer cram the raw
+  GUID under each entity name.
+- TypeScript ranked-candidates chart no longer renders as 1px hairline bars.
+  `bind:clientWidth` latched a transient near-zero width while the Results
+  split-pane / sub-tab layout was still settling and never recovered until an
+  unrelated re-render; the chart now measures its container via
+  `requestAnimationFrame` + a `ResizeObserver`.
+- TypeScript Coefficients matrix no longer crams the raw GUID under each
+  alternative name (parity with the Python declutter above).
+- TypeScript coefficient ordering warning (`lower > modal`) softened to a
+  muted amber border only — the full-cell amber fill is gone. A `max`
+  property whose legacy triples are stored best-first (decreasing) is
+  legitimately ordered yet trips the rule, so the fill made the whole column
+  read as an error wall. This per-cell warning is TS-only (C#/Python
+  coefficient cells don't render it), matching `spec/editors.md` §2.4's
+  "yellow border".
 - Python web mode: the NiceGUI `index()` page handler runs once per browser
   connection but subscribes to the process-global `AppVM`/`ScenarioVM`
   singletons. The three `property_changed` subscriptions were never disposed

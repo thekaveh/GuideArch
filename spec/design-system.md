@@ -158,7 +158,7 @@ Typical mapping:
 
 ### 5.2 Inputs
 
-- 32px height (default density). 6px radius. `bg-surface-2` background. 1px `border-strong` border. Focus → 2px `accent` border + inset focus ring.
+- 32px height (default density). 6px radius. `bg-surface-2` background. 1px `border-strong` border. Focus → the border recolours to `accent`, plus a focus ring where the platform renders one without reflow (e.g. an outset box-shadow ring). The border does **not** thicken on focus: a 1→2px bump re-measures the control and shifts dense grid cells (notably the Coefficients matrix), so the recolour carries the focus state and the ring — not added thickness — provides the emphasis. The reference (TS) uses a 1px `accent` border + a 2px box-shadow ring; C#/Python match idiomatically (Avalonia `BorderBrush`; Quasar's outlined accent border).
 - `font-size: 14`, `padding: 0 12`.
 
 ### 5.3 Tables
