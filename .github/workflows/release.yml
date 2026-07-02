@@ -91,7 +91,7 @@ jobs:
 
       - name: Upload Linux installers
         if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tauri-linux
           path: |
@@ -100,7 +100,7 @@ jobs:
 
       - name: Upload macOS installer
         if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tauri-macos
           path: |
@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload Windows installers
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tauri-windows
           path: |
@@ -176,7 +176,7 @@ jobs:
             -DestinationPath GuideArch-Avalonia-${{ steps.version.outputs.version }}-${{ matrix.rid }}.zip
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: avalonia-${{ matrix.rid }}
           path: langs/csharp/GuideArch-Avalonia-${{ steps.version.outputs.version }}-${{ matrix.rid }}.zip
@@ -213,7 +213,7 @@ jobs:
         run: uv build
 
       - name: Upload Python dist artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: python-dist
           path: langs/python/dist/
@@ -293,7 +293,7 @@ jobs:
 
       - name: Upload Docker image tar (when not pushing)
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: python-docker-image
           path: /tmp/guidearch-docker.tar
@@ -348,7 +348,7 @@ jobs:
           zip -r ../guidearch-web-${{ steps.version.outputs.version }}.zip .
 
       - name: Upload web bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: web-bundle
           path: langs/typescript/guidearch-web-${{ steps.version.outputs.version }}.zip
