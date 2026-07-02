@@ -42,9 +42,9 @@ Baseline verification recorded in [baseline.md](vmx-3-1-audit/baseline.md):
 - C# test baseline: `pass` (`GuideArch.Models.Tests` 30/30, `GuideArch.ViewModels.Tests` 269/269).
 - Vendor TypeScript package verification: `fail` because `pnpm install` exited with `ERR_PNPM_IGNORED_BUILDS` for `esbuild@0.27.7`.
 - GuideArch TypeScript baseline: `fail` with 1 failing test in `tests/unit/app-vm.test.ts`; the observed property names were `['model', 'modeledHint']` instead of including `Model`.
-- GuideArch Python baseline: `fail` during collection because GuideArch still imports `RelayCommandOfT`, which VMx 3.1.0 no longer exports.
+- GuideArch Python baseline: initially `fail` during collection because GuideArch still imported `RelayCommandOfT`, which VMx 3.1.0 no longer exports. A post-baseline compatibility fix now uses `RelayCommandOf`; fresh Python verification passes (`268 passed, 1 skipped`).
 
-Those failures matter for planning because they establish that VMx 3.1 compatibility pressure is already visible in Python command imports and TypeScript property-changed assertions before any broad refactor starts.
+Those failures matter for planning because they establish that VMx 3.1 compatibility pressure was already visible in Python command imports and remains visible in TypeScript property-changed assertions before any broad refactor starts.
 
 ## Current Usage Findings
 
@@ -57,6 +57,8 @@ Source-of-truth inventory: [current-usage.md](vmx-3-1-audit/current-usage.md)
 | Python | Hybrid: leaf editors subclass `ComponentVMOf`, but `ScenarioVM` and `AppVM` hand-roll command wiring, `property_changed`, and `MessageHub` publication. | `langs/python/src/guidearch/viewmodels/scenario_vm.py`, `langs/python/src/guidearch/viewmodels/app_vm.py`, `langs/python/src/guidearch/view/adapters/vmx_to_nicegui.py`, `langs/python/src/guidearch/main.py` | Highest bespoke VMx surface and the earliest 3.1 compatibility break (`RelayCommandOfT`). |
 | TypeScript | Broad direct VMx usage with `ComponentVMOf` builders, `RelayCommand` / `RelayCommandOf`, and a Svelte store bridge. | `langs/typescript/src/viewmodels/scenario-vm.ts`, `langs/typescript/src/viewmodels/app-vm.ts`, `langs/typescript/src/view/adapters/vmx-to-svelte.ts`, route components under `langs/typescript/src/routes/lib/` | Closest to VMx primitives, but broad store coupling magnifies changes in property publication semantics. |
 | C# | Factory-first `ComponentVM<T>` usage with root factories attaching `RelayCommand` commands and Avalonia views binding through open-generic component VMs. | `langs/csharp/src/GuideArch.ViewModels/ScenarioVMFactory.cs`, `langs/csharp/src/GuideArch.ViewModels/AppVMFactory.cs`, `langs/csharp/src/GuideArch.View/MainWindow.axaml`, `langs/csharp/src/GuideArch.View/MainWindow.axaml.cs` | Structurally aligned with VMx, but the view layer amplifies migration cost. |
+
+Post-baseline Python compatibility note: `langs/python/tests/unit/test_vmx31_command_compat.py` now explicitly guards the VMx 3.1 parameterized command name by asserting `AppVM.set_theme_cmd`, `ScenarioVM.open_cmd`, and `ScenarioVM.save_as_cmd` are `RelayCommandOf` instances. This immediate guard is separate from the larger replacement-test additions projected below.
 
 ### Hot spots with the most replacement pressure
 

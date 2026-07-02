@@ -39,7 +39,7 @@ from typing import Literal
 import reactivex as rx
 from platformdirs import user_config_dir
 from reactivex.subject import Subject
-from vmx.commands.relay_command import RelayCommandOfT
+from vmx.commands.relay_command import RelayCommandOf
 from vmx.messages.property_changed import PropertyChangedMessage
 from vmx.messages.protocols import Message
 from vmx.services.message_hub import MessageHub
@@ -156,12 +156,12 @@ class AppVM:
         # set_theme as a fluent command for parity with the other impls.
         # The builder's task signature is ``Callable[[T | None], None]``; wrap
         # _do_set_theme so a None param is a no-op rather than a hard error
-        # (matches RelayCommandOfT's "param may be missing" contract).
+        # (matches RelayCommandOf's "param may be missing" contract).
         def _exec(name: str | None) -> None:
             if name is not None:
                 self._do_set_theme(name)
 
-        self.set_theme_cmd: RelayCommandOfT[str] = RelayCommandOfT.builder().task(_exec).build()
+        self.set_theme_cmd: RelayCommandOf[str] = RelayCommandOf.builder().task(_exec).build()
 
     # ── Observable properties ────────────────────────────────────────────
 

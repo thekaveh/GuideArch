@@ -13,7 +13,7 @@ Binding semantics
       property has no setter (read-only), only the VM→UI direction is wired.
 
 ``bind_command(cmd, button)``
-    Wires a RelayCommand (or RelayCommandOfT) to a NiceGUI button.
+    Wires a RelayCommand (or RelayCommandOf) to a NiceGUI button.
 
     - Click: calls ``cmd.execute()``.
     - Enabled/disabled: subscribes to ``cmd.can_execute_changed`` and updates
@@ -111,7 +111,7 @@ def bind_command(
     Parameters
     ----------
     cmd:
-        A VMx RelayCommand (or RelayCommandOfT) with ``execute()``,
+        A VMx RelayCommand (or RelayCommandOf) with ``execute()``,
         ``can_execute()``, and ``can_execute_changed`` observable.
     button:
         A NiceGUI ``ui.button`` instance.

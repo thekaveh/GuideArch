@@ -62,7 +62,7 @@ from typing import Any, Literal
 
 import reactivex as rx
 from reactivex.subject import Subject
-from vmx.commands.relay_command import RelayCommand, RelayCommandOfT
+from vmx.commands.relay_command import RelayCommand, RelayCommandOf
 from vmx.messages.property_changed import PropertyChangedMessage
 from vmx.messages.protocols import Message
 from vmx.services.message_hub import MessageHub
@@ -158,7 +158,7 @@ class ScenarioVM:
         self.new_cmd: RelayCommand = RelayCommand.builder().task(self._do_new).build()
 
         # open_cmd accepts a path parameter (string)
-        self.open_cmd: RelayCommandOfT[str] = RelayCommandOfT.builder().task(self._do_open).build()
+        self.open_cmd: RelayCommandOf[str] = RelayCommandOf.builder().task(self._do_open).build()
 
         # save_cmd — disabled when no file_path
         self.save_cmd: RelayCommand = (
@@ -170,8 +170,8 @@ class ScenarioVM:
         )
 
         # save_as_cmd accepts a path parameter (string)
-        self.save_as_cmd: RelayCommandOfT[str] = (
-            RelayCommandOfT.builder().task(self._do_save_as).build()
+        self.save_as_cmd: RelayCommandOf[str] = (
+            RelayCommandOf.builder().task(self._do_save_as).build()
         )
 
     # ── Observable properties ────────────────────────────────────────────────

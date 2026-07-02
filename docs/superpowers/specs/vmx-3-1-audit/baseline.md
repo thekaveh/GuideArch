@@ -48,3 +48,9 @@
 - Python 3.1.0 smoke imports succeeded, but GuideArch's Python suite still imports `RelayCommandOfT`, which VMx 3.1.0 no longer exports from `vmx.commands.relay_command`. This blocks Python baseline test execution until a later compatibility/refactor task updates GuideArch's Python VMx usage.
 - GuideArch TypeScript tests are largely compatible with the VMx 3.1.0 vendor source, but one assertion around `PropertyChangedMessage` property naming changed under the newer VMx behavior (`Model` vs observed `model` / `modeledHint`).
 - Vendor VMx TypeScript package verification is currently blocked by pnpm's ignored-build policy for `esbuild@0.27.7`; this prevents Task 1 from proving a clean `pnpm build` inside `vendor/vmx/langs/typescript`.
+
+## Post-Baseline Compatibility Fix
+
+- Python command imports were updated from the removed `RelayCommandOfT` alias to the VMx 3.1 canonical `RelayCommandOf` in `langs/python/src/guidearch/viewmodels/app_vm.py` and `langs/python/src/guidearch/viewmodels/scenario_vm.py`.
+- `langs/python/tests/unit/test_vmx31_command_compat.py` now guards that `AppVM.set_theme_cmd`, `ScenarioVM.open_cmd`, and `ScenarioVM.save_as_cmd` use `RelayCommandOf`.
+- Fresh verification after the fix: `cd langs/python && uv run pytest tests/ -q` passed with `268 passed, 1 skipped, 3 warnings`; `cd langs/python && uv run ruff check src tests` passed.
