@@ -20,7 +20,7 @@
 - Python lockfile version before: `2.6.0`
 - Python lockfile version after: `3.1.0`
 - `vendor/vmx` commit before: `e2b23f879b262eb03db0e85b861a1324a2379d94`
-- `vendor/vmx` commit after: `a77b25a97f34c2cb61e8712fc87a7e0e4da1f9f9`
+- `vendor/vmx` commit after: `a77b25aa28078eb3d56fba011d4fe32e9a2a4d12`
 - TypeScript VMx version metadata: `vendor/vmx/langs/typescript/package.json` reports `3.1.0`
 - C# VMx version metadata: `vendor/vmx/langs/csharp/src/VMx/VMx.csproj` reports `Version=3.1.0` and `MinSpecVersion=3.1.0`
 - Python VMx version metadata: `vendor/vmx/langs/python/src/vmx/__about__.py` reports `__version__ = "3.1.0"` and `__min_spec_version__ = "3.1.0"`
