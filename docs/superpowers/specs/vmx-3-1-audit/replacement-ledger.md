@@ -7,7 +7,7 @@
 - `deleted production LOC` and `added production LOC` are conservative slice estimates for the named pattern only; they are not whole-file rewrite claims.
 - `net production LOC` is `deleted - added`. Negative values mean the VMx 3.1 candidate likely adds scaffolding before later cleanups pay it back.
 - `test LOC delta` is the expected net test movement needed to preserve or improve behavior coverage after the replacement.
-- Docs, generated assets, lockfiles, caches, and formatting-only churn remain out of scope for these savings numbers.
+- Docs, build outputs, generated assets, lockfiles, caches, and formatting-only churn remain out of scope for these savings numbers.
 
 ## Summary
 

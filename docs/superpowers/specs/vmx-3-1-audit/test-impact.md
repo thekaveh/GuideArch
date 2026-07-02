@@ -2,9 +2,11 @@
 
 ## Summary
 
+Counts below reflect the unique exact test files or conformance entrypoints named in the matrix body.
+
 | Category | Python | TypeScript | C# |
 | --- | ---: | ---: | ---: |
-| must keep passing | 13 | 13 | 12 |
+| must keep passing | 14 | 14 | 13 |
 | rewrite | 4 | 4 | 4 |
 | add | 3 | 3 | 3 |
 | remove | 1 | 1 | 0 |
@@ -21,7 +23,7 @@
 | Candidate selection | `langs/python/tests/unit/test_selection_state.py`, `langs/python/tests/unit/test_results_subtabs.py` | `langs/typescript/tests/unit/selection-state.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/SelectionStateTests.cs` |
 | Collection/filter behavior | `langs/python/tests/unit/test_vm_tree.py`, `langs/python/tests/integration/test_vm_tree_comprehensive.py` | `langs/typescript/tests/unit/vm-tree.test.ts`, `langs/typescript/tests/integration/vm-tree-comprehensive.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeComprehensiveTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/ChartDataTests.cs` |
 | Dialog/confirmation behavior | `langs/python/tests/unit/test_confirm_dialog.py`, `langs/python/tests/unit/test_toolbar.py` | `langs/typescript/tests/unit/confirm-dialog.test.ts`, `langs/typescript/tests/unit/confirm-dialog-motion.test.ts`, `langs/typescript/tests/unit/toolbar-markup.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/DiscardConfirmTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/DialogScrimCancelTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/DialogStyleTests.cs` |
-| Cross-language conformance | `langs/python/tests/conformance/test_conformance.py` | `langs/typescript/tests/conformance/conformance.test.ts` | `langs/csharp/tests/GuideArch.Models.Tests/ConformanceTests.cs` |
+| Cross-language conformance | `langs/python/tests/conformance/test_conformance.py` | `langs/typescript/src/conformance/runner.ts` | `langs/csharp/tests/GuideArch.Models.Tests/ConformanceTests.cs` |
 
 ## Rewrite
 
@@ -66,9 +68,9 @@
 
 | Scope | Command | Expected result |
 | --- | --- | --- |
-| Python VM tests | `cd langs/python && uv run pytest tests/unit/test_app_vm.py tests/unit/test_scenario_vm.py tests/unit/test_editor_cascades.py tests/unit/test_selection_state.py tests/unit/test_vmx_to_nicegui_adapter.py tests/unit/test_vm_mvvm.py tests/unit/test_vm_tree.py tests/integration/test_vm_tree_comprehensive.py -q` | All targeted VM/viewmodel tests pass with no new replacement-regression failures. |
+| Python VM tests | `cd langs/python && uv run pytest tests/unit/test_app_vm.py tests/unit/test_confirm_dialog.py tests/unit/test_editor_cascades.py tests/unit/test_results_subtabs.py tests/unit/test_save_roundtrip.py tests/unit/test_scenario_loader.py tests/unit/test_scenario_vm.py tests/unit/test_selection_state.py tests/unit/test_toolbar.py tests/unit/test_vmx_to_nicegui_adapter.py tests/unit/test_vm_mvvm.py tests/unit/test_vm_tree.py tests/integration/test_vm_tree_comprehensive.py -q` | All named Python must-keep VM/viewmodel suites pass with no new replacement-regression failures. |
 | Python conformance | `cd langs/python && uv run pytest tests/conformance/test_conformance.py -q` | The conformance suite passes against the same scenario corpus after the replacement. |
-| TypeScript tests | `cd langs/typescript && pnpm test -- tests/unit/app-vm.test.ts tests/unit/scenario-vm.test.ts tests/unit/editor-cascades.test.ts tests/unit/selection-state.test.ts tests/unit/vmx-to-svelte.test.ts tests/integration/vm-mvvm.test.ts tests/integration/vm-tree-comprehensive.test.ts` | All targeted Vitest suites pass for the replacement surface. |
-| TypeScript conformance | `cd langs/typescript && pnpm conformance` | The TypeScript conformance runner exits 0 with the current fixtures. |
+| TypeScript tests | `cd langs/typescript && pnpm test -- tests/unit/app-vm.test.ts tests/unit/confirm-dialog-motion.test.ts tests/unit/confirm-dialog.test.ts tests/unit/editor-cascades.test.ts tests/unit/save-roundtrip.test.ts tests/unit/scenario-loader.test.ts tests/unit/scenario-vm.test.ts tests/unit/selection-state.test.ts tests/unit/toolbar-markup.test.ts tests/unit/vm-tree.test.ts tests/unit/vmx-to-svelte.test.ts tests/integration/vm-mvvm.test.ts tests/integration/vm-tree-comprehensive.test.ts` | All named TypeScript must-keep Vitest suites pass for the replacement surface. |
+| TypeScript conformance | `cd langs/typescript && pnpm conformance` | `src/conformance/runner.ts` exits 0 with the current fixtures. |
 | C# tests | `cd langs/csharp && dotnet test tests/GuideArch.ViewModels.Tests/GuideArch.ViewModels.Tests.csproj --nologo` | The ViewModels test project passes with replacement-specific rewrites and additions in place. |
 | C# conformance | `cd langs/csharp && dotnet test tests/GuideArch.Models.Tests/GuideArch.Models.Tests.csproj --nologo --filter FullyQualifiedName~ConformanceTests` | The conformance subset passes against the shared scenario corpus. |
