@@ -19,7 +19,7 @@ Post-v1.0.0 maintenance focused on cross-impl parity, a UI/UX elevation pass, an
   triangles, top-N comparison) that render against theme tokens and retint
   live on theme toggle. View-layer only — no engine, domain, or numerical
   output change.
-- Python now consumes VMx from the published PyPI package (`vmx>=2.6.0`)
+- Python now consumes VMx from the published PyPI package (`vmx==3.1.0`)
   instead of the `vendor/vmx/` git submodule. The `[tool.uv.sources]`
   editable override is commented out by default, so a plain `uv sync`
   resolves `vmx` from PyPI; `tools/use-vmx-local.sh` still restores the
@@ -27,8 +27,8 @@ Post-v1.0.0 maintenance focused on cross-impl parity, a UI/UX elevation pass, an
   Python `Dockerfile` drops the `vendor/vmx` copy (build context is now
   `langs/python/`), and `python.yml` no longer checks out submodules or
   triggers on `vendor/vmx/**`. The submodule is retained for the TypeScript
-  and C# builds (their npm/NuGet packages are not yet published); see
-  ADR-0001's 2026-06-16 update.
+  and C# builds (their npm/NuGet packages are not yet published), and it is
+  now aligned to VMx `3.1.0`; see ADR-0001's 2026-06-16 update.
 
 ### Security
 - Python `starlette` 1.2.0 → 1.3.1 (CVE-2026-54283, CVE-2026-54282) and
@@ -42,6 +42,9 @@ Post-v1.0.0 maintenance focused on cross-impl parity, a UI/UX elevation pass, an
   `>=3.13.0` so installs always get the patched chain.
 - TypeScript: pnpm override pins transitive `cookie` to `^0.7.2`
   (GHSA-pxg6-pf52-xh8x, low) until `@sveltejs/kit` bumps its own range.
+- TypeScript: `pnpm-lock.yaml` now resolves Vite to `6.4.3` and transitive
+  `esbuild` to `0.28.1`, closing current Vite/esbuild development-server
+  advisories in the TS toolchain.
 - `release.yml` GITHUB_TOKEN narrowed to workflow-level `contents: read`;
   only `python-docker` (`packages: write`) and `release`
   (`contents: write`) escalate. `vmx-bump.yml`'s check job dropped an

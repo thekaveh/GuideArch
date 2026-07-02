@@ -58,6 +58,13 @@ Numbered rationale for each non-obvious design choice. Read when questioning *wh
 - **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1. Report violations to kaveh.razavi@gmail.com.
 - **[SECURITY.md](SECURITY.md)** — private vulnerability reporting.
 
+### 3.4 Maintenance & audit artifacts
+
+- **[docs/contract-ledger.md](docs/contract-ledger.md)** — consumed external-contract ledger for VMx, framework packages, Docker images, CI actions, and invoked toolchains. Update it when a lockfile, submodule pin, Docker digest, or workflow action changes.
+- **[VMx 3.1 refactor audit report](docs/superpowers/specs/2026-07-02-vmx-3-1-refactor-audit-report.md)** — summary of the VMx 3.1 upgrade/refactor investigation across Python, TypeScript, and C#.
+- **[VMx 3.1 audit design](docs/superpowers/specs/2026-07-02-vmx-3-1-refactor-audit-design.md)** and **[execution plan](docs/superpowers/plans/2026-07-02-vmx-3-1-refactor-audit.md)** — planning context for the VMx audit branch.
+- **[VMx capability notes](docs/superpowers/specs/vmx-3-1-audit/vmx-3-1-capabilities.md)**, **[current usage](docs/superpowers/specs/vmx-3-1-audit/current-usage.md)**, **[replacement ledger](docs/superpowers/specs/vmx-3-1-audit/replacement-ledger.md)**, **[test impact](docs/superpowers/specs/vmx-3-1-audit/test-impact.md)**, **[baseline](docs/superpowers/specs/vmx-3-1-audit/baseline.md)**, and **[LOC baseline](docs/superpowers/specs/vmx-3-1-audit/loc-baseline.txt)** — detailed evidence behind the VMx audit report.
+
 ## 4. Repository layout
 
 ```

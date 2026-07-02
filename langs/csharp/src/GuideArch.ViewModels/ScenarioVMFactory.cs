@@ -189,6 +189,7 @@ public static class ScenarioVMFactory
             if (state.Scenario is null) return;
             try
             {
+                ValidateSavableScenario(state.Scenario);
                 WriteScenario(state.Scenario, path);
             }
             catch (Exception ex)
@@ -259,6 +260,16 @@ public static class ScenarioVMFactory
 
         vm.Construct();
         return vm;
+    }
+
+    private static void ValidateSavableScenario(ScenarioM scenario)
+    {
+        if (scenario.Decisions.IsEmpty)
+            throw new ScenarioValidationException("Scenario must contain at least one decision before saving.");
+        if (scenario.Alternatives.IsEmpty)
+            throw new ScenarioValidationException("Scenario must contain at least one alternative before saving.");
+        if (scenario.Properties.IsEmpty)
+            throw new ScenarioValidationException("Scenario must contain at least one property before saving.");
     }
 
     // Provide a way for View code-behind and tests to retrieve commands from a VM.

@@ -276,7 +276,7 @@ jobs:
       - name: Build Docker image (push on tags)
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: langs/python
           file: langs/python/Dockerfile
           platforms: linux/amd64,linux/arm64
           # Push on tag pushes; build-only for workflow_dispatch smoke runs.
