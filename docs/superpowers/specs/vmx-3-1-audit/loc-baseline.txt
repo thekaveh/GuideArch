@@ -117,6 +117,8 @@ Command:
     'langs/python/tests/unit/test_empty_state.py' \
     'langs/python/tests/unit/test_hero_illustration.py' \
     'langs/python/tests/unit/test_results_subtabs.py' \
+    'langs/python/tests/unit/test_save_roundtrip.py' \
+    'langs/python/tests/unit/test_scenario_loader.py' \
     'langs/python/tests/unit/test_scenario_vm.py' \
     'langs/python/tests/unit/test_section_header.py' \
     'langs/python/tests/unit/test_selection_state.py' \
@@ -136,6 +138,8 @@ Command:
     'langs/typescript/tests/unit/confirm-dialog.test.ts' \
     'langs/typescript/tests/unit/editor-cascades.test.ts' \
     'langs/typescript/tests/unit/empty-state-reuse.test.ts' \
+    'langs/typescript/tests/unit/save-roundtrip.test.ts' \
+    'langs/typescript/tests/unit/scenario-loader.test.ts' \
     'langs/typescript/tests/unit/scenario-vm.test.ts' \
     'langs/typescript/tests/unit/section-header.test.ts' \
     'langs/typescript/tests/unit/selection-state.test.ts' \
