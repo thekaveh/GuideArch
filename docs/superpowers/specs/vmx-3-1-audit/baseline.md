@@ -54,3 +54,5 @@
 - Python command imports were updated from the removed `RelayCommandOfT` alias to the VMx 3.1 canonical `RelayCommandOf` in `langs/python/src/guidearch/viewmodels/app_vm.py` and `langs/python/src/guidearch/viewmodels/scenario_vm.py`.
 - `langs/python/tests/unit/test_vmx31_command_compat.py` now guards that `AppVM.set_theme_cmd`, `ScenarioVM.open_cmd`, and `ScenarioVM.save_as_cmd` use `RelayCommandOf`.
 - Fresh verification after the fix: `cd langs/python && uv run pytest tests/ -q` passed with `268 passed, 1 skipped, 3 warnings`; `cd langs/python && uv run ruff check src tests` passed.
+- The TypeScript `AppVM > publishes PropertyChangedMessage when theme changes` test now asserts VMx 3.1's canonical lowercase `model` property notification instead of the old `Model` expectation.
+- Fresh verification after the TypeScript fix: `cd langs/typescript && pnpm test` passed with `308 passed`; `cd langs/typescript && pnpm lint`, `pnpm format:check`, and `pnpm check` passed.
