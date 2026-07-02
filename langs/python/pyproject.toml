@@ -9,7 +9,7 @@ authors = [{ name = "Kaveh Razavi", email = "kaveh.razavi@gmail.com" }]
 dependencies = [
     "nicegui>=3.13.0",
     "pywebview>=5.0",
-    "vmx>=2.6.0",
+    "vmx==3.1.0",
     "jsonschema>=4.23",
     "platformdirs>=4.0",
     # Direct dependency: VM observables are consumed via reactivex in
