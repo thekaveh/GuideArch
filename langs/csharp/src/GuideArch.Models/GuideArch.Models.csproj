@@ -5,7 +5,7 @@
 
   <ItemGroup>
     <!-- JsonSchema.Net: JSON Schema 2020-12 validation (scenario.schema.json) -->
-    <PackageReference Include="JsonSchema.Net" Version="9.2.1" />
+    <PackageReference Include="JsonSchema.Net" Version="9.2.2" />
   </ItemGroup>
 
   <ItemGroup>
