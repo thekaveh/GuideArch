@@ -93,47 +93,46 @@ Source-of-truth capability inventory: [vmx-3-1-capabilities.md](vmx-3-1-audit/vm
 
 ## Replacement Recommendations
 
-Full decision matrix: [replacement-ledger.md](vmx-3-1-audit/replacement-ledger.md)
+Full decision matrix source: [replacement-ledger.md](vmx-3-1-audit/replacement-ledger.md)
 
-### Highest-value recommendations
+The audit still points to the same highest-value first wave: `R6`, `R1`, `R2`, `R7`, `R3`, `R8`, and `R12` carry the largest positive net production savings, while `R10` and `R13` are smaller partial cleanups and `R14` remains explicitly deferred. For the user-facing report, the full replacement ledger is embedded below so the rationale, scope, and risk can be reviewed without leaving this document.
 
-| ID | Decision | Net production LOC | Test LOC delta | Why it matters |
-| --- | --- | ---: | ---: | --- |
-| `R6` | replace | 180 | 42 | Replaces bespoke dirty tracking and solve-trigger gating with `FormVM`, form builders, and property-value change helpers. |
-| `R1` | partial | 140 | 45 | Lets `FormVM` absorb lifecycle scaffolding while preserving GuideArch-specific solve orchestration and serialization boundaries. |
-| `R2` | replace | 140 | 24 | Collapses repeated editable leaf construction into shared builder helpers. |
-| `R7` | partial | 120 | 33 | Shrinks property notification and subscription fan-out by moving more state onto reactive VMx surfaces. |
-| `R3` | replace | 120 | 18 | Converts readonly result wrappers to the purpose-built readonly modeled component surface. |
-| `R8` | replace | 115 | 30 | Moves repeated CRUD entrypoints toward `ModeledCrudCommands`. |
-| `R12` | partial | 100 | 21 | Simplifies the broadest adapter/store glue after roots expose cleaner state. |
+| ID | Decision | Deleted production LOC | Added production LOC | Net production LOC | Test LOC delta | Behavior coverage | Risk |
+| --- | --- | ---: | ---: | ---: | ---: | --- | --- |
+| `R1` | partial | 260 | 120 | 140 | 45 | root lifecycle, solve entrypoints, child ownership | high |
+| `R2` | replace | 210 | 70 | 140 | 24 | editable leaf construction and naming | medium |
+| `R3` | replace | 160 | 40 | 120 | 18 | readonly result projections | low |
+| `R4` | partial | 145 | 100 | 45 | 36 | coefficient matrix projection and update flow | high |
+| `R5` | partial | 90 | 70 | 20 | 18 | threshold/dependency/conflict slicing | medium |
+| `R6` | replace | 250 | 70 | 180 | 42 | dirty state, save eligibility, solve trigger matrix | high |
+| `R7` | partial | 210 | 90 | 120 | 33 | property notifications, subscription fan-out, UI refresh hooks | high |
+| `R8` | replace | 185 | 70 | 115 | 30 | CRUD entrypoints and cascades | medium |
+| `R9` | partial | 140 | 85 | 55 | 24 | file lifecycle, sample loading, failure surfacing | medium |
+| `R10` | partial | 60 | 80 | -20 | 18 | destructive confirmations and dialog routing | medium |
+| `R11` | replace | 70 | 25 | 45 | 12 | selected candidate tracking and defaulting | low |
+| `R12` | partial | 180 | 80 | 100 | 21 | adapter/store contracts and broad rerender glue | high |
+| `R13` | partial | 55 | 70 | -15 | 9 | theme persistence, warnings, stable child reference | low |
+| `R14` | defer | 0 | 0 | 0 | 0 | future tree ownership abstractions only | low |
 
-### Lower-leverage or deferred recommendations
-
-| ID | Decision | Net production LOC | Why it is not first |
-| --- | --- | ---: | --- |
-| `R10` | partial | -20 | Confirmation and dialog handling likely need a thin abstraction layer before savings appear. |
-| `R13` | partial | -15 | `AppVM` is smaller already; theme persistence remains partly bespoke even after cleanup. |
-| `R14` | defer | 0 | Composite and aggregate tree-shape refactors should wait until forms, CRUD commands, derived properties, and observable collections are already adopted. |
-
-The ledger strongly supports starting with replacements that have both cross-language parity and clear behavior anchors, then using the test-impact matrix to control risk as the refactor moves outward from the VM roots into adapters and views.
+The ledger still supports starting with replacements that have both cross-language parity and clear behavior anchors, then using the exact-file test-impact matrix below to control risk as the refactor moves outward from VM roots into adapters and views.
 
 ## LOC Savings Metrics
 
 LOC accounting rules and raw counts: [replacement-ledger.md](vmx-3-1-audit/replacement-ledger.md), [loc-baseline.txt](vmx-3-1-audit/loc-baseline.txt)
 
-| Area | Baseline LOC | Projected replacement LOC | Net saved | Confidence |
+| Area | Baseline LOC | Projected replacement LOC | Net LOC delta | Confidence |
 | --- | ---: | ---: | ---: | --- |
 | ViewModel production | 5436 | 4616 | 820 | medium |
 | View/adapter production | 9109 | 8884 | 225 | low |
 | Total production | 14545 | 13500 | 1045 | medium |
-| Tests | 10241 | 10571 | -330 | medium |
+| Tests | 10241 | 10571 | +330 | medium |
 
 Counting method and exclusions:
 
 - Baseline counts were captured with explicit `wc -l` file lists in [loc-baseline.txt](vmx-3-1-audit/loc-baseline.txt).
 - ViewModel production, view/adapter production, and test LOC remain separated exactly as they were counted in the baseline artifact.
 - Docs, build outputs, generated assets, lockfiles, caches, and formatting-only churn are out of scope for these savings numbers.
-- Negative test savings are expected here because the replacement path adds parity coverage around forms, observable collections, and selection behavior.
+- Test LOC increases are expected here because the replacement path adds parity coverage around forms, observable collections, and selection behavior.
 
 ## Test Coverage Changes
 
@@ -148,44 +147,58 @@ Source-of-truth matrix: [test-impact.md](vmx-3-1-audit/test-impact.md)
 | add | 3 | 3 | 3 |
 | remove | 1 | 1 | 0 |
 
-### Tests that remain the behavioral gate
+### Exact-file must-keep matrix
 
-- VM construction and lifecycle:
-  `test_vm_tree.py`, `vm-tree.test.ts`, `VMTreeTests.cs`, plus the comprehensive VM-tree suites in all three languages.
-- Dirty tracking and re-solve behavior:
-  `test_scenario_vm.py`, `scenario-vm.test.ts`, `ScenarioVMTests.cs`, and the VM-MVVM/integration suites.
-- Add/update/delete cascades:
-  `test_editor_cascades.py`, `editor-cascades.test.ts`, `EditorCascadesTests.cs`.
-- Save/open failure behavior:
-  `test_save_roundtrip.py`, `save-roundtrip.test.ts`, `SaveRoundtripTests.cs`, plus the scenario loader coverage where applicable.
-- Candidate selection:
-  `test_selection_state.py`, `selection-state.test.ts`, `SelectionStateTests.cs`.
-- Dialog and confirmation behavior:
-  `test_confirm_dialog.py`, `confirm-dialog.test.ts`, `DiscardConfirmTests.cs`, `DialogScrimCancelTests.cs`, and related toolbar/markup tests.
-- Cross-language conformance:
-  `tests/conformance/test_conformance.py`, `src/conformance/runner.ts`, `ConformanceTests.cs`.
+| Behavior | Python | TypeScript | C# |
+| --- | --- | --- | --- |
+| VM construction and lifecycle | `langs/python/tests/unit/test_vm_tree.py`, `langs/python/tests/integration/test_vm_tree_comprehensive.py` | `langs/typescript/tests/unit/vm-tree.test.ts`, `langs/typescript/tests/integration/vm-tree-comprehensive.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeComprehensiveTests.cs` |
+| Property change propagation | `langs/python/tests/unit/test_app_vm.py`, `langs/python/tests/unit/test_selection_state.py`, `langs/python/tests/unit/test_vmx_to_nicegui_adapter.py` | `langs/typescript/tests/unit/app-vm.test.ts`, `langs/typescript/tests/unit/vmx-to-svelte.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/AppVMTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/SelectionStateTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeComprehensiveTests.cs` |
+| Dirty tracking and re-solve triggers | `langs/python/tests/unit/test_scenario_vm.py`, `langs/python/tests/unit/test_vm_mvvm.py`, `langs/python/tests/integration/test_vm_tree_comprehensive.py` | `langs/typescript/tests/unit/scenario-vm.test.ts`, `langs/typescript/tests/integration/vm-mvvm.test.ts`, `langs/typescript/tests/integration/vm-tree-comprehensive.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/ScenarioVMTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/VMMvvmIntegrationTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeComprehensiveTests.cs` |
+| Add/update/delete cascades | `langs/python/tests/unit/test_editor_cascades.py` | `langs/typescript/tests/unit/editor-cascades.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/EditorCascadesTests.cs` |
+| Save/open failure behavior | `langs/python/tests/unit/test_scenario_vm.py`, `langs/python/tests/unit/test_save_roundtrip.py`, `langs/python/tests/unit/test_scenario_loader.py` | `langs/typescript/tests/unit/scenario-vm.test.ts`, `langs/typescript/tests/unit/save-roundtrip.test.ts`, `langs/typescript/tests/unit/scenario-loader.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/ScenarioVMTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/SaveRoundtripTests.cs` |
+| Candidate selection | `langs/python/tests/unit/test_selection_state.py`, `langs/python/tests/unit/test_results_subtabs.py` | `langs/typescript/tests/unit/selection-state.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/SelectionStateTests.cs` |
+| Collection/filter behavior | `langs/python/tests/unit/test_vm_tree.py`, `langs/python/tests/integration/test_vm_tree_comprehensive.py` | `langs/typescript/tests/unit/vm-tree.test.ts`, `langs/typescript/tests/integration/vm-tree-comprehensive.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeComprehensiveTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/ChartDataTests.cs` |
+| Dialog/confirmation behavior | `langs/python/tests/unit/test_confirm_dialog.py`, `langs/python/tests/unit/test_toolbar.py` | `langs/typescript/tests/unit/confirm-dialog.test.ts`, `langs/typescript/tests/unit/confirm-dialog-motion.test.ts`, `langs/typescript/tests/unit/toolbar-markup.test.ts` | `langs/csharp/tests/GuideArch.ViewModels.Tests/DiscardConfirmTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/DialogScrimCancelTests.cs`, `langs/csharp/tests/GuideArch.ViewModels.Tests/DialogStyleTests.cs` |
+| Cross-language conformance | `langs/python/tests/conformance/test_conformance.py` | `langs/typescript/src/conformance/runner.ts` | `langs/csharp/tests/GuideArch.Models.Tests/ConformanceTests.cs` |
 
-### Tests that should be rewritten
+### Exact-file rewrite matrix
 
-- App/root property-change tests in all three languages because they currently assert old message shapes or old factory transitions.
-- Adapter/store tests in Python and TypeScript because they are tightly coupled to raw property-notification and whole-model rebroadcast behavior.
-- Broad VM-tree suites because the replacement surface will mix `FormVM`, readonly modeled components, observable collections, and selection capabilities.
-- C# discard-confirmation tests because they currently inspect the old code-behind seam.
+| Exact test file | Language | Reason to rewrite | Replacement assertion |
+| --- | --- | --- | --- |
+| `langs/python/tests/unit/test_app_vm.py` | Python | Current assertions assume manual `property_changed` semantics and root-specific theme wiring. | Assert derived theme/warning state and stable child reference on the replacement AppVM surface. |
+| `langs/python/tests/unit/test_vmx_to_nicegui_adapter.py` | Python | Tight to the current `vmx_to_nicegui.py` proxy and raw string property notifications. | Assert the replacement NiceGUI bridge reacts to `FormVM`/`ObservableList` updates and command decorators. |
+| `langs/python/tests/unit/test_vm_tree.py` | Python | Type and shape checks assume bespoke roots and plain result wrappers. | Assert the new VM tree uses `FormVM`/readonly component helpers while keeping public model fields stable. |
+| `langs/python/tests/integration/test_vm_tree_comprehensive.py` | Python | The solve-trigger matrix and property-change probes are anchored to the current hand-rolled root. | Re-assert the same behavior through the replacement root lifecycle and selection abstractions. |
+| `langs/typescript/tests/unit/app-vm.test.ts` | TypeScript | The current hub assertion is already sensitive to VMx 3.1 property-name behavior and will shift again under derived AppVM state. | Assert the replacement AppVM publishes the expected theme/warning outcomes without depending on the old message shape. |
+| `langs/typescript/tests/unit/vmx-to-svelte.test.ts` | TypeScript | This suite is hard-wired to `vmxToStore` whole-model rebroadcast behavior. | Assert the replacement Svelte bridge updates from observable collections and derived properties. |
+| `langs/typescript/tests/unit/vm-tree.test.ts` | TypeScript | Factory/type checks assume `ComponentVMOf` everywhere, including result-only wrappers. | Assert the new mix of form, readonly, and selection-capable VMs with unchanged public model data. |
+| `langs/typescript/tests/integration/vm-tree-comprehensive.test.ts` | TypeScript | Comprehensive matrix coverage is coupled to the present root and adapter contracts. | Re-assert lifecycle, solve triggers, readonly results, and selection through the replacement VMx 3.1 surface. |
+| `langs/csharp/tests/GuideArch.ViewModels.Tests/AppVMTests.cs` | C# | Property-changed and theme-warning assertions are tied to the current `AppVMFactory` state transitions. | Assert the replacement AppVM preserves persistence and stable child behavior while publishing the new derived state. |
+| `langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeTests.cs` | C# | Current type checks assume factory-per-leaf `ComponentVM<T>` outputs only. | Assert the replacement helper mix while keeping the public ViewModel tree available to Avalonia. |
+| `langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeComprehensiveTests.cs` | C# | The broad matrix is anchored to `ScenarioVMFactory` and manual mutator plumbing. | Re-assert the same lifecycle, CRUD, readonly-result, and solve-trigger behavior through the replacement surface. |
+| `langs/csharp/tests/GuideArch.ViewModels.Tests/DiscardConfirmTests.cs` | C# | This suite scans code-behind text for the current confirm implementation. | Assert dialog-service and confirmation-decorator behavior at the new VM/view seam instead of source text. |
 
-### Tests that should be added
+### Exact-file additions
 
-- Scenario form lifecycle suites:
-  `test_scenario_form_vm.py`, `scenario-form-vm.test.ts`, `ScenarioFormVMTests.cs`.
-- CRUD command parity suites:
-  `test_scenario_crud_commands.py`, `scenario-crud-commands.test.ts`, `ScenarioCrudCommandTests.cs`.
-- Observable collection and selection suites:
-  `test_scenario_observable_lists.py`, `scenario-observable-lists.test.ts`, `ObservableCollectionProjectionTests.cs`.
+| Proposed exact test file | Language | Behavior to cover | Replacement IDs |
+| --- | --- | --- | --- |
+| `langs/python/tests/unit/test_scenario_form_vm.py` | Python | `FormVM` dirty-state, approve/deny, and save-eligibility behavior for the scenario root. | `R1`, `R6`, `R9` |
+| `langs/python/tests/unit/test_scenario_crud_commands.py` | Python | `ModeledCrudCommands` parity for decision, alternative, property, and constraint mutations. | `R2`, `R8` |
+| `langs/python/tests/unit/test_scenario_observable_lists.py` | Python | `ObservableList`/derived collection behavior for coefficients, constraints, and selected candidate state. | `R4`, `R5`, `R7`, `R11`, `R12` |
+| `langs/typescript/tests/unit/scenario-form-vm.test.ts` | TypeScript | Replacement root form lifecycle and dirty/save gating. | `R1`, `R6`, `R9` |
+| `langs/typescript/tests/unit/scenario-crud-commands.test.ts` | TypeScript | CRUD-command parity for editable scenario children. | `R2`, `R8` |
+| `langs/typescript/tests/unit/scenario-observable-lists.test.ts` | TypeScript | Observable list, derived property, and selection-capability behavior in the Svelte-facing surface. | `R4`, `R5`, `R7`, `R11`, `R12` |
+| `langs/csharp/tests/GuideArch.ViewModels.Tests/ScenarioFormVMTests.cs` | C# | Replacement form lifecycle, dirty flag, and save gating for the Avalonia root. | `R1`, `R6`, `R9` |
+| `langs/csharp/tests/GuideArch.ViewModels.Tests/ScenarioCrudCommandTests.cs` | C# | CRUD-command parity for the current mutator-heavy editor flows. | `R2`, `R8` |
+| `langs/csharp/tests/GuideArch.ViewModels.Tests/ObservableCollectionProjectionTests.cs` | C# | Observable collection, derived projection, and selection behavior feeding `ScenarioState`-like view data. | `R4`, `R5`, `R7`, `R11`, `R12` |
 
-### Tests that may be removed
+### Exact-file removals
 
-- Python `test_vmx_to_nicegui_adapter.py` only if `vmx_to_nicegui.py` is fully retired and its replacement coverage lands in the new form and observable-list suites.
-- TypeScript `vmx-to-svelte.test.ts` only if `vmx-to-svelte.ts` is deleted and replacement bridge coverage moves into the new observable-list suites.
-- No outright C# suite deletion is required in the first wave.
+| Exact test file or `None` | Language | Removal condition |
+| --- | --- | --- |
+| `langs/python/tests/unit/test_vmx_to_nicegui_adapter.py` | Python | Remove only if `langs/python/src/guidearch/view/adapters/vmx_to_nicegui.py` is fully retired and its replacement coverage lives in `test_scenario_form_vm.py` plus `test_scenario_observable_lists.py`. |
+| `langs/typescript/tests/unit/vmx-to-svelte.test.ts` | TypeScript | Remove only if `langs/typescript/src/view/adapters/vmx-to-svelte.ts` is deleted and Svelte bridge coverage moves to the replacement observable-list suites. |
+| `None` | C# | Prefer rewrites of existing xUnit suites; no outright deletion is required for the first VMx 3.1 refactor wave. |
 
 ## Recommended Refactor Phases
 
@@ -204,7 +217,7 @@ Source-of-truth matrix: [test-impact.md](vmx-3-1-audit/test-impact.md)
 ### Phase 2: Safe Mechanical Replacements
 
 - **Replacement IDs:** `R2`, `R3`, `R11`, `R13`
-- **Primary files:** `langs/python/src/guidearch/viewmodels/alternative_vm.py`, `decision_vm.py`, `property_vm.py`, `coefficient_vm.py`, `constraint_vm.py`, `candidate_vm.py`, `critical_decision_vm.py`, `critical_constraint_vm.py`; `langs/typescript/src/viewmodels/alternative-vm.ts`, `decision-vm.ts`, `property-vm.ts`, `coefficient-vm.ts`, `constraint-vm.ts`, `candidate-vm.ts`, `critical-decision-vm.ts`, `critical-constraint-vm.ts`, `app-vm.ts`; `langs/csharp/src/GuideArch.ViewModels/AlternativeVMFactory.cs`, `DecisionVMFactory.cs`, `PropertyVMFactory.cs`, `CoefficientVMFactory.cs`, `ConstraintVMFactory.cs`, `CandidateVMFactory.cs`, `CriticalDecisionVMFactory.cs`, `CriticalConstraintVMFactory.cs`, `AppVMFactory.cs`
+- **Primary files:** `langs/python/src/guidearch/viewmodels/alternative_vm.py`, `decision_vm.py`, `property_vm.py`, `coefficient_vm.py`, `constraint_vm.py`, `candidate_vm.py`, `critical_decision_vm.py`, `critical_constraint_vm.py`, `app_vm.py`; `langs/typescript/src/viewmodels/alternative-vm.ts`, `decision-vm.ts`, `property-vm.ts`, `coefficient-vm.ts`, `constraint-vm.ts`, `candidate-vm.ts`, `critical-decision-vm.ts`, `critical-constraint-vm.ts`, `app-vm.ts`; `langs/csharp/src/GuideArch.ViewModels/AlternativeVMFactory.cs`, `DecisionVMFactory.cs`, `PropertyVMFactory.cs`, `CoefficientVMFactory.cs`, `ConstraintVMFactory.cs`, `CandidateVMFactory.cs`, `CriticalDecisionVMFactory.cs`, `CriticalConstraintVMFactory.cs`, `AppVMFactory.cs`
 - **Verification commands:**
   - Python VM tests from [test-impact.md](vmx-3-1-audit/test-impact.md):
     `cd langs/python && uv run pytest tests/unit/test_app_vm.py tests/unit/test_selection_state.py tests/unit/test_vm_tree.py tests/integration/test_vm_tree_comprehensive.py -q`
