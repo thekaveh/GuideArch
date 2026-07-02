@@ -274,7 +274,7 @@ jobs:
           fi
 
       - name: Build Docker image (push on tags)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: langs/python
           file: langs/python/Dockerfile
