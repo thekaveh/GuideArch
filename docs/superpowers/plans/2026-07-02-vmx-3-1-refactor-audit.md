@@ -152,9 +152,9 @@ Expected: command exits 0 and creates `vendor/vmx/langs/typescript/dist`.
 Run:
 
 ```bash
-cd langs/typescript && pnpm install && pnpm test
-cd langs/csharp && dotnet test --nologo
-cd langs/python && uv run pytest tests/ -q
+( cd langs/typescript && pnpm install && pnpm test )
+( cd langs/csharp && dotnet test --nologo )
+( cd langs/python && uv run pytest tests/ -q )
 ```
 
 Expected: pass if the dependency bump is compatible. If a command fails, capture the failing command, first failing test or compiler error, and whether it blocks the audit.
@@ -645,9 +645,9 @@ Expected: `rg` finds no matches and exits 1; all `test -f` commands exit 0.
 Run:
 
 ```bash
-cd langs/python && uv run pytest tests/ -q
-cd langs/typescript && pnpm test
-cd langs/csharp && dotnet test --nologo
+( cd langs/python && uv run pytest tests/ -q )
+( cd langs/typescript && pnpm test )
+( cd langs/csharp && dotnet test --nologo )
 ```
 
 Expected: tests pass, or any failure is documented in the final report's dependency/source state section.
