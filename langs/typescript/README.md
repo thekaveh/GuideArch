@@ -50,6 +50,11 @@ The integration suite at `tests/integration/vm-mvvm.test.ts` exercises the `Scen
 
 ## Architecture notes
 
-- **VMx browser-shim**: VMx-TS's published `dist/` calls `node:fs` / `node:url` at module-init. We work around this with a Vite plugin (`vmx-browser-shim` in `vite.config.js`) plus a `resolve.alias` from `vmx` to the VMx source TypeScript. Same shim handles `scenario-loader.ts`'s use of `fs`. See ADR-0001 §"VMx improvements flow back upstream" — the long-term fix lives in the `vendor/vmx` submodule, not in this repo.
+- **Node builtin aliases**: browser builds alias `node:fs`, `node:path`, and
+  `node:url` to browser-safe stubs in `vite.config.js`. The previous
+  `vmx-browser-shim` plugin was removed after VMx 3.1 made the transition
+  validator bundle cleanly from source. The remaining aliases support local
+  source modules such as `scenario-loader.ts`; browser-mode open uses the raw
+  object path below instead of filesystem access.
 - **Browser-mode openCmd**: `Toolbar.svelte` reads the picked file via `FileReader.readAsText`, calls `JSON.parse`, then hands the raw object to `vm._browserOpen(raw, filename)` which validates via an inlined copy of `scenario.schema.json` at `src/samples/scenario.schema.json`. This avoids any filesystem access in the browser.
 - **Sample scenarios** ship as JSON imports under `src/samples/` so they tree-shake into the bundle.

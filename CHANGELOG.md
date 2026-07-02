@@ -42,9 +42,10 @@ Post-v1.0.0 maintenance focused on cross-impl parity, a UI/UX elevation pass, an
   `>=3.13.0` so installs always get the patched chain.
 - TypeScript: pnpm override pins transitive `cookie` to `^0.7.2`
   (GHSA-pxg6-pf52-xh8x, low) until `@sveltejs/kit` bumps its own range.
-- TypeScript: `pnpm-lock.yaml` now resolves Vite to `6.4.3` and transitive
-  `esbuild` to `0.28.1`, closing current Vite/esbuild development-server
-  advisories in the TS toolchain.
+- TypeScript: `pnpm-lock.yaml` now resolves Vite to `6.4.3`; the lock still
+  contains Vite's `esbuild@0.25.12` and also resolves `tsx`'s esbuild chain to
+  `0.28.1`. `pnpm audit --audit-level low` is clean for the current TS
+  toolchain state.
 - TypeScript: removed the old VMx transition-validator browser shim; VMx
   3.1's source now imports lifecycle fixtures statically and bundles cleanly.
 - `release.yml` GITHUB_TOKEN narrowed to workflow-level `contents: read`;

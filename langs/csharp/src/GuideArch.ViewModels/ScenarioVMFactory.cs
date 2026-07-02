@@ -295,9 +295,18 @@ public static class ScenarioVMFactory
         // Atomic write (tmp sibling + move) so a crash or disk-full mid-write
         // can't destroy the user's existing scenario file — same pattern as
         // AppVMFactory.PersistTheme.
-        var tmp = path + ".tmp";
-        File.WriteAllText(tmp, json);
-        File.Move(tmp, path, overwrite: true);
+        var tmp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            File.WriteAllText(tmp, json);
+            ScenarioLoader.Load(tmp);
+            File.Move(tmp, path, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(tmp))
+                File.Delete(tmp);
+        }
     }
 }
 

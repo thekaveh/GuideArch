@@ -32,7 +32,7 @@ be reviewed when those pins move.
 | Integration point | Pinned contract | Latest-status check | Public surface verified | Method |
 |---|---|---|---|---|
 | Vite | `vite@6.4.3` in `pnpm-lock.yaml` | `pnpm audit --audit-level low` clean after lock refresh | Vite dev/build CLI used by scripts | `pnpm build`, `pnpm check`, audit |
-| esbuild | `esbuild@0.28.1` in `pnpm-lock.yaml` | `pnpm audit --audit-level low` clean after lock refresh | Vite/tsx transitive binary install | frozen `pnpm install`, audit |
+| esbuild | Vite chain: `esbuild@0.25.12`; tsx chain: `esbuild@0.28.1` in `pnpm-lock.yaml` | `pnpm audit --audit-level low` clean after lock refresh | Vite/tsx transitive binary installs | frozen `pnpm install`, audit |
 | SvelteKit/Svelte | `@sveltejs/kit@2.61.1`, `svelte@5.56.3` in `pnpm-lock.yaml` | `pnpm outdated` reviewed during audit | Svelte 5 component/compiler contracts | `pnpm check`, `pnpm build`, Vitest component/source tests |
 | Tauri CLI/runtime config | `@tauri-apps/cli@2.11.2`, Cargo lock under `src-tauri/` | Package lock reviewed | `tauri.conf.json`, capability config, Rust entry point | Source/config trace; full `pnpm tauri build` deferred because it is heavyweight |
 

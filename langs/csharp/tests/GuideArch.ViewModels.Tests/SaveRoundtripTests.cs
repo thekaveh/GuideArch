@@ -220,4 +220,30 @@ public class SaveRoundtripTests
                 File.Delete(tempPath);
         }
     }
+
+    [Fact]
+    public void SaveAsCmd_NonEmptyInvalidScenario_DoesNotWriteInvalidJson()
+    {
+        var (vm, cmds) = LoadSas();
+        var tempPath = Path.GetTempFileName() + ".json";
+
+        File.Delete(tempPath);
+        try
+        {
+            cmds.Mutator.AddDecision("Decision without alternatives");
+            cmds.SaveAsCmd.Execute(tempPath);
+
+            Assert.False(File.Exists(tempPath));
+            Assert.True(vm.Model.IsDirty);
+            Assert.NotEqual(tempPath, vm.Model.FilePath);
+            Assert.Contains("Save failed:", vm.Model.Status);
+            Assert.Contains("has no alternatives", vm.Model.Status);
+            Assert.Contains(vm.Model.Warnings, warning => warning == vm.Model.Status);
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+                File.Delete(tempPath);
+        }
+    }
 }
