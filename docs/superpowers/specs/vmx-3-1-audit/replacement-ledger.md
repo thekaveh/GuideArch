@@ -16,9 +16,9 @@
 | ViewModel production | 5436 | 4616 | 820 | medium |
 | View/adapter production | 9109 | 8884 | 225 | low |
 | Total production | 14545 | 13500 | 1045 | medium |
-| Tests | 10241 | 10571 | -330 | medium |
+| Tests | 10944 | 11274 | 330 | medium |
 
-Tests show negative `net saved` because the replacement path is expected to add parity coverage around forms, observable collections, and selection behavior.
+Tests grow by `+330 LOC` because the replacement path is expected to add parity coverage around forms, observable collections, and selection behavior.
 
 ## Ledger
 

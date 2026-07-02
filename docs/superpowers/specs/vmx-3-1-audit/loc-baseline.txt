@@ -174,10 +174,12 @@ Command:
       46 langs/python/tests/unit/test_chart_theme.py
       36 langs/python/tests/unit/test_chart_theme_refresh.py
       35 langs/python/tests/unit/test_confirm_dialog.py
-     364 langs/python/tests/unit/test_editor_cascades.py
+    364 langs/python/tests/unit/test_editor_cascades.py
       22 langs/python/tests/unit/test_empty_state.py
       22 langs/python/tests/unit/test_hero_illustration.py
       26 langs/python/tests/unit/test_results_subtabs.py
+     119 langs/python/tests/unit/test_save_roundtrip.py
+     228 langs/python/tests/unit/test_scenario_loader.py
      120 langs/python/tests/unit/test_scenario_vm.py
       28 langs/python/tests/unit/test_section_header.py
       94 langs/python/tests/unit/test_selection_state.py
@@ -194,9 +196,11 @@ Command:
      155 langs/typescript/tests/unit/app-vm.test.ts
       40 langs/typescript/tests/unit/chart-tokens.test.ts
       27 langs/typescript/tests/unit/confirm-dialog-motion.test.ts
-     125 langs/typescript/tests/unit/confirm-dialog.test.ts
-     327 langs/typescript/tests/unit/editor-cascades.test.ts
+    125 langs/typescript/tests/unit/confirm-dialog.test.ts
+    327 langs/typescript/tests/unit/editor-cascades.test.ts
       34 langs/typescript/tests/unit/empty-state-reuse.test.ts
+     154 langs/typescript/tests/unit/save-roundtrip.test.ts
+     202 langs/typescript/tests/unit/scenario-loader.test.ts
      124 langs/typescript/tests/unit/scenario-vm.test.ts
       23 langs/typescript/tests/unit/section-header.test.ts
       98 langs/typescript/tests/unit/selection-state.test.ts
@@ -206,7 +210,7 @@ Command:
      196 langs/typescript/tests/unit/vm-tree.test.ts
      154 langs/typescript/tests/unit/vmx-to-svelte.test.ts
      209 langs/typescript/tests/visual/snapshot-all-tabs.mjs
-   10241 total
+   10944 total
 
 ### Excluded from VM/View test LOC
 
@@ -215,16 +219,12 @@ Command:
   `langs/python/tests/conformance/test_conformance.py`,
   `langs/python/tests/unit/test_chart_comparison.py`,
   `langs/python/tests/unit/test_chart_data.py`,
-  `langs/python/tests/unit/test_save_roundtrip.py`,
-  `langs/python/tests/unit/test_scenario_loader.py`,
   `langs/python/tests/unit/test_solve_minimal.py`,
   `langs/python/tests/unit/test_triangular_fuzzy.py`
 - TypeScript model/TOPSIS/conformance-only tests:
   `langs/typescript/tests/conformance/conformance.test.ts`,
   `langs/typescript/tests/unit/chart-comparison.test.ts`,
   `langs/typescript/tests/unit/chart-data.test.ts`,
-  `langs/typescript/tests/unit/save-roundtrip.test.ts`,
-  `langs/typescript/tests/unit/scenario-loader.test.ts`,
   `langs/typescript/tests/unit/solve-minimal.test.ts`,
   `langs/typescript/tests/unit/triangular-fuzzy.test.ts`
 - Package markers and non-code snapshot assets are not part of the LOC tally.

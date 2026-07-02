@@ -125,7 +125,7 @@ LOC accounting rules and raw counts: [replacement-ledger.md](vmx-3-1-audit/repla
 | ViewModel production | 5436 | 4616 | 820 | medium |
 | View/adapter production | 9109 | 8884 | 225 | low |
 | Total production | 14545 | 13500 | 1045 | medium |
-| Tests | 10241 | 10571 | +330 | medium |
+| Tests | 10944 | 11274 | +330 | medium |
 
 Counting method and exclusions:
 

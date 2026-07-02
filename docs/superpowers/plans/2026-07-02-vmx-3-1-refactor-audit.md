@@ -1,6 +1,8 @@
 # VMx 3.1 Refactor Audit Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+>
+> **Execution tracking note:** This file remains a source plan. Execution status for the completed audit work is tracked in `.superpowers/sdd/progress.md` and the shipped audit artifacts rather than by checking every box here.
 
 **Goal:** Produce an evidence-backed VMx 3.1 migration/refactor audit for GuideArch across Python, TypeScript, and C#, including replacement tracking, LOC savings metrics, and test coverage impact.
 
