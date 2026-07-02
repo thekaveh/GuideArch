@@ -4,7 +4,7 @@
 
 - Branch: `codex/vmx-3-1-refactor-audit`
 - Pre-alignment GuideArch commit: `a80ee10ba511788db311f466f72134bd3ed6526c`
-- Post-alignment working commit: pending Task 1 commit from this aligned working tree (final Task 1 commit is recorded in `.superpowers/sdd/task-1-report.md`)
+- Post-alignment working commit: `c0446ba032f8684c0b93eec5d274496a6dfb9b14`
 - Intentionally ignored unrelated untracked files:
   - `docs/superpowers/plans/2026-06-22-ui-ux-elevation-editors-tables.md`
   - `docs/superpowers/plans/2026-06-22-ui-ux-elevation-foundation.md`
