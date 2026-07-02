@@ -28,7 +28,7 @@ jobs:
     steps:
       # vmx is resolved from PyPI, so the Python conformance job no longer needs
       # the vendor/vmx submodule (the csharp/typescript jobs below still do).
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -45,7 +45,7 @@ jobs:
   csharp:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: actions/setup-dotnet@v5
@@ -64,7 +64,7 @@ jobs:
   typescript:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: pnpm/action-setup@v4
