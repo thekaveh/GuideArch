@@ -8,68 +8,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Absolute path to the vendored VMx TypeScript package source
 const vmxSrc = path.resolve(__dirname, "../../vendor/vmx/langs/typescript/src");
 
-// The transitionValidator source file (Node-dependent, needs shimming for browser)
-const transitionValidatorSrc = path.resolve(
-  vmxSrc,
-  "lifecycle/transitionValidator.ts"
-);
-
-// Our browser-compatible shim
-const transitionValidatorShim = path.resolve(
-  __dirname,
-  "src/shims/vmx-transition-validator.ts"
-);
-
-/**
- * Vite plugin: redirect imports of transitionValidator to our browser shim.
- * @returns {import('vite').Plugin}
- */
-function vmxBrowserShimPlugin() {
-  return {
-    name: "vmx-browser-shim",
-    enforce: "pre",
-    /**
-     * @param {string} id
-     * @param {string | undefined} importer
-     */
-    resolveId(id, importer) {
-      // Match both the .js (ESM import style) and .ts (actual file) paths
-      if (
-        importer &&
-        (importer.includes("vendor/vmx") || importer.includes("node_modules/vmx"))
-      ) {
-        if (
-          id.includes("transitionValidator") ||
-          id === "./transitionValidator.js" ||
-          id === "../lifecycle/transitionValidator.js"
-        ) {
-          return transitionValidatorShim;
-        }
-      }
-      // Also catch if the resolved file itself is the transitionValidator
-      return null;
-    },
-    /** @param {string} id */
-    load(id) {
-      if (id === transitionValidatorSrc) {
-        // Redirect loads of the actual transitionValidator.ts to our shim
-        return null; // Let resolveId handle it
-      }
-      return null;
-    },
-  };
-}
-
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  plugins: [vmxBrowserShimPlugin(), sveltekit()],
+  plugins: [sveltekit()],
 
   resolve: {
     alias: {
       // Resolve `vmx` imports to the VMx TypeScript source entry point
-      // (bypasses the pre-built dist, which uses Node.js readFileSync).
+      // so GuideArch can build directly against the pinned submodule.
       "vmx": path.join(vmxSrc, "index.ts"),
       // When bundling VMx source files from vendor/, Vite resolves imports
       // relative to that directory tree — outside the project root — so

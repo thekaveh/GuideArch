@@ -45,6 +45,8 @@ Post-v1.0.0 maintenance focused on cross-impl parity, a UI/UX elevation pass, an
 - TypeScript: `pnpm-lock.yaml` now resolves Vite to `6.4.3` and transitive
   `esbuild` to `0.28.1`, closing current Vite/esbuild development-server
   advisories in the TS toolchain.
+- TypeScript: removed the old VMx transition-validator browser shim; VMx
+  3.1's source now imports lifecycle fixtures statically and bundles cleanly.
 - `release.yml` GITHUB_TOKEN narrowed to workflow-level `contents: read`;
   only `python-docker` (`packages: write`) and `release`
   (`contents: write`) escalate. `vmx-bump.yml`'s check job dropped an

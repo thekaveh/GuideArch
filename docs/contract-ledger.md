@@ -60,6 +60,4 @@ be reviewed when those pins move.
 - Add NuGet lock files or an equivalent locked restore policy for C#.
 - Decide whether Python runtime dependencies should be hard-pinned/capped or
   tested in an explicit "latest allowed direct dependencies" compatibility lane.
-- Replace or document the TypeScript VMx transition-validator shim now that VMx
-  3.1 has browser-safe fixture imports.
 - Add a restrictive production CSP for the Tauri webview.
