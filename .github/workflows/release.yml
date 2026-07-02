@@ -258,7 +258,7 @@ jobs:
         # NB: must use secrets context directly in if: — step-level env: is
         # applied AFTER if: evaluates, so env.GHCR_TOKEN would always be empty
         # at the gate.
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
