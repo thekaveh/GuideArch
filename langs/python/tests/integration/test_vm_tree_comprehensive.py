@@ -147,8 +147,8 @@ class TestVMExistence:
             "The spec §2 composite/aggregate nodes are realised via Python list/tuple "
             "attributes on ScenarioVM (e.g. scenario.decisions, vm.candidates) "
             "and the VMx CompositeVM / AggregateVM builder pattern is not used here. "
-            "This is a spec deviation: the Python impl collapses the composite wrappers "
-            "into the root ScenarioVM."
+            "The current v1.0 spec permits this collapsed ScenarioVM surface; separate "
+            "composite wrappers remain a possible v1.1 refactor."
         )
     )
     def test_composite_aggregate_wrappers_are_separate_classes(self) -> None:

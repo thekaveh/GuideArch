@@ -189,6 +189,7 @@ public static class ScenarioVMFactory
             if (state.Scenario is null) return;
             try
             {
+                ValidateSavableScenario(state.Scenario);
                 WriteScenario(state.Scenario, path);
             }
             catch (Exception ex)
@@ -261,6 +262,16 @@ public static class ScenarioVMFactory
         return vm;
     }
 
+    private static void ValidateSavableScenario(ScenarioM scenario)
+    {
+        if (scenario.Decisions.IsEmpty)
+            throw new ScenarioValidationException("Scenario must contain at least one decision before saving.");
+        if (scenario.Alternatives.IsEmpty)
+            throw new ScenarioValidationException("Scenario must contain at least one alternative before saving.");
+        if (scenario.Properties.IsEmpty)
+            throw new ScenarioValidationException("Scenario must contain at least one property before saving.");
+    }
+
     // Provide a way for View code-behind and tests to retrieve commands from a VM.
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<
         ComponentVM<ScenarioState>, ScenarioCommands> CommandsCache = new();
@@ -284,9 +295,18 @@ public static class ScenarioVMFactory
         // Atomic write (tmp sibling + move) so a crash or disk-full mid-write
         // can't destroy the user's existing scenario file — same pattern as
         // AppVMFactory.PersistTheme.
-        var tmp = path + ".tmp";
-        File.WriteAllText(tmp, json);
-        File.Move(tmp, path, overwrite: true);
+        var tmp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            File.WriteAllText(tmp, json);
+            ScenarioLoader.Load(tmp);
+            File.Move(tmp, path, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(tmp))
+                File.Delete(tmp);
+        }
     }
 }
 
