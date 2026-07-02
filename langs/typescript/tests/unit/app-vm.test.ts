@@ -97,8 +97,8 @@ describe('AppVM', () => {
 
     app.setTheme('light');
 
-    // ComponentVMOf fires "Model" (whole-model swap) when model is reassigned.
-    expect(seen).toContain('Model');
+    // VMx 3.1 ComponentVMOf fires "model" when the whole model is reassigned.
+    expect(seen).toContain('model');
   });
 
   it('exposes mode at construction; mode is immutable on the public surface', () => {

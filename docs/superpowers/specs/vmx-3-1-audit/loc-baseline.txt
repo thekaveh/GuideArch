@@ -1,0 +1,234 @@
+# LOC Baseline Commands And Output
+
+## ViewModel production files
+      26 langs/csharp/src/GuideArch.ViewModels/AlternativeVMFactory.cs
+      39 langs/csharp/src/GuideArch.ViewModels/AppState.cs
+     243 langs/csharp/src/GuideArch.ViewModels/AppVMFactory.cs
+      24 langs/csharp/src/GuideArch.ViewModels/CandidateVMFactory.cs
+     333 langs/csharp/src/GuideArch.ViewModels/ChartData.cs
+      25 langs/csharp/src/GuideArch.ViewModels/CoefficientVMFactory.cs
+      24 langs/csharp/src/GuideArch.ViewModels/ConstraintVMFactory.cs
+      24 langs/csharp/src/GuideArch.ViewModels/CriticalConstraintVMFactory.cs
+      24 langs/csharp/src/GuideArch.ViewModels/CriticalDecisionVMFactory.cs
+      24 langs/csharp/src/GuideArch.ViewModels/DecisionVMFactory.cs
+      26 langs/csharp/src/GuideArch.ViewModels/PropertyVMFactory.cs
+      12 langs/csharp/src/GuideArch.ViewModels/ScenarioMutationException.cs
+     156 langs/csharp/src/GuideArch.ViewModels/ScenarioSerializer.cs
+     189 langs/csharp/src/GuideArch.ViewModels/ScenarioState.cs
+     983 langs/csharp/src/GuideArch.ViewModels/ScenarioVMFactory.cs
+      63 langs/python/src/guidearch/viewmodels/__init__.py
+      69 langs/python/src/guidearch/viewmodels/alternative_vm.py
+     228 langs/python/src/guidearch/viewmodels/app_vm.py
+      32 langs/python/src/guidearch/viewmodels/candidate_vm.py
+      93 langs/python/src/guidearch/viewmodels/coefficient_vm.py
+     159 langs/python/src/guidearch/viewmodels/constraint_vm.py
+      39 langs/python/src/guidearch/viewmodels/critical_constraint_vm.py
+      31 langs/python/src/guidearch/viewmodels/critical_decision_vm.py
+      60 langs/python/src/guidearch/viewmodels/decision_vm.py
+      79 langs/python/src/guidearch/viewmodels/property_vm.py
+    1139 langs/python/src/guidearch/viewmodels/scenario_vm.py
+      31 langs/typescript/src/viewmodels/alternative-vm.ts
+     226 langs/typescript/src/viewmodels/app-vm.ts
+      20 langs/typescript/src/viewmodels/candidate-vm.ts
+      31 langs/typescript/src/viewmodels/coefficient-vm.ts
+      27 langs/typescript/src/viewmodels/constraint-vm.ts
+      20 langs/typescript/src/viewmodels/critical-constraint-vm.ts
+      20 langs/typescript/src/viewmodels/critical-decision-vm.ts
+      21 langs/typescript/src/viewmodels/decision-vm.ts
+      32 langs/typescript/src/viewmodels/index.ts
+      35 langs/typescript/src/viewmodels/property-vm.ts
+     829 langs/typescript/src/viewmodels/scenario-vm.ts
+    5436 total
+
+## View/adapter production files
+      19 langs/csharp/src/GuideArch.View/App.axaml
+      23 langs/csharp/src/GuideArch.View/App.axaml.cs
+      29 langs/csharp/src/GuideArch.View/Converters.cs
+    1153 langs/csharp/src/GuideArch.View/MainWindow.axaml
+    1341 langs/csharp/src/GuideArch.View/MainWindow.axaml.cs
+      24 langs/csharp/src/GuideArch.View/Program.cs
+     123 langs/csharp/src/GuideArch.View/Resources/Colors.axaml
+     372 langs/csharp/src/GuideArch.View/Resources/Styles.axaml
+      19 langs/csharp/src/GuideArch.View/SampleScenarios.cs
+       1 langs/python/src/guidearch/view/__init__.py
+       1 langs/python/src/guidearch/view/adapters/__init__.py
+     141 langs/python/src/guidearch/view/adapters/vmx_to_nicegui.py
+     414 langs/python/src/guidearch/view/chart_data.py
+     346 langs/python/src/guidearch/view/theme.py
+       5 langs/typescript/src/routes/+layout.svelte
+       5 langs/typescript/src/routes/+layout.ts
+     220 langs/typescript/src/routes/+page.svelte
+     303 langs/typescript/src/routes/lib/AlternativesTab.svelte
+     224 langs/typescript/src/routes/lib/CandidateComparisonChart.svelte
+     292 langs/typescript/src/routes/lib/CoefficientsTab.svelte
+     198 langs/typescript/src/routes/lib/ConfirmDialog.svelte
+     642 langs/typescript/src/routes/lib/ConstraintsTab.svelte
+     157 langs/typescript/src/routes/lib/CriticalConstraintsTab.svelte
+     177 langs/typescript/src/routes/lib/CriticalDecisionsTab.svelte
+     219 langs/typescript/src/routes/lib/DecisionsTab.svelte
+     214 langs/typescript/src/routes/lib/EmptyState.svelte
+     135 langs/typescript/src/routes/lib/FuzzyInput.svelte
+     168 langs/typescript/src/routes/lib/FuzzyTriangleChart.svelte
+     310 langs/typescript/src/routes/lib/PropertiesTab.svelte
+     187 langs/typescript/src/routes/lib/RankedCandidatesChart.svelte
+     330 langs/typescript/src/routes/lib/ResultsTab.svelte
+      80 langs/typescript/src/routes/lib/SectionHeader.svelte
+     150 langs/typescript/src/routes/lib/StatusBar.svelte
+     164 langs/typescript/src/routes/lib/TabStrip.svelte
+     510 langs/typescript/src/routes/lib/Toolbar.svelte
+      50 langs/typescript/src/routes/lib/confirm-dialog.ts
+     166 langs/typescript/src/view/adapters/vmx-to-svelte.ts
+     197 langs/typescript/src/view/chart-data.ts
+    9109 total
+
+## VM/View test files
+Command:
+
+```bash
+{
+  printf '%s\n' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/AppVMTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/ChartDataTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/ChartThemeTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/DialogScrimCancelTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/DialogStyleTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/DiscardConfirmTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/EditorCascadesTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/EmptyStateTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/InputFocusStyleTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/SaveRoundtripTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/ScenarioVMTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/SectionHeaderTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/SelectionStateTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/SolveButtonStyleTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/TabStripStyleTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/TableStyleTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/ThemeDictionaryTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/ToolbarMarkupTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/VMMvvmIntegrationTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeComprehensiveTests.cs' \
+    'langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeTests.cs' \
+    'langs/python/tests/integration/test_vm_tree_comprehensive.py' \
+    'langs/python/tests/unit/test_app_vm.py' \
+    'langs/python/tests/unit/test_chart_theme.py' \
+    'langs/python/tests/unit/test_chart_theme_refresh.py' \
+    'langs/python/tests/unit/test_confirm_dialog.py' \
+    'langs/python/tests/unit/test_editor_cascades.py' \
+    'langs/python/tests/unit/test_empty_state.py' \
+    'langs/python/tests/unit/test_hero_illustration.py' \
+    'langs/python/tests/unit/test_results_subtabs.py' \
+    'langs/python/tests/unit/test_save_roundtrip.py' \
+    'langs/python/tests/unit/test_scenario_loader.py' \
+    'langs/python/tests/unit/test_scenario_vm.py' \
+    'langs/python/tests/unit/test_section_header.py' \
+    'langs/python/tests/unit/test_selection_state.py' \
+    'langs/python/tests/unit/test_solve_style.py' \
+    'langs/python/tests/unit/test_table_polish.py' \
+    'langs/python/tests/unit/test_theme.py' \
+    'langs/python/tests/unit/test_toolbar.py' \
+    'langs/python/tests/unit/test_vm_mvvm.py' \
+    'langs/python/tests/unit/test_vm_tree.py' \
+    'langs/python/tests/unit/test_vmx_to_nicegui_adapter.py' \
+    'langs/python/tests/visual/snapshot_all_tabs.py' \
+    'langs/typescript/tests/integration/vm-mvvm.test.ts' \
+    'langs/typescript/tests/integration/vm-tree-comprehensive.test.ts' \
+    'langs/typescript/tests/unit/app-vm.test.ts' \
+    'langs/typescript/tests/unit/chart-tokens.test.ts' \
+    'langs/typescript/tests/unit/confirm-dialog-motion.test.ts' \
+    'langs/typescript/tests/unit/confirm-dialog.test.ts' \
+    'langs/typescript/tests/unit/editor-cascades.test.ts' \
+    'langs/typescript/tests/unit/empty-state-reuse.test.ts' \
+    'langs/typescript/tests/unit/save-roundtrip.test.ts' \
+    'langs/typescript/tests/unit/scenario-loader.test.ts' \
+    'langs/typescript/tests/unit/scenario-vm.test.ts' \
+    'langs/typescript/tests/unit/section-header.test.ts' \
+    'langs/typescript/tests/unit/selection-state.test.ts' \
+    'langs/typescript/tests/unit/tab-underline.test.ts' \
+    'langs/typescript/tests/unit/theme-tokens.test.ts' \
+    'langs/typescript/tests/unit/toolbar-markup.test.ts' \
+    'langs/typescript/tests/unit/vm-tree.test.ts' \
+    'langs/typescript/tests/unit/vmx-to-svelte.test.ts' \
+    'langs/typescript/tests/visual/snapshot-all-tabs.mjs'
+} | xargs wc -l
+```
+
+     122 langs/csharp/tests/GuideArch.ViewModels.Tests/AppVMTests.cs
+     627 langs/csharp/tests/GuideArch.ViewModels.Tests/ChartDataTests.cs
+      53 langs/csharp/tests/GuideArch.ViewModels.Tests/ChartThemeTests.cs
+      42 langs/csharp/tests/GuideArch.ViewModels.Tests/DialogScrimCancelTests.cs
+      62 langs/csharp/tests/GuideArch.ViewModels.Tests/DialogStyleTests.cs
+      57 langs/csharp/tests/GuideArch.ViewModels.Tests/DiscardConfirmTests.cs
+     419 langs/csharp/tests/GuideArch.ViewModels.Tests/EditorCascadesTests.cs
+      69 langs/csharp/tests/GuideArch.ViewModels.Tests/EmptyStateTests.cs
+      56 langs/csharp/tests/GuideArch.ViewModels.Tests/InputFocusStyleTests.cs
+     197 langs/csharp/tests/GuideArch.ViewModels.Tests/SaveRoundtripTests.cs
+     121 langs/csharp/tests/GuideArch.ViewModels.Tests/ScenarioVMTests.cs
+      48 langs/csharp/tests/GuideArch.ViewModels.Tests/SectionHeaderTests.cs
+     180 langs/csharp/tests/GuideArch.ViewModels.Tests/SelectionStateTests.cs
+      53 langs/csharp/tests/GuideArch.ViewModels.Tests/SolveButtonStyleTests.cs
+      51 langs/csharp/tests/GuideArch.ViewModels.Tests/TabStripStyleTests.cs
+      32 langs/csharp/tests/GuideArch.ViewModels.Tests/TableStyleTests.cs
+      50 langs/csharp/tests/GuideArch.ViewModels.Tests/ThemeDictionaryTests.cs
+      45 langs/csharp/tests/GuideArch.ViewModels.Tests/ToolbarMarkupTests.cs
+     266 langs/csharp/tests/GuideArch.ViewModels.Tests/VMMvvmIntegrationTests.cs
+    1423 langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeComprehensiveTests.cs
+     182 langs/csharp/tests/GuideArch.ViewModels.Tests/VMTreeTests.cs
+     932 langs/python/tests/integration/test_vm_tree_comprehensive.py
+      99 langs/python/tests/unit/test_app_vm.py
+      46 langs/python/tests/unit/test_chart_theme.py
+      36 langs/python/tests/unit/test_chart_theme_refresh.py
+      35 langs/python/tests/unit/test_confirm_dialog.py
+    364 langs/python/tests/unit/test_editor_cascades.py
+      22 langs/python/tests/unit/test_empty_state.py
+      22 langs/python/tests/unit/test_hero_illustration.py
+      26 langs/python/tests/unit/test_results_subtabs.py
+     119 langs/python/tests/unit/test_save_roundtrip.py
+     228 langs/python/tests/unit/test_scenario_loader.py
+     120 langs/python/tests/unit/test_scenario_vm.py
+      28 langs/python/tests/unit/test_section_header.py
+      94 langs/python/tests/unit/test_selection_state.py
+      26 langs/python/tests/unit/test_solve_style.py
+      22 langs/python/tests/unit/test_table_polish.py
+      21 langs/python/tests/unit/test_theme.py
+      43 langs/python/tests/unit/test_toolbar.py
+     238 langs/python/tests/unit/test_vm_mvvm.py
+     348 langs/python/tests/unit/test_vm_tree.py
+     287 langs/python/tests/unit/test_vmx_to_nicegui_adapter.py
+     247 langs/python/tests/visual/snapshot_all_tabs.py
+     255 langs/typescript/tests/integration/vm-mvvm.test.ts
+    1131 langs/typescript/tests/integration/vm-tree-comprehensive.test.ts
+     155 langs/typescript/tests/unit/app-vm.test.ts
+      40 langs/typescript/tests/unit/chart-tokens.test.ts
+      27 langs/typescript/tests/unit/confirm-dialog-motion.test.ts
+    125 langs/typescript/tests/unit/confirm-dialog.test.ts
+    327 langs/typescript/tests/unit/editor-cascades.test.ts
+      34 langs/typescript/tests/unit/empty-state-reuse.test.ts
+     154 langs/typescript/tests/unit/save-roundtrip.test.ts
+     202 langs/typescript/tests/unit/scenario-loader.test.ts
+     124 langs/typescript/tests/unit/scenario-vm.test.ts
+      23 langs/typescript/tests/unit/section-header.test.ts
+      98 langs/typescript/tests/unit/selection-state.test.ts
+      40 langs/typescript/tests/unit/tab-underline.test.ts
+      51 langs/typescript/tests/unit/theme-tokens.test.ts
+      41 langs/typescript/tests/unit/toolbar-markup.test.ts
+     196 langs/typescript/tests/unit/vm-tree.test.ts
+     154 langs/typescript/tests/unit/vmx-to-svelte.test.ts
+     209 langs/typescript/tests/visual/snapshot-all-tabs.mjs
+   10944 total
+
+### Excluded from VM/View test LOC
+
+- C# model/domain/conformance suites under `langs/csharp/tests/GuideArch.Models.Tests/*.cs`
+- Python model/TOPSIS/output/conformance-only tests:
+  `langs/python/tests/conformance/test_conformance.py`,
+  `langs/python/tests/unit/test_chart_comparison.py`,
+  `langs/python/tests/unit/test_chart_data.py`,
+  `langs/python/tests/unit/test_solve_minimal.py`,
+  `langs/python/tests/unit/test_triangular_fuzzy.py`
+- TypeScript model/TOPSIS/conformance-only tests:
+  `langs/typescript/tests/conformance/conformance.test.ts`,
+  `langs/typescript/tests/unit/chart-comparison.test.ts`,
+  `langs/typescript/tests/unit/chart-data.test.ts`,
+  `langs/typescript/tests/unit/solve-minimal.test.ts`,
+  `langs/typescript/tests/unit/triangular-fuzzy.test.ts`
+- Package markers and non-code snapshot assets are not part of the LOC tally.
