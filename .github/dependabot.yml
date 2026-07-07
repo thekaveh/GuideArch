@@ -2,38 +2,39 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: "/langs/typescript"
-    schedule: { interval: weekly }
+    schedule: {interval: weekly}
     open-pull-requests-limit: 5
-    commit-message: { prefix: "chore(ts)" }
-
+    commit-message: {prefix: "chore(ts)"}
+    target-branch: develop
   - package-ecosystem: nuget
     directory: "/langs/csharp"
-    schedule: { interval: weekly }
+    schedule: {interval: weekly}
     open-pull-requests-limit: 5
-    commit-message: { prefix: "chore(cs)" }
-
+    commit-message: {prefix: "chore(cs)"}
+    target-branch: develop
   # uv-managed project (pyproject.toml + uv.lock): the `uv` ecosystem updates
   # uv.lock, which the legacy `pip` ecosystem never touched.
   - package-ecosystem: uv
     directory: "/langs/python"
-    schedule: { interval: weekly }
+    schedule: {interval: weekly}
     open-pull-requests-limit: 5
-    commit-message: { prefix: "chore(py)" }
-
+    commit-message: {prefix: "chore(py)"}
+    target-branch: develop
   - package-ecosystem: github-actions
     directory: "/"
-    schedule: { interval: weekly }
+    schedule: {interval: weekly}
     open-pull-requests-limit: 5
-    commit-message: { prefix: "chore(ci)" }
-
+    commit-message: {prefix: "chore(ci)"}
+    target-branch: develop
   - package-ecosystem: cargo
     directory: "/langs/typescript/src-tauri"
-    schedule: { interval: weekly }
+    schedule: {interval: weekly}
     open-pull-requests-limit: 5
-    commit-message: { prefix: "chore(tauri)" }
-
+    commit-message: {prefix: "chore(tauri)"}
+    target-branch: develop
   - package-ecosystem: docker
     directory: "/langs/python"
-    schedule: { interval: weekly }
+    schedule: {interval: weekly}
     open-pull-requests-limit: 5
-    commit-message: { prefix: "chore(docker)" }
+    commit-message: {prefix: "chore(docker)"}
+    target-branch: develop
