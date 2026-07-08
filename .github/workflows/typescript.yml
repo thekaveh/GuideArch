@@ -33,7 +33,7 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         # Pinned to a specific minor so a pnpm release can't silently change
         # builds (previously `version: latest` made runs non-deterministic).
         with:
