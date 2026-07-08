@@ -32,7 +32,7 @@ jobs:
       # vmx is resolved from PyPI, so this build no longer needs the vendor/vmx
       # submodule checked out (unlike conformance.yml / release.yml, which still
       # build the TS and C# impls from the submodule).
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v6
         with:

@@ -38,7 +38,7 @@ jobs:
       run:
         working-directory: langs/typescript
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -135,7 +135,7 @@ jobs:
       run:
         working-directory: langs/csharp
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -197,7 +197,7 @@ jobs:
       # is evaluated; only job-level `env:` is in scope for the gate.)
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -242,7 +242,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -305,7 +305,7 @@ jobs:
       run:
         working-directory: langs/typescript
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -370,7 +370,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Resolve VERSION from tag (or 'dev' on manual dispatch)
         id: version
