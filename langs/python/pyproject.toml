@@ -22,7 +22,7 @@ dependencies = [
 # or, in this repo's workflow, automatically by `uv sync --all-extras`.
 dev = [
     "pytest>=8",
-    "mypy>=1.10",
+    "mypy>=2.2.0",
     "ruff>=0.15.17",
 ]
 
