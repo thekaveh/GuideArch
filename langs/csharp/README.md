@@ -6,7 +6,7 @@ The UI renders the shared two-theme design system (`spec/design-system.md`) via 
 
 ## Prerequisites
 
-- .NET 8 SDK or newer (`dotnet --list-sdks`). .NET 9 SDK works because `Directory.Build.props` sets `<RollForward>Major</RollForward>` — the published binary targets `net8.0` but rolls forward at runtime to whatever the user has.
+- .NET 8 SDK or newer (`dotnet --list-sdks`). .NET 9 SDK works because `Directory.Build.props` sets `<RollForward>Major</RollForward>` — the project targets `net8.0` but rolls forward at runtime to whatever the user has.
 - The VMx submodule initialised at `vendor/vmx/` (run `git submodule update --init` from the repo root if not).
 
 ## Run
@@ -22,7 +22,7 @@ After the window opens, click **Sample SAS** or **Sample EDS** in the toolbar (o
 ## WebAssembly (Avalonia.Browser) — deferred to v1.1
 
 The C# View project does not yet reference `Avalonia.Browser`, so
-`dotnet publish -r browser-wasm` will fail at runtime. v1.0 ships C# as
+`dotnet publish -r browser-wasm` will fail at runtime. The current C# implementation runs as
 desktop-only, matching `spec/release.md` §1.2. When the wasm target lands,
 this section will document the publish command and the static-host setup.
 

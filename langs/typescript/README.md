@@ -11,6 +11,10 @@ The UI renders the shared two-theme design system (`spec/design-system.md`) via 
 - Rust + cargo (only for `pnpm tauri dev` / `pnpm tauri build`; install via https://rustup.rs)
 - The VMx submodule initialised at `vendor/vmx/` (run `git submodule update --init` from the repo root if not)
 
+Before desktop mode, install [Tauri 2 system prerequisites](https://v2.tauri.app/start/prerequisites/) for your operating system.
+Rust alone is insufficient; Linux also needs the listed WebKit and build packages.
+Browser mode does not need these desktop dependencies.
+
 ## Dev setup
 
 ```bash

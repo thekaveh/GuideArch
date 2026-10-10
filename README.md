@@ -1,205 +1,117 @@
 # GuideArch
 
-Modern fuzzy multi-criteria decision analysis for software architecture, shipped as three concurrent implementations sharing one spec.
+GuideArch helps software architects compare technology stacks using fuzzy multi-criteria decision analysis.
+Describe decisions, alternatives, quality properties and constraints, then rank candidate architectures with fuzzy TOPSIS.
+Use sensitivity analysis to see which decisions and constraints affect the result.
 
-GuideArch helps software architects pick between competing technology stacks by modeling a decision space — *decisions*, *alternatives*, quality *properties* with priority weights, and three families of *constraints* — and ranking the resulting candidate architectures using fuzzy TOPSIS. It also reports which decisions matter most (sensitivity analysis) and which constraints are most binding (elimination counting).
+## 1. Capabilities
 
-## 1. Status
+- Edit architecture decisions, alternatives, property weights and constraints.
+- Rank candidates and inspect scores, fuzzy values and comparison charts.
+- Examine critical decisions and constraints.
+- Load bundled examples, open scenario JSON files and save your changes.
+- Choose dark or light appearance in any implementation.
 
-**v1.0.0 released — M5 complete — release artifacts wired.** All three implementations (TypeScript, C#, Python) are feature-complete: full domain + TOPSIS engine, editors, results, analysis charts, and release-ready build configs. Tauri installers, Avalonia self-contained binaries, Python wheel + Docker image, and a SvelteKit static web bundle are all produced by the GitHub Actions release workflow on every `v*.*.*` tag push.
+## 2. Availability and requirements
 
-Milestone tags: `v0.0.0-bootstrap` (M0), `v0.1.0-m1` (M1 — domain + TOPSIS), `v0.2.0-m2` (M2 — ViewModels + skeleton UI), `v0.3.0-m3` (M3 — full editors), `v0.4.0-m4` (M4 — analysis + charts), `v1.0.0` (M5 — release artifacts).
+Run GuideArch from source using the instructions below.
+[GitHub Releases](https://github.com/thekaveh/GuideArch/releases) currently contains only `v0.0.0-bootstrap`, with no attached installers.
+The `v1.0.0` tag and package metadata identify the development baseline; they do not establish downloadable release availability.
+Release build configurations are documented in [the release specification](spec/release.md).
 
-## 2. What's in the box
+Choose one implementation. You do not need all three toolchains.
 
-Three implementations of the same application, kept in conformance by a shared spec and a cross-impl test corpus. All three render against a shared **design system** (`spec/design-system.md`): two first-class themes — an elevated dark default and a fully-retinted light theme, toggled from the toolbar — plus a unified toolbar, tab strip, Solve action, dialogs, and results charts, so the apps read as one product.
+| Implementation | Requirements | Interface |
+| --- | --- | --- |
+| [Python](langs/python/README.md) | Git, Python 3.11+, uv | NiceGUI browser UI; optional pywebview desktop window |
+| [TypeScript](langs/typescript/README.md) | Git, Node 22+, pnpm 11+; Rust/cargo for desktop | Svelte browser UI or Tauri desktop |
+| [C#](langs/csharp/README.md) | Git, .NET 8 or 9 SDK | Avalonia desktop; WebAssembly support is planned |
 
-| # | Language | UI framework | Desktop | Web |
-|---|---|---|---|---|
-| 2.1 | TypeScript | Svelte 5 + [Tauri 2](https://tauri.app) | ✓ | ✓ |
-| 2.2 | C# | [Avalonia 12](https://avaloniaui.net) | ✓ | deferred to v1.1 (see `spec/release.md` §1.2) |
-| 2.3 | Python | [NiceGUI 3.x](https://nicegui.io) | ✓ (pywebview) | ✓ |
+Python installs VMx from its pinned PyPI dependency.
+TypeScript and C# build VMx from the `vendor/vmx/` submodule because their registry packages are not published.
+The language guides explain platform-specific desktop prerequisites and optional VMx co-development.
 
-All three are built on the [VMx](https://github.com/thekaveh/VMx) MVVM framework. The **Python** impl consumes VMx from its published [PyPI package](https://pypi.org/project/vmx/); the **TypeScript** and **C#** impls build VMx from the git submodule at `vendor/vmx/` (their npm/NuGet packages are not yet published). See [ADR-0001](spec/ADRs/0001-three-impls-vmx-submodule.md).
+## 3. Run from source
 
-## 3. Documentation hub
-
-Read most-to-least essential. Each link includes when to use it.
-
-### 3.1 Specification & conformance
-
-- **[`spec/`](spec/README.md)** — the language-neutral source of truth that every implementation must satisfy. Contents:
-  - **[`spec/algorithms/topsis.md`](spec/algorithms/topsis.md)** — the canonical TOPSIS pipeline with magic-number table and tie-break rule. *(M1)*
-  - **[`spec/algorithms/critical-decisions.md`](spec/algorithms/critical-decisions.md)**, **[`spec/algorithms/critical-constraints.md`](spec/algorithms/critical-constraints.md)** — reference cards. *(M1)*
-  - **[`spec/domain/scenario.schema.json`](spec/domain/scenario.schema.json)** — JSON Schema 2020-12 for the input format. *(M1)*
-  - **[`spec/domain/glossary.md`](spec/domain/glossary.md)**, **[`spec/domain/invariants.md`](spec/domain/invariants.md)** — vocabulary and load-time validation rules. *(M1)*
-  - **[`spec/viewmodels.md`](spec/viewmodels.md)** — shared ViewModel tree shape: command names, observable property names, dirty-tracking, and re-solve trigger lists every impl mirrors. *(M2)*
-  - **[`spec/editors.md`](spec/editors.md)** — editor semantics: cascade rules for Delete (decision → alternatives → coefficients → constraints), add-with-defaults behavior, validation timing. *(M3)*
-  - **[`spec/charts.md`](spec/charts.md)** — chart contracts: fuzzy-decomposition triangle layout, axis/series conventions, color tokens. *(M4)*
-  - **[`spec/design-system.md`](spec/design-system.md)** — the visual language (color tokens, type scale, spacing, component specs) that all three impls render against. *(v1.0)*
-  - **[`spec/release.md`](spec/release.md)** — release process, versioning policy, monorepo tag scheme. *(v1.0)*
-  - **[`spec/conformance/`](spec/conformance/)** — the seed corpus: `scenarios/sas.json` (10 decisions, 25 alternatives, 7 properties), `scenarios/eds.json` (same shape), and the matching `expected/*.json` outputs the three impls must reproduce within `tolerances.json` (1e-9 absolute on scalars; ranking exact). *(M1, expanded M2-M4)*
-
-### 3.2 Architecture decision records
-
-Numbered rationale for each non-obvious design choice. Read when questioning *why* something is the way it is.
-
-- [ADR-0001 — Three implementations sharing one spec; VMx as submodule](spec/ADRs/0001-three-impls-vmx-submodule.md)
-- [ADR-0002 — JSON Schema for scenario files (not legacy XML)](spec/ADRs/0002-json-schema-not-xml.md)
-- [ADR-0003 — TOPSIS as in-repo code; no Microsoft Solver Foundation](spec/ADRs/0003-topsis-no-msf.md)
-- [ADR-0004 — MIT License](spec/ADRs/0004-mit-license.md)
-- [ADR-0005 — Single monorepo version; all three impls release together](spec/ADRs/0005-single-monorepo-version.md)
-- [ADR-0006 — NiceGUI 3.x as the Python view layer (not Shiny, not Streamlit)](spec/ADRs/0006-nicegui-over-shiny.md)
-
-### 3.3 Release history & governance
-
-- **[CHANGELOG.md](CHANGELOG.md)** — Keep-a-Changelog–style history of every release plus the running `[Unreleased]` section for post-v1.0 maintenance. *Start here when answering "what shipped?" — more reliable than scanning `git log`.*
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** — feature workflow (spec-first, all three impls in lockstep), local development, test layout, code style per language. *Read before opening a PR.*
-- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1. Report violations to kaveh.razavi@gmail.com.
-- **[SECURITY.md](SECURITY.md)** — private vulnerability reporting.
-
-### 3.4 Maintenance & audit artifacts
-
-- **[docs/contract-ledger.md](docs/contract-ledger.md)** — consumed external-contract ledger for VMx, framework packages, Docker images, CI actions, and invoked toolchains. Update it when a lockfile, submodule pin, Docker digest, or workflow action changes.
-- **[VMx 3.1 refactor audit report](docs/superpowers/specs/2026-07-02-vmx-3-1-refactor-audit-report.md)** — summary of the VMx 3.1 upgrade/refactor investigation across Python, TypeScript, and C#.
-- **[VMx 3.1 audit design](docs/superpowers/specs/2026-07-02-vmx-3-1-refactor-audit-design.md)** and **[execution plan](docs/superpowers/plans/2026-07-02-vmx-3-1-refactor-audit.md)** — planning context for the VMx audit branch.
-- **[VMx capability notes](docs/superpowers/specs/vmx-3-1-audit/vmx-3-1-capabilities.md)**, **[current usage](docs/superpowers/specs/vmx-3-1-audit/current-usage.md)**, **[replacement ledger](docs/superpowers/specs/vmx-3-1-audit/replacement-ledger.md)**, **[test impact](docs/superpowers/specs/vmx-3-1-audit/test-impact.md)**, **[baseline](docs/superpowers/specs/vmx-3-1-audit/baseline.md)**, and **[LOC baseline](docs/superpowers/specs/vmx-3-1-audit/loc-baseline.txt)** — detailed evidence behind the VMx audit report.
-
-## 4. Repository layout
-
-```
-spec/                language-neutral spec (schema, algorithms, conformance corpus, ADRs)
-vendor/vmx/          VMx submodule for the TS + C# builds, and optional Python co-dev (do not edit directly; PR upstream)
-langs/typescript/    TS + Tauri 2 + Svelte 5 implementation
-langs/csharp/        C# + Avalonia 12 implementation
-langs/python/        Python + NiceGUI 3.x implementation
-tools/               cross-cutting scripts (VMx mode switch, legacy XML import)
-.github/             CI workflows, issue/PR templates, dependabot config
-```
-
-Each implementation has its own README with language-specific setup, run, and test detail: [TypeScript](langs/typescript/README.md) · [C#](langs/csharp/README.md) · [Python](langs/python/README.md).
-
-## 5. Quickstart
-
-### 5.0 Clone with submodules
-
-The **TypeScript** and **C#** impls build VMx from the submodule at `vendor/vmx/`; without it initialized, those two fail because VMx imports won't resolve. The **Python** impl pulls VMx from PyPI and works from a plain clone — initialize the submodule only if you also build TS/C# or co-develop VMx's Python port via `tools/use-vmx-local.sh`.
+Install the tools for your chosen implementation first.
+Each block below starts from the repository root of a fresh checkout.
 
 ```bash
-git clone --recurse-submodules https://github.com/thekaveh/GuideArch.git
-# or, if already cloned without --recurse-submodules:
+git clone https://github.com/thekaveh/GuideArch.git
 cd GuideArch
-git submodule update --init
 ```
 
-### 5.1 Prerequisites
-
-| Tool | Used by | Check | Install |
-|---|---|---|---|
-| Node 22+ | TypeScript | `node --version` | `brew install node@22` |
-| pnpm 11+ | TypeScript | `pnpm --version` | `npm install -g pnpm@latest` |
-| Rust + cargo | TypeScript (Tauri desktop only) | `cargo --version` | https://rustup.rs |
-| .NET 8 or 9 SDK | C# | `dotnet --list-sdks` | `brew install --cask dotnet-sdk` |
-| Python 3.11+ | Python | `python3 --version` | `brew install python@3.12` |
-| uv | Python | `uv --version` | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-
-### 5.2 TypeScript (Tauri 2 + Svelte 5)
-
-```bash
-cd langs/typescript
-pnpm install
-pnpm dev          # Vite dev server — browser at http://localhost:1420 (also used by `pnpm tauri dev`)
-pnpm tauri dev    # desktop mode — native Tauri window attaches to the same dev server (first build is slow)
-```
-
-`Ctrl-C` (or close the window) to stop.
-
-### 5.3 C# (Avalonia 12)
-
-```bash
-cd langs/csharp
-dotnet build
-dotnet run --project src/GuideArch.View   # desktop Avalonia window
-```
-
-Close the window to stop. The Avalonia WebAssembly target is deferred to v1.1 (see `spec/release.md` §1.2); v1.0 C# ships desktop-only.
-
-### 5.4 Python (NiceGUI 3.x)
+### 3.1. Python browser application
 
 ```bash
 cd langs/python
 uv sync
-uv run guidearch                       # web mode — browser at http://localhost:8080
-uv run guidearch --native              # desktop mode — native pywebview window
-uv run python -m guidearch.main --native   # equivalent module-form invocation
+uv run guidearch
 ```
 
-`Ctrl-C` (or close the window) to stop.
+Open `http://localhost:8080` in your browser.
+Use `uv run guidearch --native` for a desktop window when your platform supports pywebview.
+Stop the server with `Ctrl+C`.
+See [Python setup](langs/python/README.md) for native-mode details and local development checks.
 
-The two `--native` forms behave identically. The console-script form
-(`uv run guidearch --native`) detects the flag and re-execs itself as
-`python -m guidearch.main` before booting NiceGUI, so the multiprocessing
-spawn child that drives pywebview has a stable package-qualified `__main__`
-to import — without that handoff, on some platforms the parent's HTTP
-server starts (you see `NiceGUI ready to go on http://127.0.0.1:8080`) but
-the pywebview window never surfaces.
+### 3.2. TypeScript application
 
-What native mode actually is: a borderless desktop window backed by
-pywebview's WebKit (macOS) / WebView2 (Windows) / GTK-WebKit (Linux). The
-UI inside is the same Svelte-style NiceGUI view you'd see in the browser —
-only the chrome differs. The `127.0.0.1:8080` line is still printed in
-native mode because pywebview talks to NiceGUI's local HTTP server; you
-don't need to open it manually.
-
-### 5.5 Try the sample scenarios
-
-Each app ships **SAS** (Service-Oriented Architecture, 10 decisions / 25 alternatives / 7 properties) and **EDS** (Enterprise Decision Space, similar shape) as bundled samples. After launching any flavor, click the toolbar button **Sample SAS** (or **Sample EDS**) — or the **Open Sample SAS** CTA on the first-launch hero — and the candidates table populates immediately. The JSON form of each scenario lives under [`spec/conformance/scenarios/`](spec/conformance/scenarios/); the original legacy XML files are not committed to this repository, but [`tools/import-legacy-xml.py`](tools/import-legacy-xml.py) is the converter that produced the bundled JSON from them.
-
-The recommended exploration flow:
-
-1. Click **Sample SAS** in the toolbar.
-2. **Results tab** — top candidate's score should be `0.031180695179944085`. The bar chart on the right shows the top 30; click any bar to jump to that candidate.
-3. **Properties tab** — change one property's weight (e.g., bump *Reliability* to 9). Watch the candidates table refresh instantly (v1.0 re-solves synchronously — see the v1.0 status note at the top of `spec/editors.md`; at SAS/EDS scale a single solve is under 10 ms).
-4. **Critical Decisions tab** — see which architectural choices drive the result most.
-5. **Critical Constraints tab** — see which constraints eliminate the most candidates.
-6. **Save As…** to a temp file; **New**; then **Open…** the file you just saved — the edit should round-trip.
-
-### 5.6 Run the conformance suite
-
-Each impl ships a runner that solves every scenario in `spec/conformance/scenarios/` and compares against `spec/conformance/expected/` within `1e-9` absolute. CI fails on divergence.
+From the repository root:
 
 ```bash
-# Python
-cd langs/python && uv run python -m guidearch.conformance.runner
-
-# C#
-cd langs/csharp && dotnet run --project src/GuideArch.Conformance
-
-# TypeScript
-cd langs/typescript && pnpm conformance
+git submodule update --init vendor/vmx
+cd langs/typescript
+pnpm install
+pnpm dev
 ```
 
-### 5.7 Run the unit + integration test suites
+Open `http://localhost:1420` in your browser.
+Use `pnpm tauri dev` for the desktop application after installing its native prerequisites.
+Stop the development server with `Ctrl+C`.
+See [TypeScript setup](langs/typescript/README.md) for builds and tests.
 
-Each impl ships VM-layer integration tests (load scenario → exercise ViewModel → assert results — no UI mounted) that prove MVVM separation works.
+### 3.3. C# application
+
+From the repository root:
 
 ```bash
-cd langs/python     && uv sync --all-extras && uv run pytest tests/ -q
-cd langs/csharp     && dotnet test --nologo
-cd langs/typescript && pnpm test
+git submodule update --init vendor/vmx
+cd langs/csharp
+dotnet build
+dotnet run --project src/GuideArch.View
 ```
 
-The Python `--all-extras` flag installs the `dev` group (`pytest`, `mypy`, `ruff`); the bare `uv sync` used in §5.4 is the runtime-only path.
+An Avalonia desktop window opens. Close it to stop the application.
+See [C# setup](langs/csharp/README.md) for framework, runtime and test details.
 
-### 5.8 Troubleshooting
+## 4. Explore a sample
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| TS web shows blank page | Stale build with module-init filesystem access | Pull latest; re-run `pnpm dev` |
-| `pnpm tauri dev` fails with cargo errors | Rust toolchain too old or missing Linux deps | Re-run rustup; on Ubuntu install `libwebkit2gtk-4.1-dev libsoup-3.0-dev` |
-| `dotnet run` says "must install .NET 8" | No .NET 8 runtime installed | Install .NET 8 runtime or rely on `RollForward=Major` (already set in `Directory.Build.props`) |
-| `uv run guidearch` fails on `import vmx` | venv out of sync with the lockfile | Re-run `uv sync` (vmx installs from PyPI); if you switched to the editable submodule via `tools/use-vmx-local.sh`, ensure `vendor/vmx/` is initialised (`git submodule update --init`) |
-| OS file picker never appears | macOS file permissions for the terminal app | System Settings → Privacy → Files & Folders |
+1. Select **Sample SAS** in the toolbar, or **Open Sample SAS** on the initial screen.
+2. Open **Results** to inspect the ranked candidates. The sample's top score is `0.031180695179944085`.
+3. Open **Properties** and change a weight, such as *Reliability*. The rankings update after the change.
+4. Inspect **Critical Decisions** and **Critical Constraints** to understand the result.
+5. Use **Save As…** to save a temporary JSON file. Select **New**, then **Open…** that file to restore your changes.
+
+The bundled SAS scenario contains 10 decisions, 25 alternatives and seven properties.
+**Sample EDS** provides a second example.
+The [scenario corpus](spec/conformance/scenarios/) and [algorithm specification](spec/algorithms/topsis.md) explain the inputs and expected results.
+
+## 5. Development and reference
+
+Start with [Contributing](CONTRIBUTING.md) for the spec-first workflow and local verification.
+Each language guide contains its unit, integration and numerical conformance commands.
+Python development tools use `uv sync --all-extras`; `uv sync` installs the runtime dependencies only.
+
+| Reference | Purpose |
+| --- | --- |
+| [Documentation reference](docs/reference.md) | Specifications, design decisions, release process and archived audit evidence |
+| [Changelog](CHANGELOG.md) | Development milestones and recorded changes |
+| [Contract ledger](docs/contract-ledger.md) | Consumed dependencies and toolchain contracts |
+| [Security](SECURITY.md) | Private vulnerability reporting |
+| [Code of conduct](CODE_OF_CONDUCT.md) | Participation policy |
+
+The repository separates shared specifications (`spec/`), language implementations (`langs/`) and supporting scripts (`tools/`).
+VMx is an external submodule under `vendor/vmx/`; propose dependency changes upstream.
 
 ## 6. License
 

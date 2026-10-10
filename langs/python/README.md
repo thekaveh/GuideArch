@@ -19,6 +19,10 @@ uv sync --all-extras                # unit-test, lint, type-check tooling
 uv sync --all-extras --group visual # also install playwright for visual snapshots
 ```
 
+Before native mode, follow [pywebview platform setup](https://pywebview.flowrl.com/guide/installation.html) for your operating system.
+Its window uses platform GUI dependencies in addition to the Python package.
+Browser mode does not need a native window.
+
 ## Run
 
 ```bash
@@ -55,4 +59,6 @@ docker build -f langs/python/Dockerfile -t guidearch:latest langs/python
 docker run --rm -p 8080:8080 guidearch:latest
 ```
 
-The published image is at `ghcr.io/thekaveh/guidearch:1.0.0` (when the release workflow has the GHCR token configured).
+The release workflow is configured to publish `ghcr.io/thekaveh/guidearch:1.0.0`.
+Verify registry availability before pulling it; workflow configuration alone does not establish that the image exists.
+The commands above build and run an image locally.
