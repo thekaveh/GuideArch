@@ -1,8 +1,17 @@
 # Changelog
 
-All notable changes to GuideArch (the monorepo — TypeScript / C# / Python impls released together) are recorded here. Versioning follows the single-monorepo-version policy of [ADR-0005](spec/ADRs/0005-single-monorepo-version.md): a release pushes one tag and all three impls share its version number.
+All notable changes to GuideArch (the monorepo — TypeScript / C# / Python implementations versioned together) are recorded here. Versioning follows the single-monorepo-version policy of [ADR-0005](spec/ADRs/0005-single-monorepo-version.md): a release pushes one tag and all three impls share its version number.
 
 The format is loosely [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
+
+## Development milestones and public availability
+
+The development tags span `v0.0.0-bootstrap` (M0), `v0.1.0-m1` (M1),
+`v0.2.0-m2` (M2), `v0.3.0-m3` (M3), `v0.4.0-m4` (M4), and `v1.0.0` (M5).
+These tags record implementation milestones and build configurations.
+They do not establish that downloadable installers or packages were published.
+GitHub Releases currently lists only the bootstrap release, without attached assets.
+Use the source-run instructions in [README](README.md) until release artifacts are available.
 
 ## [Unreleased]
 

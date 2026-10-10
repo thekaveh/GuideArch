@@ -2,7 +2,7 @@
 
 ## LOC Accounting Rules
 
-- Baseline counts come from [loc-baseline.txt](/Users/kaveh/repos/GuideArch/docs/superpowers/specs/vmx-3-1-audit/loc-baseline.txt).
+- Baseline counts come from [loc-baseline.txt](loc-baseline.txt).
 - ViewModel production, view/adapter production, and test LOC stay separated exactly as they were counted in that baseline artifact.
 - `deleted production LOC` and `added production LOC` are conservative slice estimates for the named pattern only; they are not whole-file rewrite claims.
 - `net production LOC` is `deleted - added`. Negative values mean the VMx 3.1 candidate likely adds scaffolding before later cleanups pay it back.
